@@ -22,7 +22,7 @@ export function PopularRestaurants({ onRestaurantClick }: PopularRestaurantsProp
   return (
     <section className="px-[20px] flex flex-col gap-[12px]">
       <h3 className="text-headline-md text-on-surface">Restaurantes Populares</h3>
-      <div className="flex flex-col gap-[12px]">
+      <div className="flex flex-col lg:flex-row gap-[12px]">
         {restaurants.map((restaurant) => (
           <div
             key={restaurant.id}
@@ -33,8 +33,8 @@ export function PopularRestaurants({ onRestaurantClick }: PopularRestaurantsProp
               {restaurant.icon}
             </div>
             <div className="flex flex-col flex-grow">
-              <h4 className="text-title-lg text-on-surface">{restaurant.name}</h4>
-              <p className="text-body-md text-on-surface-variant">{restaurant.category} • {restaurant.rating}</p>
+              <h4 className="text-title-lg font-bold text-on-surface">{restaurant.name}</h4>
+              <p className="text-body-md text-on-surface-variant">{restaurant.category} • <span className="text-secondary">{restaurant.rating}</span></p>
             </div>
           </div>
         ))}
