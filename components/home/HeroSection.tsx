@@ -1,6 +1,6 @@
 "use client"
 
-import { ShoppingBag, Truck, Zap, Bike, Headphones } from "lucide-react"
+import { ShoppingBag, Truck, Zap, Bike, Headphones, Phone } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,31 +13,31 @@ interface HeroSectionProps {
 
 export function HeroSection({ onBuyClick, onPickupClick }: HeroSectionProps) {
   return (
-    <section className="relative w-full min-h-[460px] lg:min-h-[600px] py-12 lg:py-16 flex items-center overflow-hidden bg-primary plus-pattern">
+    <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern">
       <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
         <div className="z-10 flex flex-col items-center lg:items-start text-center lg:text-left gap-5 max-w-xl order-last lg:order-first">
           <div className="flex flex-wrap justify-center lg:justify-start gap-3">
             <Badge variant="hero">
-              <Zap className="w-3.5 h-3.5 fill-white" />
+              <Zap className="w-3.5 h-3.5 text-secondary fill-secondary" />
               30-45 min
             </Badge>
             <Badge variant="hero">
-              <Bike className="w-3.5 h-3.5 fill-white" />
+              <Bike className="w-3.5 h-3.5 text-secondary fill-secondary" />
               Envío económico
             </Badge>
             <Badge variant="hero">
-              <Headphones className="w-3.5 h-3.5 fill-white" />
+              <Phone className="w-3.5 h-3.5 text-secondary fill-secondary" />
               Atención 24h
             </Badge>
           </div>
 
-          <h1 className="text-headline-lg text-6xl lg:text-7xl uppercase tracking-tight text-white leading-tight">
+          <h1 className="text-headline-lg text-5xl lg:text-7xl uppercase tracking-tight text-white leading-tight">
             Pide tu comida
             <br />
             <span className="text-secondary">favorita</span>
           </h1>
 
-          <p className="text-body-lg text-white/90 max-w-md">
+          <p className="text-body-md lg:text-body-lg text-white/90 max-w-md">
             Los mejores sabores latinos directo a tu puerta. Frescura, rapidez y el sazón que te hace sentir en casa.
           </p>
 
