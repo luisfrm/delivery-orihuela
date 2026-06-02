@@ -18,8 +18,8 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
           <Image src={logo} alt="Los Latinos Logo" fill sizes="48px" className="object-cover" />
         </div>
         <div className="flex flex-col leading-tight">
-          <span className="text-white font-bold text-lg uppercase tracking-tight">Los Latinos</span>
-          <span className="text-secondary-container text-xs uppercase tracking-[0.2em] font-extrabold">MotoTaxi</span>
+          <span className="text-white font-bold text-lg uppercase tracking-tight">Orihuela</span>
+          <span className="text-secondary-container text-xs uppercase tracking-[0.2em] font-extrabold">Delivery</span>
         </div>
       </div>
       <div className="flex items-center gap-[8px]">
@@ -29,7 +29,7 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
           onClick={onCartClick}
           aria-label="Carrito"
         >
-          <ShoppingCart className="w-5 h-5" />
+          <ShoppingCart className="w-5 h-5 fill-black font-bold" />
         </Button>
         <Button
           variant="toolbar"

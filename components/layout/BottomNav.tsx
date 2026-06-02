@@ -22,7 +22,7 @@ interface BottomNavProps {
 
 export function BottomNav({ activeHref = "/" }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 w-full z-50 bg-surface-container-lowest border-t border-outline-variant">
+    <nav className="lg:hidden fixed bottom-0 w-full z-50 bg-surface-container-lowest border-t border-outline-variant">
       <div className="flex justify-around items-center h-[80px] px-[20px]">
         {navItems.map((item) => {
           const isActive = item.href === activeHref
@@ -30,14 +30,12 @@ export function BottomNav({ activeHref = "/" }: BottomNavProps) {
             <a
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-[4px] ${
-                isActive ? "text-primary" : "text-on-surface-variant"
-              }`}
+              className={`flex flex-col items-center gap-[4px] ${isActive ? "text-primary" : "text-on-surface-variant"
+                }`}
             >
               <div
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                  isActive ? "bg-primary-container text-on-primary-container" : ""
-                }`}
+                className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${isActive ? "bg-primary-container text-on-primary-container" : ""
+                  }`}
               >
                 {item.icon}
               </div>
