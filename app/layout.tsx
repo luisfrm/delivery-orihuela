@@ -11,6 +11,9 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Delivery LosLatinos",
   description: "Servicio de entrega y compra a tu disposición",
+  icons: {
+    icon: "/favicon.ico",
+  },
 }
 
 export default function RootLayout({
