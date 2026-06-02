@@ -1,6 +1,9 @@
 "use client"
 
 import { ShoppingCart, User } from "lucide-react"
+import Image from "next/image"
+import logo from "@/assets/logo.webp"
+import { Button } from "@/components/ui/button"
 
 interface TopAppBarProps {
   onCartClick?: () => void
@@ -11,10 +14,8 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
   return (
     <header className="fixed top-0 w-full z-50 shadow-md flex justify-between items-center h-[72px] px-[20px] bg-primary">
       <div className="flex items-center gap-[12px]">
-        <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-secondary-container">
-          <div className="w-full h-full bg-secondary-container flex items-center justify-center text-primary font-bold text-lg">
-            LL
-          </div>
+        <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-secondary-container relative">
+          <Image src={logo} alt="Los Latinos Logo" fill sizes="48px" className="object-cover" />
         </div>
         <div className="flex flex-col leading-tight">
           <span className="text-white font-bold text-lg uppercase tracking-tight">Los Latinos</span>
@@ -22,18 +23,22 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
         </div>
       </div>
       <div className="flex items-center gap-[8px]">
-        <button
+        <Button
+          variant="secondary"
+          size="icon-xl"
           onClick={onCartClick}
-          className="bg-secondary-container text-on-secondary w-12 h-12 rounded-full flex items-center justify-center gap-[8px] font-bold shadow-sm active:scale-95 transition-transform"
+          aria-label="Carrito"
         >
           <ShoppingCart className="w-5 h-5" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="toolbar"
+          size="icon-xl"
           onClick={onProfileClick}
-          className="bg-white text-primary w-12 h-12 rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+          aria-label="Perfil"
         >
           <User className="w-6 h-6" />
-        </button>
+        </Button>
       </div>
     </header>
   )

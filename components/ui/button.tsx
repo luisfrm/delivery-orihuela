@@ -12,6 +12,7 @@ const buttonVariants = cva(
         secondary: "bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim",
         outline: "bg-card text-card-foreground border-border hover:border-primary/30 hover:bg-muted/50",
         ghost: "hover:bg-white border-white/60 text-white hover:text-foreground hover:border-white",
+        toolbar: "bg-white text-primary hover:bg-muted shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2 rounded-lg",
@@ -22,6 +23,7 @@ const buttonVariants = cva(
         "icon-xs": "size-6 rounded-md",
         "icon-sm": "size-7 rounded-md",
         "icon-lg": "size-9 rounded-lg",
+        "icon-xl": "size-12 rounded-full",
       },
     },
     defaultVariants: {
