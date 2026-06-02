@@ -27,7 +27,7 @@ export function PopularRestaurants({ onRestaurantClick }: PopularRestaurantsProp
           <div
             key={restaurant.id}
             onClick={() => onRestaurantClick?.(restaurant.id)}
-            className="flex flex-row gap-[12px] items-center bg-surface-container-lowest p-[12px] rounded-xl border border-outline-variant shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+            className="flex flex-row gap-[12px] items-center bg-surface-container-lowest p-[12px] rounded-xl border border-outline-variant shadow-sm cursor-pointer active:scale-[0.98] hover:scale-[1.05] hover:border-secondary transition-all duration-300 ease-in-out"
           >
             <div className="w-16 h-16 rounded-lg bg-surface-container flex-shrink-0 flex items-center justify-center text-primary">
               {restaurant.icon}
