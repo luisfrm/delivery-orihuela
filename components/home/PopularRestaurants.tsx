@@ -1,4 +1,5 @@
-import { Store, Pizza, Hamburger, User } from "lucide-react"
+import { Store, Pizza, Hamburger } from "lucide-react"
+import { Card, CardTitle, CardDescription } from "@/components/ui/card"
 
 interface Restaurant {
   id: string
@@ -24,19 +25,22 @@ export function PopularRestaurants({ onRestaurantClick }: PopularRestaurantsProp
       <h3 className="text-headline-md text-on-surface">Restaurantes Populares</h3>
       <div className="flex flex-col lg:flex-row gap-[12px]">
         {restaurants.map((restaurant) => (
-          <div
+          <Card
             key={restaurant.id}
+            variant="surface"
             onClick={() => onRestaurantClick?.(restaurant.id)}
-            className="flex flex-row gap-[12px] items-center bg-surface-container-lowest p-[12px] rounded-xl border border-outline-variant shadow-sm cursor-pointer active:scale-[0.98] hover:scale-[1.05] hover:border-secondary transition-all duration-300 ease-in-out"
+            className="flex-row items-center p-[12px] gap-[12px] cursor-pointer active:scale-[0.98] hover:scale-[1.05] shadow-sm"
           >
             <div className="w-16 h-16 rounded-lg bg-surface-container flex-shrink-0 flex items-center justify-center text-primary">
               {restaurant.icon}
             </div>
-            <div className="flex flex-col flex-grow">
-              <h4 className="text-title-lg font-bold text-on-surface">{restaurant.name}</h4>
-              <p className="text-body-md text-on-surface-variant">{restaurant.category} • <span className="text-secondary">{restaurant.rating}</span></p>
+            <div className="flex flex-col flex-grow gap-1">
+              <CardTitle className="font-bold">{restaurant.name}</CardTitle>
+              <CardDescription className="text-body-md text-on-surface-variant">
+                {restaurant.category} • <span className="text-secondary">{restaurant.rating}</span>
+              </CardDescription>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </section>

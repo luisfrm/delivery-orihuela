@@ -7,11 +7,12 @@ import { PopularRestaurants } from "@/components/home/PopularRestaurants"
 
 export default function ClientHomePage() {
   const [selectedAction, setSelectedAction] = useState<"buy" | "pickup" | null>(null)
+  
+  // NOTE: selectedAction state remains available for future routing or modal state handling
 
   return (
     <>
       <HeroSection
-        onBuyClick={() => setSelectedAction("buy")}
         onPickupClick={() => setSelectedAction("pickup")}
       />
       <DailyOffersBanner />
