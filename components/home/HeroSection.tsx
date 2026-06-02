@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import heroImage from "@/assets/hero.webp"
+import BuyModal from "@/components/modal/BuyModal"
 
 interface HeroSectionProps {
   onBuyClick?: () => void
@@ -42,15 +43,7 @@ export function HeroSection({ onBuyClick, onPickupClick }: HeroSectionProps) {
           </p>
 
           <div className="flex flex-col lg:flex-row gap-3 w-full">
-            <Button
-              variant="secondary"
-              size="xl"
-              className="w-full lg:w-auto"
-              onClick={onBuyClick}
-            >
-              <ShoppingBag className="w-5 h-5" />
-              Comprar
-            </Button>
+            <BuyModal />
             <Button
               variant="ghost"
               size="xl"
