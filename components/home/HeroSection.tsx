@@ -1,8 +1,10 @@
 "use client"
 
-import { ShoppingBag, Truck } from "lucide-react"
+import { ShoppingBag, Truck, Zap, Bike, Headphones } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import heroImage from "@/assets/hero.webp"
 
 interface HeroSectionProps {
   onBuyClick?: () => void
@@ -11,49 +13,68 @@ interface HeroSectionProps {
 
 export function HeroSection({ onBuyClick, onPickupClick }: HeroSectionProps) {
   return (
-    <section className="relative w-full min-h-[460px] flex flex-col items-center justify-center px-[20px] py-[32px] bg-primary plus-pattern">
-      <div className="z-10 flex flex-col items-center text-center gap-[16px] w-full max-w-sm">
-        <h2 className="text-display-lg uppercase tracking-tight text-center">
-          <span className="text-white">PIDE TU COMIDA</span>
-          <br />
-          <span className="text-secondary">FAVORITA</span>
-        </h2>
-        <p className="text-body-lg text-white opacity-90">Entregamos rápido donde estés 🏍️</p>
+    <section className="relative w-full min-h-[460px] lg:min-h-[600px] py-12 lg:py-16 flex items-center overflow-hidden bg-primary plus-pattern">
+      <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
+        <div className="z-10 flex flex-col items-center lg:items-start text-center lg:text-left gap-5 max-w-xl order-last lg:order-first">
+          <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+            <Badge variant="hero">
+              <Zap className="w-3.5 h-3.5 fill-white" />
+              30-45 min
+            </Badge>
+            <Badge variant="hero">
+              <Bike className="w-3.5 h-3.5 fill-white" />
+              Envío económico
+            </Badge>
+            <Badge variant="hero">
+              <Headphones className="w-3.5 h-3.5 fill-white" />
+              Atención 24h
+            </Badge>
+          </div>
 
-        <div className="flex flex-col gap-[12px] w-full max-w-sm mt-[16px]">
-          <Button
-            variant="secondary"
-            size="xl"
-            className="w-full"
-            onClick={onBuyClick}
-          >
-            <ShoppingBag className="w-5 h-5" />
-            Comprar
-          </Button>
-          <Button
-            variant="ghost"
-            size="xl"
-            className="w-full"
-            onClick={onPickupClick}
-          >
-            <Truck className="w-5 h-5" />
-            Recoger
-          </Button>
+          <h1 className="text-headline-lg text-6xl lg:text-7xl uppercase tracking-tight text-white leading-tight">
+            Pide tu comida
+            <br />
+            <span className="text-secondary">favorita</span>
+          </h1>
+
+          <p className="text-body-lg text-white/90 max-w-md">
+            Los mejores sabores latinos directo a tu puerta. Frescura, rapidez y el sazón que te hace sentir en casa.
+          </p>
+
+          <div className="flex flex-col lg:flex-row gap-3 w-full">
+            <Button
+              variant="secondary"
+              size="xl"
+              className="w-full lg:w-auto"
+              onClick={onBuyClick}
+            >
+              <ShoppingBag className="w-5 h-5" />
+              Comprar
+            </Button>
+            <Button
+              variant="ghost"
+              size="xl"
+              className="w-full lg:w-auto"
+              onClick={onPickupClick}
+            >
+              <Truck className="w-5 h-5" />
+              Recoger
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-[12px] mt-[24px]">
-          <Badge variant="hero">
-            <span>⚡</span>
-            30-45 min
-          </Badge>
-          <Badge variant="hero">
-            <span>🛵</span>
-            Envío económico
-          </Badge>
-          <Badge variant="hero">
-            <span>📞</span>
-            Atención 24h
-          </Badge>
+        <div className="relative hidden lg:flex justify-center shrink-0 w-full max-w-[500px]">
+          <div className="absolute inset-0 bg-white/10 rounded-full blur-3xl scale-90" />
+          <div className="relative w-full max-w-[500px] aspect-square rotate-2 hover:rotate-0 transition-transform duration-500">
+            <Image
+              src={heroImage}
+              alt="Comida latina recién hecha"
+              fill
+              sizes="(min-width: 768px) 500px, 0px"
+              priority
+              className="object-cover rounded-3xl shadow-2xl"
+            />
+          </div>
         </div>
       </div>
     </section>
