@@ -1,9 +1,13 @@
 "use client"
 
-import { ShoppingCart, User } from "lucide-react"
+import { useState } from "react"
+import { ShoppingCart, User, LogIn } from "lucide-react"
 import Image from "next/image"
 import logo from "@/assets/logo.webp"
 import { Button } from "@/components/ui/button"
+import { RegistrationModal } from "@/components/modal/RegistrationModal"
+import { LoginModal } from "@/components/modal/LoginModal"
+import { useAuth } from "@/hooks/useAuth"
 
 interface TopAppBarProps {
   onCartClick?: () => void
@@ -11,6 +15,10 @@ interface TopAppBarProps {
 }
 
 export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
+  const { isAuthenticated, isLoading } = useAuth()
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+
   return (
     <header className="fixed top-0 w-full z-50 shadow-md flex justify-between items-center h-[72px] px-[20px] bg-primary">
       <div className="flex items-center gap-[12px]">
@@ -31,14 +39,49 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
         >
           <ShoppingCart className="w-5 h-5 fill-black font-bold" />
         </Button>
-        <Button
-          variant="toolbar"
-          size="icon-xl"
-          onClick={onProfileClick}
-          aria-label="Perfil"
-        >
-          <User className="w-6 h-6" />
-        </Button>
+
+        {isLoading ? (
+          <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
+        ) : isAuthenticated ? (
+          <Button
+            variant="toolbar"
+            size="icon-xl"
+            onClick={onProfileClick}
+            aria-label="Perfil"
+          >
+            <User className="w-6 h-6" />
+          </Button>
+        ) : (
+          <div className="hidden lg:flex items-center gap-[8px]">
+            <LoginModal
+              open={loginOpen}
+              onOpenChange={setLoginOpen}
+              onRegisterClick={() => {
+                setLoginOpen(false)
+                setRegisterOpen(true)
+              }}
+              trigger={
+                <Button variant="outline" size="lg">
+                  <LogIn className="w-4 h-4" />
+                  Iniciar sesión
+                </Button>
+              }
+            />
+            <RegistrationModal
+              open={registerOpen}
+              onOpenChange={setRegisterOpen}
+              onLoginClick={() => {
+                setRegisterOpen(false)
+                setLoginOpen(true)
+              }}
+              trigger={
+                <Button variant="primary" size="lg">
+                  Registrarse
+                </Button>
+              }
+            />
+          </div>
+        )}
       </div>
     </header>
   )
