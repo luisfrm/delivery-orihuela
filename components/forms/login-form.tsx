@@ -4,13 +4,19 @@ import { useState } from "react"
 import { Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { OtpStep } from "@/components/forms/otp-step"
+import { toast } from "sonner"
 
 interface LoginFormProps {
   onSuccess?: () => void
   onRegisterClick?: () => void
 }
 
+type Step = "login" | "otp"
+
 export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
+  const [step, setStep] = useState<Step>("login")
+  const [loginEmail, setLoginEmail] = useState("")
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,6 +29,7 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
 
   const [generalError, setGeneralError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
 
   const validateField = (name: string, value: string): string => {
     switch (name) {
@@ -68,27 +75,44 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
       const result = await signInWithEmail(formData.email, formData.password)
 
       if (result?.error) {
-        setGeneralError(result.error)
+        if (result.code === 'email_not_confirmed') {
+          setLoginEmail(formData.email)
+          
+          const { resendOtp } = await import("@/lib/actions/auth")
+          await resendOtp(formData.email)
+          
+          toast.info("Tu email aún no está verificado. Te enviamos un nuevo código.")
+          
+          setStep("otp")
+          setIsSubmitting(false)
+          return
+        }
+        
+        toast.error(result.error)
         setIsSubmitting(false)
         return
       }
 
+      toast.success("¡Bienvenido de vuelta!")
       onSuccess?.()
       window.location.reload()
     } catch {
-      setGeneralError("Ocurrió un error. Intenta de nuevo.")
+      toast.error("Ocurrió un error. Intenta de nuevo.")
       setIsSubmitting(false)
-    }
+}
   }
 
-  const handleGoogleSignIn = async () => {
-    setGeneralError("")
-    try {
-      const { signInWithGoogle } = await import("@/lib/actions/auth")
-      await signInWithGoogle()
-    } catch {
-      setGeneralError("Ocurrió un error con Google. Intenta de nuevo.")
-    }
+  if (step === "otp") {
+    return (
+      <OtpStep
+        email={loginEmail}
+        onVerified={() => {
+          onSuccess?.()
+          window.location.reload()
+        }}
+        onBack={() => setStep("login")}
+      />
+    )
   }
 
   return (
@@ -121,7 +145,16 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
         icon={<Lock className="size-4" />}
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="size-4 rounded border-2 border-primary accent-primary"
+          />
+          <span className="text-body-md text-on-surface">Recordarme</span>
+        </label>
         <button
           type="button"
           className="text-body-md text-primary font-bold hover:underline"
@@ -143,6 +176,7 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
         </Button>
       </div>
 
+      {/* TODO: OAuth - O inicia sesión con
       <div className="relative py-4">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-outline-variant" />
@@ -197,6 +231,7 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
           Google
         </Button>
       </div>
+      */}
 
       <p className="text-center text-body-md text-on-surface-variant">
         ¿No tienes una cuenta?{" "}

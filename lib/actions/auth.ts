@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 export interface AuthResult {
   success?: boolean
   error?: string
+  code?: 'email_not_confirmed' | 'invalid_credentials' | 'auth_failed'
 }
 
 export async function signUpWithEmail(
@@ -16,7 +17,7 @@ export async function signUpWithEmail(
 ): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -47,7 +48,14 @@ export async function signInWithEmail(
   })
 
   if (error) {
-    return { error: error.message }
+    const isEmailNotConfirmed = 
+      error.message.includes('Email not confirmed') ||
+      error.message.includes('email_not_confirmed')
+    
+    return { 
+      error: error.message,
+      code: isEmailNotConfirmed ? 'email_not_confirmed' : 'auth_failed'
+    }
   }
 
   return { success: true }
@@ -56,7 +64,7 @@ export async function signInWithEmail(
 export async function signInWithGoogle(): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
@@ -77,7 +85,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
 export async function signInWithApple(): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "apple",
     options: {
       redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
