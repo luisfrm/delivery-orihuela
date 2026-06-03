@@ -23,8 +23,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={jakarta.variable}>
-      <body className="min-h-[max(884px,100dvh)] flex flex-col pb-[80px]">{children}
+    <html lang="es" className={jakarta.variable} suppressHydrationWarning>
+      <body className="min-h-[max(884px,100dvh)] flex flex-col pb-[80px]" suppressHydrationWarning>
+        {children}
         <Toaster position="bottom-right" richColors />
       </body>
     </html>
