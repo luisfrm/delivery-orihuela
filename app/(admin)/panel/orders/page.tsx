@@ -1,5 +1,3 @@
-import { ShoppingCart } from "lucide-react"
-
 export default function AdminOrdersPage() {
   return (
     <div className="space-y-6">

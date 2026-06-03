@@ -1,5 +1,3 @@
-import { Users, Plus } from "lucide-react"
-
 export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
