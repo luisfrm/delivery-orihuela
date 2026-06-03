@@ -13,7 +13,7 @@ export default function PickupModal() {
   return (
     <ResponsiveModal>
       <ResponsiveModalTrigger asChild>
-        <Button variant="ghost" size="xl" className="w-full lg:w-auto">
+        <Button variant="outline" size="xl" className="w-full lg:w-auto">
           <Truck className="w-5 h-5" />
           Recoger
         </Button>

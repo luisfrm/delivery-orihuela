@@ -69,7 +69,7 @@ export function TopAppBar({ onCartClick }: TopAppBarProps) {
                 setRegisterOpen(true)
               }}
               trigger={
-                <Button variant="outline" size="lg">
+                <Button variant="tertiary" size="lg">
                   <LogIn className="w-4 h-4" />
                   Iniciar sesión
                 </Button>
@@ -83,7 +83,7 @@ export function TopAppBar({ onCartClick }: TopAppBarProps) {
                 setLoginOpen(true)
               }}
               trigger={
-                <Button variant="primary" size="lg">
+                <Button variant="outline" size="lg">
                   Registrarse
                 </Button>
               }
