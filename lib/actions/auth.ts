@@ -64,7 +64,7 @@ export async function signInWithEmail(
 export async function signInWithGoogle(): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
@@ -75,7 +75,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return { error: error.message }
   }
 
-  if (data.url) {
+  if (data?.url) {
     throw new RedirectError(data.url)
   }
 
