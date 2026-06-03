@@ -1,7 +1,6 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { Order } from "@/lib/types"
 
 export interface CreateOrderParams {
   pickupReference: string

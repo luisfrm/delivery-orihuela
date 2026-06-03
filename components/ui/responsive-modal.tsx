@@ -9,17 +9,19 @@ import { cn } from "@/lib/utils";
 	 Hook: detect mobile breakpoint
 ───────────────────────────────────────────── */
 function useIsMobile(breakpoint = 768) {
-	const [isMobile, setIsMobile] = React.useState<boolean>(false);
+	const [isMobile, setIsMobile] = React.useState(() => {
+		if (typeof window === "undefined") return false
+		return window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches
+	})
 
 	React.useEffect(() => {
-		const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-		setIsMobile(mq.matches);
-		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-		mq.addEventListener("change", handler);
-		return () => mq.removeEventListener("change", handler);
-	}, [breakpoint]);
+		const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
+		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+		mq.addEventListener("change", handler)
+		return () => mq.removeEventListener("change", handler)
+	}, [breakpoint])
 
-	return isMobile;
+	return isMobile
 }
 
 /* ─────────────────────────────────────────────
@@ -120,36 +122,36 @@ function ResponsiveModalContent({
 }: ResponsiveModalContentProps) {
 	const { isMobile, onOpenChange } = useResponsiveModal();
 
-	/* ── drag-to-close state (mobile only) ── */
-	const sheetRef = React.useRef<HTMLDivElement>(null);
-	const dragStartY = React.useRef<number | null>(null);
-	const [dragDelta, setDragDelta] = React.useState(0);
-	const isDragging = React.useRef(false);
+/* ── drag-to-close state (mobile only) ── */
+	const sheetRef = React.useRef<HTMLDivElement>(null)
+	const dragStartY = React.useRef<number | null>(null)
+	const [dragDelta, setDragDelta] = React.useState(0)
+	const [isDragging, setIsDragging] = React.useState(false)
 
-	const CLOSE_THRESHOLD = 120; // px
+	const CLOSE_THRESHOLD = 120 // px
 
 	function onPointerDown(e: React.PointerEvent) {
-		if (!isMobile) return;
-		dragStartY.current = e.clientY;
-		isDragging.current = true;
-		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		if (!isMobile) return
+		dragStartY.current = e.clientY
+		setIsDragging(true)
+		;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 	}
 
 	function onPointerMove(e: React.PointerEvent) {
-		if (!isDragging.current || dragStartY.current === null) return;
-		const delta = Math.max(0, e.clientY - dragStartY.current);
-		setDragDelta(delta);
+		if (!isDragging || dragStartY.current === null) return
+		const delta = Math.max(0, e.clientY - dragStartY.current)
+		setDragDelta(delta)
 	}
 
 	function onPointerUp() {
-		if (!isDragging.current) return;
-		isDragging.current = false;
+		if (!isDragging) return
+		setIsDragging(false)
 		if (dragDelta >= CLOSE_THRESHOLD) {
-			onOpenChange(false);
+			onOpenChange(false)
 		}
-		setDragDelta(0);
-		dragStartY.current = null;
-	}
+		setDragDelta(0)
+		dragStartY.current = null
+}
 
 	/* ─────────────── MOBILE: Bottom Sheet ─────────────── */
 	if (isMobile) {
@@ -172,7 +174,7 @@ function ResponsiveModalContent({
 					style={{
 						transform:
 							dragDelta > 0 ? `translateY(${dragDelta}px)` : undefined,
-						transition: isDragging.current ? "none" : undefined,
+						transition: isDragging ? "none" : undefined,
 						opacity: dragDelta > 0 ? 1 - dragDelta / 300 : undefined,
 					}}
 					className={cn(

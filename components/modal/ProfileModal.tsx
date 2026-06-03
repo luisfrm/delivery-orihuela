@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { User } from "lucide-react"
 import {
   ResponsiveModal,
@@ -27,12 +27,6 @@ export function ProfileModal({
 }: ProfileModalProps) {
   const [step, setStep] = useState<Step>("view")
   const { profile, isLoading, error, refresh, updateCachedProfile } = useProfile()
-
-  useEffect(() => {
-    if (open) {
-      setStep("view")
-    }
-  }, [open])
 
   const handleSignOut = async () => {
     try {

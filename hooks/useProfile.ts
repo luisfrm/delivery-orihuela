@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 
 interface ProfileData {
   firstName: string
@@ -30,21 +30,18 @@ export function useProfile() {
       const result = await getProfile()
       if (result?.error) {
         setError(result.error)
+        setIsLoading(false)
         return
       }
       const data = result as ProfileData
       cachedProfile = data
       setProfile(data)
+      setIsLoading(false)
     } catch {
       setError("Ocurrió un error al cargar el perfil.")
-    } finally {
       setIsLoading(false)
     }
   }, [])
-
-  useEffect(() => {
-    fetchProfile()
-  }, [fetchProfile])
 
   const refresh = useCallback(() => fetchProfile(true), [fetchProfile])
 
@@ -55,5 +52,5 @@ export function useProfile() {
     setIsLoading(false)
   }, [])
 
-  return { profile, isLoading, error, refresh, updateCachedProfile }
+  return { profile, isLoading, error, refresh, updateCachedProfile, fetchProfile }
 }

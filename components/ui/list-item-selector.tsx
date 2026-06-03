@@ -147,11 +147,7 @@ export function ListItemContent({
   )
 }
 
-export function ListItemAction({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export function ListItemAction() {
   return (
     <span className="flex-shrink-0 text-muted-foreground">
       <ChevronRight className="size-5" />

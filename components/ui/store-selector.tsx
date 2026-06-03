@@ -25,6 +25,11 @@ interface StoreSelectorProps {
 
 const CUSTOM_OPTION_ID = "__custom__"
 
+interface CustomStoreOption {
+  id: string
+  type: "custom"
+}
+
 function isCustomStore(item: Store | { id: string; type: "custom" }): item is { id: string; type: "custom" } {
   return "type" in item && (item as { type: string }).type === "custom"
 }
@@ -106,7 +111,7 @@ export function StoreSelector({ value, onChange }: StoreSelectorProps) {
               value.type !== "custom" && (
                 <button
                   type="button"
-                  onClick={() => handleSelect({ id: CUSTOM_OPTION_ID, type: "custom" } as any)}
+                  onClick={() => handleSelect({ id: CUSTOM_OPTION_ID, type: "custom" } as CustomStoreOption)}
                   className="w-full"
                 >
                   <ListItem isSelected={selectedId === CUSTOM_OPTION_ID}>

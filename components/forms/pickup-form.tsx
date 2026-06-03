@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Package, MapPin, Store, FileText, CheckCircle } from "lucide-react"
+import { MapPin, Store, FileText, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { StoreSelector, StoreSelection } from "@/components/ui/store-selector"
