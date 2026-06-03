@@ -57,7 +57,7 @@ export function HeroSection({ onPickupClick }: HeroSectionProps) {
 
         <div className="relative hidden lg:flex justify-center shrink-0 w-full max-w-[500px]">
           <div className="absolute inset-0 bg-white/10 rounded-full blur-3xl scale-90" />
-          <div className="relative w-full max-w-[500px] aspect-square rotate-2 hover:rotate-0 transition-transform duration-500">
+          <div className="relative w-full max-w-[500px] aspect-square rotate-2">
             <Image
               src={heroImage}
               alt="Comida latina recién hecha"

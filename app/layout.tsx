@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={jakarta.variable}>
-      <body className="min-h-[max(884px,100dvh)] flex flex-col pt-[72px] pb-[80px]">{children}</body>
+      <body className="min-h-[max(884px,100dvh)] flex flex-col pb-[80px]">{children}</body>
     </html>
   )
 }
