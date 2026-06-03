@@ -44,19 +44,21 @@ export function TopAppBar({ onCartClick }: TopAppBarProps) {
         {isLoading ? (
           <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
         ) : isAuthenticated ? (
-          <ProfileModal
-            open={profileOpen}
-            onOpenChange={setProfileOpen}
-            trigger={
-              <Button
-                variant="toolbar"
-                size="icon-xl"
-                aria-label="Perfil"
-              >
-                <User className="w-6 h-6" />
-              </Button>
-            }
-          />
+          <div className="hidden lg:block">
+            <ProfileModal
+              open={profileOpen}
+              onOpenChange={setProfileOpen}
+              trigger={
+                <Button
+                  variant="toolbar"
+                  size="icon-xl"
+                  aria-label="Perfil"
+                >
+                  <User className="w-6 h-6" />
+                </Button>
+              }
+            />
+          </div>
         ) : (
           <div className="hidden lg:flex items-center gap-[8px]">
             <LoginModal
