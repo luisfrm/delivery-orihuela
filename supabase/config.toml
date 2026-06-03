@@ -243,6 +243,11 @@ pass = "env(SMTP_PASS)"
 admin_email = "env(SMTP_USER)"
 sender_name = "Delivery Los Latinos"
 
+# Custom email templates for authentication
+[auth.email.template.confirmation]
+subject = "Verifica tu cuenta en Orihuela Delivery"
+content_path = "./supabase/templates/signup.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
