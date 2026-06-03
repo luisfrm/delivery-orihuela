@@ -10,8 +10,9 @@ const buttonVariants = cva(
       variant: {
         primary: "bg-primary text-primary-foreground hover:bg-primary/85 border-white/50",
         secondary: "bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim",
-        outline: "bg-card text-card-foreground border-border hover:border-primary/30 hover:bg-muted/50",
-        ghost: "hover:bg-white border-white/60 text-white hover:text-foreground hover:border-white",
+        tertiary: "bg-card text-card-foreground border-border hover:border-primary/30 hover:bg-muted/50",
+        outline: "hover:bg-white border-white/60 text-white hover:text-foreground hover:border-white",
+        ghost: "hover:bg-white border-transparent text-white hover:text-foreground hover:border-white",
         toolbar: "bg-white text-primary hover:bg-muted shadow-sm",
       },
       size: {
