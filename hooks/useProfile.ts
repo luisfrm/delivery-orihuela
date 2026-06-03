@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 
 interface ProfileData {
   firstName: string
@@ -42,6 +42,10 @@ export function useProfile() {
       setIsLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const refresh = useCallback(() => fetchProfile(true), [fetchProfile])
 
