@@ -9,7 +9,7 @@ import PickupModal from "@/components/modal/PickupModal"
 
 export function HeroSection() {
   return (
-    <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern">
+    <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern py-12">
       <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
         <div className="z-10 flex flex-col items-center lg:items-start text-center lg:text-left gap-5 max-w-xl order-last lg:order-first">
           <div className="flex flex-wrap justify-center lg:justify-start gap-3">

@@ -9,7 +9,7 @@ export default function ClientLayout({
   return (
     <>
       <TopAppBar />
-      <main className="w-full flex flex-col gap-[24px]">
+      <main className="w-full flex flex-col gap-[24px] pb-[180px] pt-[72px]">
         {children}
       </main>
       <BottomNav />

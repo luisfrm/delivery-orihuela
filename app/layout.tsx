@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={jakarta.variable} suppressHydrationWarning>
-      <body className="min-h-[max(884px,100dvh)] flex flex-col pb-[80px]" suppressHydrationWarning>
+      <body className="min-h-[max(884px,100dvh)] flex flex-col" suppressHydrationWarning>
         {children}
         <Toaster position="bottom-right" richColors />
       </body>
