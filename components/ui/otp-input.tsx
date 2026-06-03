@@ -11,34 +11,36 @@ import { REGEXP_ONLY_DIGITS } from "input-otp"
 interface OtpInputProps {
   value: string
   onChange: (value: string) => void
-  maxLength?: number
+  digits?: number
   disabled?: boolean
 }
 
 export function OtpInput({ 
   value, 
   onChange, 
-  maxLength = 6,
+  digits = 8,
   disabled = false 
 }: OtpInputProps) {
+  const halfPoint = Math.ceil(digits / 2)
+  
   return (
     <InputOTP
-      maxLength={maxLength}
+      maxLength={digits}
       value={value}
       onChange={onChange}
       pattern={REGEXP_ONLY_DIGITS}
       disabled={disabled}
     >
       <InputOTPGroup>
-        <InputOTPSlot index={0} />
-        <InputOTPSlot index={1} />
-        <InputOTPSlot index={2} />
+        {Array.from({ length: halfPoint }, (_, i) => (
+          <InputOTPSlot key={i} index={i} />
+        ))}
       </InputOTPGroup>
       <InputOTPSeparator />
       <InputOTPGroup>
-        <InputOTPSlot index={3} />
-        <InputOTPSlot index={4} />
-        <InputOTPSlot index={5} />
+        {Array.from({ length: digits - halfPoint }, (_, i) => (
+          <InputOTPSlot key={halfPoint + i} index={halfPoint + i} />
+        ))}
       </InputOTPGroup>
     </InputOTP>
   )

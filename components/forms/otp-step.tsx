@@ -19,8 +19,8 @@ export function OtpStep({ email, onVerified, onBack }: OtpStepProps) {
   const [isResending, setIsResending] = useState(false)
 
   const handleVerify = async () => {
-    if (otp.length !== 6) {
-      setError("El código debe tener 6 dígitos")
+    if (otp.length !== 8) {
+      setError("El código debe tener 8 dígitos")
       return
     }
 
@@ -72,7 +72,7 @@ export function OtpStep({ email, onVerified, onBack }: OtpStepProps) {
         </div>
         <h3 className="text-title-lg text-on-surface">Verifica tu correo</h3>
         <p className="text-body-md text-on-surface-variant">
-          Hemos enviado un código de 6 dígitos a
+          Hemos enviado un código de 8 dígitos a
           <br />
           <span className="font-bold text-on-surface">{email}</span>
         </p>
@@ -104,7 +104,7 @@ export function OtpStep({ email, onVerified, onBack }: OtpStepProps) {
           size="xl"
           className="w-full"
           onClick={handleVerify}
-          disabled={isVerifying || otp.length !== 6}
+          disabled={isVerifying || otp.length !== 8}
         >
           {isVerifying ? "Verificando..." : "Verificar código"}
         </Button>
