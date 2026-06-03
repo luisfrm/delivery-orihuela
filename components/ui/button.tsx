@@ -13,6 +13,7 @@ const buttonVariants = cva(
         tertiary: "bg-card text-card-foreground border-border hover:border-primary/30 hover:bg-muted/50",
         outline: "hover:bg-white border-white/60 text-white hover:text-foreground hover:border-white",
         ghost: "hover:bg-white border-transparent text-white hover:text-foreground hover:border-white",
+        link: "border-transparent text-black hover:underline underline-offset-4", // add separation from text and underline
         toolbar: "bg-white text-primary hover:bg-muted shadow-sm",
       },
       size: {

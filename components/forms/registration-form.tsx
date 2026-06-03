@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useFormStatus } from "react-dom"
-import { User, Mail, Lock, KeyRound, ArrowLeft, Phone, Check } from "lucide-react"
+import { User, Mail, Lock, Phone, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { OtpStep } from "@/components/forms/otp-step"
+import { toast } from "sonner"
 import { cn, capitalize } from "@/lib/utils"
 
 function PasswordRequirements({ password }: { password: string }) {
@@ -53,96 +55,44 @@ function SubmitButton() {
   )
 }
 
-interface OtpStepProps {
-  email: string
-  onVerified: () => void
-  onBack: () => void
+interface RegistrationFormProps {
+  onSuccess?: () => void
+  onLoginClick?: () => void
 }
 
-function OtpStep({ email, onVerified, onBack }: OtpStepProps) {
-  const [otp, setOtp] = useState("")
-  const [error, setError] = useState("")
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [isResending, setIsResending] = useState(false)
-  const [resendMessage, setResendMessage] = useState("")
+type Step = "register" | "success" | "otp"
 
-  const handleOtpChange = (value: string) => {
-    const numericValue = value.replace(/\D/g, "").slice(0, 6)
-    setOtp(numericValue)
-    if (error) setError("")
-  }
+function SuccessStep({ email, onContinue }: { email: string; onContinue: () => void }) {
+  const [countdown, setCountdown] = useState(3)
 
-  const handleVerify = async () => {
-    if (otp.length !== 6) {
-      setError("El código debe tener 6 dígitos")
+  useEffect(() => {
+    if (countdown === 0) {
+      onContinue()
       return
     }
-
-    setIsVerifying(true)
-    setError("")
-
-    try {
-      const { verifyOtp } = await import("@/lib/actions/auth")
-      const result = await verifyOtp(email, otp)
-
-      if (result?.error) {
-        setError(result.error)
-        setIsVerifying(false)
-        return
-      }
-
-      onVerified()
-    } catch {
-      setError("Ocurrió un error al verificar. Intenta de nuevo.")
-      setIsVerifying(false)
-    }
-  }
-
-  const handleResend = async () => {
-    setIsResending(true)
-    setResendMessage("")
-
-    try {
-      const { resendOtp } = await import("@/lib/actions/auth")
-      const result = await resendOtp(email)
-
-      if (result?.error) {
-        setResendMessage("No se pudo reenviar el código")
-      } else {
-        setResendMessage("Código reenviado. Revisa tu correo.")
-      }
-    } catch {
-      setResendMessage("No se pudo reenviar el código")
-    } finally {
-      setIsResending(false)
-    }
-  }
+    const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [countdown, onContinue])
 
   return (
-    <div className="space-y-6 py-4">
-      <div className="text-center space-y-2">
-        <div className="size-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-          <Mail className="size-8 text-primary" />
-        </div>
-        <h3 className="text-title-lg text-on-surface">Verifica tu correo</h3>
+    <div className="space-y-6 py-4 text-center">
+      <div className="size-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
+        <Check className="size-8 text-green-500" />
+      </div>
+      
+      <div className="space-y-2">
+        <h3 className="text-title-lg text-on-surface">
+          ¡Cuenta creada exitosamente!
+        </h3>
         <p className="text-body-md text-on-surface-variant">
-          Hemos enviado un código de 6 dígitos a
+          Hemos enviado un código de verificación a:
           <br />
           <span className="font-bold text-on-surface">{email}</span>
         </p>
+        <p className="text-body-sm text-on-surface-variant">
+          Revisa tu bandeja de entrada (y carpeta de spam) para completar tu registro.
+        </p>
       </div>
-
-      <FormField
-        label="Código de verificación"
-        name="otp"
-        type="text"
-        placeholder="123456"
-        value={otp}
-        onChange={handleOtpChange}
-        error={error}
-        icon={<KeyRound className="size-4" />}
-        maxLength={6}
-      />
 
       <div className="space-y-3">
         <Button
@@ -150,53 +100,14 @@ function OtpStep({ email, onVerified, onBack }: OtpStepProps) {
           variant="primary"
           size="xl"
           className="w-full"
-          onClick={handleVerify}
-          disabled={isVerifying || otp.length !== 6}
+          onClick={onContinue}
         >
-          {isVerifying ? "Verificando..." : "Verificar código"}
+          Continuar a verificación ({countdown}s)
         </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="lg"
-          className="w-full"
-          onClick={onBack}
-          disabled={isVerifying}
-        >
-          <ArrowLeft className="size-4" />
-          Volver
-        </Button>
-      </div>
-
-      <div className="text-center space-y-1">
-        <p className="text-body-md text-on-surface-variant">
-          ¿No recibiste el código?{" "}
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={isResending}
-            className="text-primary font-bold hover:underline disabled:opacity-50"
-          >
-            {isResending ? "Reenviando..." : "Reenviar"}
-          </button>
-        </p>
-        {resendMessage && (
-          <p className="text-label-md text-on-surface-variant">
-            {resendMessage}
-          </p>
-        )}
       </div>
     </div>
   )
 }
-
-interface RegistrationFormProps {
-  onSuccess?: () => void
-  onLoginClick?: () => void
-}
-
-type Step = "register" | "otp"
 
 export function RegistrationForm({
   onSuccess,
@@ -291,25 +202,25 @@ export function RegistrationForm({
       )
 
       if (result?.error) {
-        setGeneralError(result.error)
+        toast.error(result.error)
         return
       }
 
+      toast.success("¡Cuenta creada! Revisa tu correo para verificar tu cuenta.")
       setRegisteredEmail(formData.email)
-      setStep("otp")
+      setStep("success")
     } catch {
-      setGeneralError("Ocurrió un error. Intenta de nuevo.")
+      toast.error("Ocurrió un error. Intenta de nuevo.")
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    setGeneralError("")
-    try {
-      const { signInWithGoogle } = await import("@/lib/actions/auth")
-      await signInWithGoogle()
-    } catch {
-      setGeneralError("Ocurrió un error con Google. Intenta de nuevo.")
-    }
+  if (step === "success") {
+    return (
+      <SuccessStep
+        email={registeredEmail}
+        onContinue={() => setStep("otp")}
+      />
+    )
   }
 
   if (step === "otp") {
