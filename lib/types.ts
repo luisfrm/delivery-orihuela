@@ -15,6 +15,7 @@ export interface UserProfile {
 export interface UserAddress {
   id: string
   user_id: string
+  name: string
   address_line: string
   city: string
   pickup_reference_notes: string | null
@@ -60,7 +61,9 @@ export interface Order {
   id: string
   client_id: string
   driver_id: string | null
-  store_id: string
+  store_id: string | null
+  custom_store_name: string | null
+  custom_store_address: string | null
   service_type: ServiceType
   status: OrderStatus
   pickup_reference: string | null
@@ -78,5 +81,20 @@ export interface OrderItem {
   quantity: number
   estimated_unit_price: number
   created_at: string
+  updated_at: string
+}
+
+export interface CustomStore {
+  id: string
+  name: string
+  address: string
+  suggested_by: string
+  reviewed: boolean
+  created_at: string
+}
+
+export interface Setting {
+  key: string
+  value: string
   updated_at: string
 }

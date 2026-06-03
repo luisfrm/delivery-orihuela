@@ -1,17 +1,13 @@
 "use client"
 
-import { Truck, Zap, Bike, Phone } from "lucide-react"
+import { Zap, Bike, Phone } from "lucide-react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import heroImage from "@/assets/hero.webp"
 import BuyModal from "@/components/modal/BuyModal"
+import PickupModal from "@/components/modal/PickupModal"
 
-interface HeroSectionProps {
-  onPickupClick?: () => void
-}
-
-export function HeroSection({ onPickupClick }: HeroSectionProps) {
+export function HeroSection() {
   return (
     <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern">
       <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
@@ -43,15 +39,7 @@ export function HeroSection({ onPickupClick }: HeroSectionProps) {
 
           <div className="flex flex-col lg:flex-row gap-3 w-full">
             <BuyModal />
-            <Button
-              variant="ghost"
-              size="xl"
-              className="w-full lg:w-auto"
-              onClick={onPickupClick}
-            >
-              <Truck className="w-5 h-5" />
-              Recoger
-            </Button>
+            <PickupModal />
           </div>
         </div>
 
