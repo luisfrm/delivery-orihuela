@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { useFormStatus } from "react-dom"
-import { User, Mail, Lock, KeyRound, ArrowLeft } from "lucide-react"
+import { User, Mail, Lock, KeyRound, ArrowLeft, Phone, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
-import { cn } from "@/lib/utils"
+import { cn, capitalize } from "@/lib/utils"
 
 function PasswordRequirements({ password }: { password: string }) {
   const requirements = [
@@ -18,16 +18,16 @@ function PasswordRequirements({ password }: { password: string }) {
     <div className="space-y-1 mt-1.5">
       {requirements.map((req, i) => (
         <div key={i} className="flex items-center gap-1.5">
-          <div
+          <Check
             className={cn(
-              "size-1.5 rounded-full transition-colors",
-              req.met ? "bg-primary" : "bg-outline"
+              "size-4 transition-colors",
+              req.met ? "text-green-500" : "text-gray-400"
             )}
           />
           <span
             className={cn(
               "text-label-md transition-colors",
-              req.met ? "text-primary" : "text-muted-foreground"
+              req.met ? "text-green-500" : "text-muted-foreground"
             )}
           >
             {req.label}
@@ -209,6 +209,7 @@ export function RegistrationForm({
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   })
@@ -217,6 +218,7 @@ export function RegistrationForm({
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   })
@@ -227,6 +229,7 @@ export function RegistrationForm({
     switch (name) {
       case "firstName":
       case "lastName":
+      case "phone":
         return value.trim() ? "" : "Este campo es requerido"
       case "email":
         if (!value.trim()) return "Este campo es requerido"
@@ -263,6 +266,7 @@ export function RegistrationForm({
       firstName: validateField("firstName", formData.firstName),
       lastName: validateField("lastName", formData.lastName),
       email: validateField("email", formData.email),
+      phone: validateField("phone", formData.phone),
       password: validateField("password", formData.password),
       confirmPassword: validateField("confirmPassword", formData.confirmPassword),
     }
@@ -273,13 +277,17 @@ export function RegistrationForm({
       return
     }
 
+    const firstName = capitalize(formData.firstName)
+    const lastName = capitalize(formData.lastName)
+
     try {
       const { signUpWithEmail } = await import("@/lib/actions/auth")
       const result = await signUpWithEmail(
         formData.email,
         formData.password,
-        formData.firstName,
-        formData.lastName
+        firstName,
+        lastName,
+        formData.phone
       )
 
       if (result?.error) {
@@ -345,16 +353,28 @@ export function RegistrationForm({
         />
       </div>
 
-      <FormField
-        label="Correo Electrónico"
-        name="email"
-        type="email"
-        placeholder="juan.perez@ejemplo.com"
-        value={formData.email}
-        onChange={handleChange("email")}
-        error={errors.email}
-        icon={<Mail className="size-4" />}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          label="Correo Electrónico"
+          name="email"
+          type="email"
+          placeholder="juan.perez@ejemplo.com"
+          value={formData.email}
+          onChange={handleChange("email")}
+          error={errors.email}
+          icon={<Mail className="size-4" />}
+        />
+        <FormField
+          label="Teléfono"
+          name="phone"
+          type="tel"
+          placeholder="Ej. +34 612 345 678"
+          value={formData.phone}
+          onChange={handleChange("phone")}
+          error={errors.phone}
+          icon={<Phone className="size-4" />}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -386,6 +406,7 @@ export function RegistrationForm({
         <SubmitButton />
       </div>
 
+      {/* TODO: OAuth - O regístrate con
       <div className="relative py-4">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-outline-variant" />
@@ -440,6 +461,7 @@ export function RegistrationForm({
           Google
         </Button>
       </div>
+      */}
 
       <p className="text-center text-body-md text-on-surface-variant">
         ¿Ya tienes una cuenta?{" "}

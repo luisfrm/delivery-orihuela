@@ -11,7 +11,8 @@ export async function signUpWithEmail(
   email: string,
   password: string,
   firstName: string,
-  lastName: string
+  lastName: string,
+  phone: string
 ): Promise<AuthResult> {
   const supabase = await createClient()
 
@@ -22,6 +23,7 @@ export async function signUpWithEmail(
       data: {
         first_name: firstName,
         last_name: lastName,
+        phone,
       },
     },
   })
