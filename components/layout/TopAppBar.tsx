@@ -7,17 +7,18 @@ import logo from "@/assets/logo.webp"
 import { Button } from "@/components/ui/button"
 import { RegistrationModal } from "@/components/modal/RegistrationModal"
 import { LoginModal } from "@/components/modal/LoginModal"
+import { ProfileModal } from "@/components/modal/ProfileModal"
 import { useAuth } from "@/hooks/useAuth"
 
 interface TopAppBarProps {
   onCartClick?: () => void
-  onProfileClick?: () => void
 }
 
-export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
+export function TopAppBar({ onCartClick }: TopAppBarProps) {
   const { isAuthenticated, isLoading } = useAuth()
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   return (
     <header className="fixed top-0 w-full z-50 shadow-md flex justify-between items-center h-[72px] px-[20px] bg-primary">
@@ -43,14 +44,19 @@ export function TopAppBar({ onCartClick, onProfileClick }: TopAppBarProps) {
         {isLoading ? (
           <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
         ) : isAuthenticated ? (
-          <Button
-            variant="toolbar"
-            size="icon-xl"
-            onClick={onProfileClick}
-            aria-label="Perfil"
-          >
-            <User className="w-6 h-6" />
-          </Button>
+          <ProfileModal
+            open={profileOpen}
+            onOpenChange={setProfileOpen}
+            trigger={
+              <Button
+                variant="toolbar"
+                size="icon-xl"
+                aria-label="Perfil"
+              >
+                <User className="w-6 h-6" />
+              </Button>
+            }
+          />
         ) : (
           <div className="hidden lg:flex items-center gap-[8px]">
             <LoginModal
