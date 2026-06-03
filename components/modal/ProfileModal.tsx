@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { User } from "lucide-react"
 import {
   ResponsiveModal,
@@ -10,6 +10,7 @@ import {
 import { ProfileView } from "@/components/profile/profile-view"
 import { EditProfileForm } from "@/components/forms/edit-profile-form"
 import { Button } from "@/components/ui/button"
+import { useProfile } from "@/hooks/useProfile"
 
 interface ProfileModalProps {
   trigger?: React.ReactNode
@@ -25,38 +26,13 @@ export function ProfileModal({
   onOpenChange,
 }: ProfileModalProps) {
   const [step, setStep] = useState<Step>("view")
-  const [profile, setProfile] = useState<{
-    firstName: string
-    lastName: string
-    email: string
-  } | null>(null)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false)
-  const [profileError, setProfileError] = useState("")
-
-  const fetchProfile = useCallback(async () => {
-    setIsLoadingProfile(true)
-    setProfileError("")
-    try {
-      const { getProfile } = await import("@/lib/actions/profile")
-      const result = await getProfile()
-      if (result?.error) {
-        setProfileError(result.error)
-      } else {
-        setProfile(result as { firstName: string; lastName: string; email: string })
-      }
-    } catch {
-      setProfileError("Ocurrió un error al cargar el perfil.")
-    } finally {
-      setIsLoadingProfile(false)
-    }
-  }, [])
+  const { profile, isLoading, error, refresh, updateCachedProfile } = useProfile()
 
   useEffect(() => {
     if (open) {
       setStep("view")
-      fetchProfile()
     }
-  }, [open, fetchProfile])
+  }, [open])
 
   const handleSignOut = async () => {
     try {
@@ -71,9 +47,11 @@ export function ProfileModal({
     }
   }
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = (firstName: string, lastName: string) => {
+    if (profile) {
+      updateCachedProfile({ firstName, lastName, email: profile.email })
+    }
     setStep("view")
-    fetchProfile()
   }
 
   const icon = step === "edit" ? (
@@ -115,7 +93,7 @@ export function ProfileModal({
         subtitle={subtitle}
         desktopMaxWidth="max-w-md"
       >
-        {isLoadingProfile ? (
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <div className="size-16 rounded-full bg-surface-container animate-pulse" />
             <div className="space-y-2 w-48">
@@ -123,10 +101,10 @@ export function ProfileModal({
               <div className="h-4 bg-surface-container rounded animate-pulse w-3/4 mx-auto" />
             </div>
           </div>
-        ) : profileError ? (
+        ) : error ? (
           <div className="py-8 text-center space-y-4">
-            <p className="text-body-md text-destructive">{profileError}</p>
-            <Button variant="outline" size="lg" onClick={fetchProfile}>
+            <p className="text-body-md text-destructive">{error}</p>
+            <Button variant="outline" size="lg" onClick={refresh}>
               Reintentar
             </Button>
           </div>

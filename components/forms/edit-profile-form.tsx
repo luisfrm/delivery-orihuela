@@ -9,7 +9,7 @@ interface EditProfileFormProps {
   initialFirstName: string
   initialLastName: string
   email: string
-  onSuccess: () => void
+  onSuccess: (firstName: string, lastName: string) => void
   onCancel: () => void
 }
 
@@ -77,7 +77,7 @@ export function EditProfileForm({
         return
       }
 
-      onSuccess()
+      onSuccess(formData.firstName, formData.lastName)
     } catch {
       setGeneralError("Ocurrió un error. Intenta de nuevo.")
       setIsSubmitting(false)
