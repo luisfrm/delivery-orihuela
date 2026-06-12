@@ -1,117 +1,65 @@
-"use client"
+import { redirect } from "next/navigation"
+import { ShieldAlert } from "lucide-react"
+import { checkAdminExists } from "@/lib/actions/init"
+import { InitForm } from "./_components/InitForm"
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+export const dynamic = "force-dynamic"
 
-export default function InitPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [loading, setLoading] = useState(false)
+export const metadata = {
+  title: "Configuración inicial — Los Latinos",
+  description: "Crea el primer administrador del sistema.",
+  robots: "noindex, nofollow",
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage(null)
+export default async function InitPage() {
+  const { exists } = await checkAdminExists()
 
-    const supabase = createClient()
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    })
-
-    if (error) {
-      setMessage({ type: "error", text: error.message })
-    } else if (data.user) {
-      setMessage({ type: "success", text: "Usuario creado. Ahora necesitas iniciar sesión." })
-    }
-
-    setLoading(false)
+  // Si ya existe un admin, redirigir al panel
+  if (exists) {
+    redirect("/panel")
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-8">
-      <div className="w-full max-w-md">
-        <div className="bg-card rounded-xl p-8 shadow-lg border border-outline-variant">
-          <h1 className="text-headline-lg font-bold text-on-surface text-center mb-2">Bootstrapping</h1>
-          <p className="text-body-md text-on-surface-variant text-center mb-6">
-            Crea el primer usuario administrador
-          </p>
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Fondo decorativo */}
+      <div className="absolute inset-0 plus-pattern opacity-60" aria-hidden />
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-primary/8 blur-[80px] pointer-events-none"
+        aria-hidden
+      />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-on-surface">Nombre</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full mt-1 h-10 px-3 rounded-lg border border-border bg-background text-sm"
-                required
-              />
+      {/* Card central */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-4 mb-8">
+          {/* Logo */}
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <span className="text-white font-bold text-xl tracking-tight">LL</span>
             </div>
-
-            <div>
-              <label className="text-sm font-medium text-on-surface">Apellido</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full mt-1 h-10 px-3 rounded-lg border border-border bg-background text-sm"
-                required
-              />
+            <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center shadow-sm border-2 border-surface">
+              <ShieldAlert className="size-3.5 text-on-secondary-container" />
             </div>
+          </div>
 
-            <div>
-              <label className="text-sm font-medium text-on-surface">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-1 h-10 px-3 rounded-lg border border-border bg-background text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-on-surface">Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1 h-10 px-3 rounded-lg border border-border bg-background text-sm"
-                required
-                minLength={6}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-lg bg-primary text-white font-bold text-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Creando..." : "Crear Admin"}
-            </button>
-          </form>
-
-          {message && (
-            <div
-              className={`mt-4 p-4 rounded-lg text-sm ${
-                message.type === "error" ? "bg-error-container text-on-error-container" : "bg-primary-container text-on-primary-container"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
+          <div className="text-center">
+            <h1 className="text-headline-md text-on-surface">Configuración inicial</h1>
+            <p className="text-body-md text-on-surface-variant mt-1">
+              Crea la cuenta de administrador para comenzar a usar el panel.
+            </p>
+          </div>
         </div>
+
+        {/* Form card */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-6">
+          <InitForm />
+        </div>
+
+        <p className="text-center text-label-md text-on-surface-variant mt-5">
+          Esta página solo está disponible una vez.
+          <br />
+          Una vez creado el admin, será redirigida automáticamente.
+        </p>
       </div>
     </div>
   )
