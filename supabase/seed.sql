@@ -1,0 +1,5 @@
+-- ============================================
+-- Seed: vacío
+-- El primer usuario admin se crea mediante la página /init de la aplicación.
+-- Ver: app/init/page.tsx
+-- ============================================
