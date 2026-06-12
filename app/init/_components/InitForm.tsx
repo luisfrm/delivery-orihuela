@@ -118,7 +118,7 @@ export function InitForm() {
       setSuccess(true)
       // Brief delay to show success state before redirect
       setTimeout(() => {
-        window.location.href = "/panel"
+        window.location.href = "/"
       }, 1200)
     })
   }
@@ -130,7 +130,7 @@ export function InitForm() {
           <CheckCircle2 className="w-8 h-8 text-green-600" />
         </div>
         <p className="text-title-lg text-on-surface font-semibold">¡Administrador creado!</p>
-        <p className="text-body-md text-on-surface-variant">Redirigiendo al panel…</p>
+        <p className="text-body-md text-on-surface-variant">Redirigiendo al home…</p>
       </div>
     )
   }

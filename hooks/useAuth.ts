@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
 import { UserRole } from "@/lib/types"
@@ -14,18 +14,10 @@ interface UseAuthReturn {
 
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null)
-  const [role, setRole] = useState<UserRole | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchRole = useCallback(async () => {
-    try {
-      const { getUserRole } = await import("@/lib/actions/auth")
-      const { role: userRole } = await getUserRole()
-      setRole(userRole)
-    } catch {
-      setRole(null)
-    }
-  }, [])
+  // Derive role directly from user state (re-evaluated on every render if user changes)
+  const role = user ? (user.app_metadata?.role as UserRole ?? "user") : null
 
   useEffect(() => {
     const supabase = createClient()
@@ -35,12 +27,7 @@ export function useAuth(): UseAuthReturn {
       const { data } = await supabase.auth.getSession()
       if (!isMounted) return
 
-      const currentUser = data.session?.user ?? null
-      setUser(currentUser)
-
-      if (currentUser) {
-        await fetchRole()
-      }
+      setUser(data.session?.user ?? null)
 
       if (isMounted) setIsLoading(false)
     }
@@ -48,17 +35,10 @@ export function useAuth(): UseAuthReturn {
     initialize()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         if (!isMounted) return
 
-        const currentUser = session?.user ?? null
-        setUser(currentUser)
-
-        if (currentUser) {
-          await fetchRole()
-        } else {
-          setRole(null)
-        }
+        setUser(session?.user ?? null)
 
         if (isMounted) setIsLoading(false)
       }
@@ -68,7 +48,7 @@ export function useAuth(): UseAuthReturn {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [fetchRole])
+  }, [])
 
   return {
     user,

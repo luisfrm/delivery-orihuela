@@ -46,7 +46,7 @@ export function ProfileModal({
 
   const handleEditSuccess = (firstName: string, lastName: string) => {
     if (profile) {
-      updateCachedProfile({ firstName, lastName, email: profile.email })
+      updateCachedProfile({ firstName, lastName, phone: profile.phone, email: profile.email })
     }
     setStep("view")
   }
