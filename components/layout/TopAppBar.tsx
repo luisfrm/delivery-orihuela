@@ -42,7 +42,7 @@ export function TopAppBar({ onCartClick }: TopAppBarProps) {
         </Button>
 
         {isLoading ? (
-          <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
+          <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse hidden lg:block" />
         ) : isAuthenticated ? (
           <div className="hidden lg:block">
             <ProfileModal

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Home, Search, Bell, User } from "lucide-react"
+import { Home, Search, Bell, User, LayoutDashboard } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 import { ProfileModal } from "@/components/modal/ProfileModal"
 
 interface NavItem {
@@ -9,12 +10,14 @@ interface NavItem {
   label: string
   href: string
   isModal?: boolean
+  requireRole?: boolean
 }
 
 const navItems: NavItem[] = [
   { icon: <Home className="w-6 h-6" />, label: "Inicio", href: "/" },
   { icon: <Search className="w-6 h-6" />, label: "Explorar", href: "/explore" },
   { icon: <Bell className="w-6 h-6" />, label: "Pedidos", href: "/orders" },
+  { icon: <LayoutDashboard className="w-6 h-6" />, label: "Panel", href: "/panel", requireRole: true },
   { icon: <User className="w-6 h-6" />, label: "Perfil", href: "/profile", isModal: true },
 ]
 
@@ -24,10 +27,18 @@ interface AuthenticatedNavProps {
 
 export function AuthenticatedNav({ activeHref = "/" }: AuthenticatedNavProps) {
   const [profileOpen, setProfileOpen] = useState(false)
+  const { role } = useAuth()
+
+  const filteredItems = navItems.filter((item) => {
+    if (item.requireRole) {
+      return role === "admin" || role === "rider"
+    }
+    return true
+  })
 
   return (
     <div className="flex justify-around items-center h-[80px] px-[20px]">
-      {navItems.map((item) => {
+      {filteredItems.map((item) => {
         const isActive = item.href === activeHref || (item.isModal && profileOpen)
 
         if (item.isModal) {
