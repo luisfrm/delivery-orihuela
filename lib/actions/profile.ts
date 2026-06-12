@@ -12,16 +12,27 @@ export async function getProfile() {
 
   const {
     data: { user },
-    error,
+    error: authError,
   } = await supabase.auth.getUser()
 
-  if (error || !user) {
-    return { error: error?.message ?? "Usuario no encontrado" }
+  if (authError || !user) {
+    return { error: authError?.message ?? "Usuario no encontrado" }
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("first_name, last_name, phone")
+    .eq("id", user.id)
+    .single()
+
+  if (profileError || !profile) {
+    return { error: profileError?.message ?? "Perfil no encontrado" }
   }
 
   return {
-    firstName: user.user_metadata?.first_name ?? "",
-    lastName: user.user_metadata?.last_name ?? "",
+    firstName: profile.first_name ?? "",
+    lastName: profile.last_name ?? "",
+    phone: profile.phone ?? "",
     email: user.email ?? "",
   }
 }
@@ -32,9 +43,19 @@ export async function updateProfile(
 ): Promise<ProfileResult> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.updateUser({
-    data: { first_name: firstName, last_name: lastName },
-  })
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { error: "Usuario no autenticado" }
+  }
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({ first_name: firstName, last_name: lastName })
+    .eq("id", user.id)
 
   if (error) {
     return { error: error.message }

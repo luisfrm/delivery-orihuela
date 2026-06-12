@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "driver" | "user"
+export type UserRole = "admin" | "rider" | "user"
 export type ServiceType = "buy_and_deliver" | "pickup_only"
 export type OrderStatus = "pending" | "assigned" | "at_store" | "on_the_way" | "delivered" | "cancelled"
 
@@ -7,7 +7,6 @@ export interface UserProfile {
   first_name: string
   last_name: string
   phone: string
-  role: UserRole
   created_at: string
   updated_at: string
 }

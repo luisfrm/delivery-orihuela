@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect } from "react"
 interface ProfileData {
   firstName: string
   lastName: string
+  phone: string
   email: string
 }
 
@@ -17,9 +18,6 @@ export function useProfile() {
 
   const fetchProfile = useCallback(async (force = false) => {
     if (!force && cachedProfile) {
-      setProfile(cachedProfile)
-      setIsLoading(false)
-      setError(null)
       return
     }
 
@@ -44,6 +42,7 @@ export function useProfile() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProfile()
   }, [fetchProfile])
 
