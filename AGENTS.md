@@ -34,10 +34,19 @@ El primer usuario admin se crea a través de la página `/init`:
 - `app/auth/` — OAuth callback route (`/auth/callback`)
 - `app/init/` — Setup wizard para crear el primer admin (redirige a /panel si ya existe)
 
+**Middleware / Request Proxying (Next.js 16):**
+- Next.js 16 uses the `proxy.ts` file in the root directory (exporting an async `proxy(request)` function) rather than `middleware.ts` to intercept requests.
+- Admin panel routes `/panel/:path*` are protected via `proxy.ts` using the Supabase Server Client `auth.getUser()` to retrieve and authorize user roles.
+
+**Navigation Configuration:**
+- Centralized navigation links are defined in `lib/config/navigation.tsx` using the `NavItem` interface and `navItems` array.
+- Shared between `components/layout/AuthenticatedNav.tsx` (mobile bottom navigation) and `components/layout/DesktopNav.tsx` (desktop top app bar navigation).
+- Supports properties such as `requireRole` (only rendered for users with administrative roles) and `mobileOnly` (e.g., Profile modal trigger, since desktop manages the Profile modal via the TopAppBar user icon menu).
+
 **Component Structure:**
 - `components/ui/` — shadcn/ui components (Button, Badge, Dialog, etc.)
 - `components/home/` — Home page sections (HeroSection, PopularRestaurants, DailyOffersBanner)
-- `components/layout/` — TopAppBar, BottomNav, AuthenticatedNav, GuestNav
+- `components/layout/` — TopAppBar, BottomNav, AuthenticatedNav, DesktopNav, GuestNav
 - `components/modal/` — Modal components (LoginModal, RegistrationModal, ProfileModal, BuyModal)
 - `components/forms/` — Form components (login-form, registration-form, edit-profile-form, buy-form)
 - `components/profile/` — Profile view components
@@ -130,7 +139,10 @@ El cliente público (con `ANON_KEY`) no tiene permisos para escribir en `app_met
 
 ### Hook y Server Actions
 
-**Hook:** `useAuth()` in `hooks/useAuth.ts` — Returns `{ user, role, isLoading, isAuthenticated }`. Lee el `role` directamente de `user.app_metadata?.role` (sin query extra a la DB).
+**Hook:** `useAuth()` in `hooks/useAuth.ts` — Returns `{ user, role, isLoading, isAuthenticated }`.
+- **Derived State Pattern:** The `role` MUST be derived synchronously directly from `user.app_metadata?.role` on every render (e.g., `const role = user ? (user.app_metadata?.role as UserRole ?? "user") : null`).
+- **State Rule:** Never store `role` in a separate React `useState` to prevent rendering sync delay, UI flickers (layout shifts), or double-render updates.
+- **Database Efficiency:** Reads `role` directly from the JWT's `app_metadata` in Supabase session (0 DB queries).
 
 **Server Actions:** `lib/actions/auth.ts`
 - `signUpWithEmail(email, password, firstName, lastName, phone)` — Sin parámetro `role`; el trigger asigna `role:'user'` en `app_metadata` vía `UPDATE auth.users` (usando `SECURITY DEFINER`)
