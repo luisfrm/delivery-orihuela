@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
 import { createAddress } from "@/lib/actions/addresses"
+import { toast } from "sonner"
 
 interface NewAddressFormProps {
   onSuccess: (addressName: string, addressLine: string) => void
@@ -58,12 +59,14 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
       )
 
       if (result?.error) {
+        toast.error(result.error || "No se pudo guardar la dirección")
         setIsSubmitting(false)
         return
       }
 
       onSuccess(formData.name, formData.addressLine)
     } catch {
+      toast.error("No se pudo guardar la dirección. Intenta de nuevo.")
       setIsSubmitting(false)
     }
   }

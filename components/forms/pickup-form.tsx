@@ -9,6 +9,7 @@ import { AddressSelector, AddressSelection } from "@/components/ui/address-selec
 import { NewAddressForm } from "@/components/forms/new-address-form"
 import { createOrder } from "@/lib/actions/orders"
 import { getDeliveryFee } from "@/lib/actions/settings"
+import { toast } from "sonner"
 
 type Step = "form" | "preview" | "success"
 
@@ -67,12 +68,14 @@ export function PickupForm() {
       })
 
       if (result?.error) {
+        toast.error(result.error || "No se pudo crear el pedido")
         setIsSubmitting(false)
         return
       }
 
       setStep("success")
     } catch {
+      toast.error("No se pudo crear el pedido. Intenta de nuevo.")
       setIsSubmitting(false)
     }
   }
@@ -87,7 +90,7 @@ export function PickupForm() {
           Pedido en espera
         </h3>
         <p className="text-body-md text-muted-foreground mb-6 max-w-xs">
-          Tu solicitud ha sido enviada. Un driver aceptará tu pedido pronto.
+          Tu solicitud ha sido enviada. Un rider aceptará tu pedido pronto.
         </p>
         <p className="text-body-sm text-muted-foreground mb-6">
           Puedes revisar el estado de tus pedidos desde la sección de pedidos.
@@ -253,7 +256,7 @@ export function PickupForm() {
             <Textarea
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
-              placeholder="Indicaciones para el driver, datos extra del pedido..."
+              placeholder="Indicaciones para el rider, datos extra del pedido..."
               rows={3}
             />
           </div>

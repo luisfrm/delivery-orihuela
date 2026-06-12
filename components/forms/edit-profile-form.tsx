@@ -5,6 +5,8 @@ import { User, Mail, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
 
+import { validateRequired } from "@/lib/validation"
+
 interface EditProfileFormProps {
   initialFirstName: string
   initialLastName: string
@@ -36,8 +38,9 @@ export function EditProfileForm({
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case "firstName":
+        return validateRequired(value, "El nombre")
       case "lastName":
-        return value.trim() ? "" : "Este campo es requerido"
+        return validateRequired(value, "El apellido")
       default:
         return ""
     }

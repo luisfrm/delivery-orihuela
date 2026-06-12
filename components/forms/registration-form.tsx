@@ -8,12 +8,20 @@ import { FormField } from "@/components/ui/form-field"
 import { OtpStep } from "@/components/forms/otp-step"
 import { toast } from "sonner"
 import { cn, capitalize } from "@/lib/utils"
+import {
+  validateEmail,
+  validateRequired,
+  validatePassword,
+  validateConfirmPassword,
+  checkPasswordStrength,
+} from "@/lib/validation"
 
 function PasswordRequirements({ password }: { password: string }) {
+  const strength = checkPasswordStrength(password, 6)
   const requirements = [
-    { label: "Mínimo 6 caracteres", met: password.length >= 6 },
-    { label: "1 mayúscula", met: /[A-Z]/.test(password) },
-    { label: "1 símbolo o número", met: /[0-9!@#$%^&*]/.test(password) },
+    { label: "Mínimo 6 caracteres", met: strength.minLength },
+    { label: "1 mayúscula", met: strength.hasUppercase },
+    { label: "1 símbolo o número", met: strength.hasNumberOrSymbol },
   ]
 
   return (
@@ -139,24 +147,17 @@ export function RegistrationForm({
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case "firstName":
+        return validateRequired(value, "El nombre")
       case "lastName":
+        return validateRequired(value, "El apellido")
       case "phone":
-        return value.trim() ? "" : "Este campo es requerido"
+        return validateRequired(value, "El teléfono")
       case "email":
-        if (!value.trim()) return "Este campo es requerido"
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-          return "Ingresa un correo válido"
-        return ""
+        return validateEmail(value)
       case "password":
-        if (!value) return "Este campo es requerido"
-        if (value.length < 6) return "Mínimo 6 caracteres"
-        if (!/[A-Z]/.test(value)) return "Al menos 1 mayúscula"
-        if (!/[0-9!@#$%^&*]/.test(value)) return "Al menos 1 símbolo o número"
-        return ""
+        return validatePassword(value, 6, true)
       case "confirmPassword":
-        if (!value) return "Este campo es requerido"
-        if (value !== formData.password) return "Las contraseñas no coinciden"
-        return ""
+        return validateConfirmPassword(value, formData.password)
       default:
         return ""
     }

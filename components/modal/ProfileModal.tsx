@@ -11,6 +11,7 @@ import { ProfileView } from "@/components/profile/profile-view"
 import { EditProfileForm } from "@/components/forms/edit-profile-form"
 import { Button } from "@/components/ui/button"
 import { useProfile } from "@/hooks/useProfile"
+import { toast } from "sonner"
 
 interface ProfileModalProps {
   trigger?: React.ReactNode
@@ -32,12 +33,14 @@ export function ProfileModal({
     try {
       const { signOut } = await import("@/lib/actions/auth")
       const result = await signOut()
-      if (!result?.error) {
-        onOpenChange?.(false)
-        window.location.reload()
+      if (result?.error) {
+        toast.error(result.error)
+        return
       }
+      onOpenChange?.(false)
+      window.location.reload()
     } catch {
-      // silent
+      toast.error("No se pudo cerrar sesión. Intenta de nuevo.")
     }
   }
 
