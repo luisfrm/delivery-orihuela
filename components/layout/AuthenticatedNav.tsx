@@ -1,25 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Home, Search, Bell, User, LayoutDashboard } from "lucide-react"
+
 import { useAuth } from "@/hooks/useAuth"
 import { ProfileModal } from "@/components/modal/ProfileModal"
 
-interface NavItem {
-  icon: React.ReactNode
-  label: string
-  href: string
-  isModal?: boolean
-  requireRole?: boolean
-}
-
-const navItems: NavItem[] = [
-  { icon: <Home className="w-6 h-6" />, label: "Inicio", href: "/" },
-  { icon: <Search className="w-6 h-6" />, label: "Explorar", href: "/explore" },
-  { icon: <Bell className="w-6 h-6" />, label: "Pedidos", href: "/orders" },
-  { icon: <LayoutDashboard className="w-6 h-6" />, label: "Panel", href: "/panel", requireRole: true },
-  { icon: <User className="w-6 h-6" />, label: "Perfil", href: "/profile", isModal: true },
-]
+import { navItems } from "@/lib/config/navigation"
 
 interface AuthenticatedNavProps {
   activeHref?: string

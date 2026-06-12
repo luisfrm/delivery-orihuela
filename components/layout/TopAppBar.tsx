@@ -10,6 +10,8 @@ import { LoginModal } from "@/components/modal/LoginModal"
 import { ProfileModal } from "@/components/modal/ProfileModal"
 import { useAuth } from "@/hooks/useAuth"
 
+import { DesktopNav } from "@/components/layout/DesktopNav"
+
 interface TopAppBarProps {
   onCartClick?: () => void
 }
@@ -31,6 +33,11 @@ export function TopAppBar({ onCartClick }: TopAppBarProps) {
           <span className="text-secondary-container text-xs uppercase tracking-[0.2em] font-extrabold">Delivery</span>
         </div>
       </div>
+
+      <div className="hidden lg:flex flex-1 justify-start px-8">
+        <DesktopNav />
+      </div>
+
       <div className="flex items-center gap-[8px]">
         <Button
           variant="secondary"
