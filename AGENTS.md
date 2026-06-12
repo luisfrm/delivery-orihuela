@@ -113,6 +113,21 @@ signUp → user_metadata { first_name, last_name, phone }  → trigger → user_
 - **Nunca** aceptar `role` desde el cliente en el registro público. El trigger asigna `'user'` por defecto en `app_metadata`.
 - **⚠️ Si un usuario cambia de rol**, necesita refrescar su sesión para que el JWT se actualice: `await supabase.auth.refreshSession()`.
 
+### Row Level Security (RLS)
+Para verificar roles en las políticas RLS, **nunca hacer un JOIN a `user_profiles`**. El rol viaja en el JWT, lo que permite verificaciones sin coste extra de DB:
+```sql
+-- ✅ CORRECTO:
+USING ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+
+-- ❌ INCORRECTO:
+USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin'))
+```
+
+### Gestión de Roles Especiales (Admin / Rider)
+El cliente público (con `ANON_KEY`) no tiene permisos para escribir en `app_metadata`. Para asignar roles distintos a `'user'`:
+1. **Crear desde cero:** Usar `supabase.auth.admin.createUser({ app_metadata: { role: 'rider' } })` en una Server Action usando la **Service Role Key**. El trigger respetará este rol y no lo sobreescribirá con `'user'`.
+2. **Promover existente:** Usar `supabase.auth.admin.updateUserById(userId, { app_metadata: { role: 'admin' } })` y obligar al usuario a refrescar su sesión.
+
 ### Hook y Server Actions
 
 **Hook:** `useAuth()` in `hooks/useAuth.ts` — Returns `{ user, role, isLoading, isAuthenticated }`. Lee el `role` directamente de `user.app_metadata?.role` (sin query extra a la DB).
