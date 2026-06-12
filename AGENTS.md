@@ -11,12 +11,28 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `npm run lint` — ESLint (no path argument, lints entire project)
 - No test framework configured yet
 
+## First Admin (/init)
+
+El primer usuario admin se crea a través de la página `/init`:
+
+1. Con la DB limpia (sin admins), navegar a `/init`
+2. Completar el formulario con nombre, correo y contraseña
+3. Se redirige automáticamente a `/panel`
+
+**Reglas de seguridad:**
+- Si ya existe un admin, `/init` redirige a `/panel` en el servidor (Server Component)
+- La creación usa el service role key (bypassa RLS) — `lib/actions/init.ts`
+- El rol `'admin'` se guarda en `app_metadata` (no editable por el cliente) — el trigger no lo sobreescribe
+- El email se confirma automáticamente (sin OTP)
+- `supabase/seed.sql` está vacío; el admin ya no se crea por seed
+
 ## Architecture
 
 **Route Groups:**
 - `app/(client)/` — Public-facing client app with TopAppBar + BottomNav layout
 - `app/(admin)/` — Admin panel (separate layout)
 - `app/auth/` — OAuth callback route (`/auth/callback`)
+- `app/init/` — Setup wizard para crear el primer admin (redirige a /panel si ya existe)
 
 **Component Structure:**
 - `components/ui/` — shadcn/ui components (Button, Badge, Dialog, etc.)
@@ -31,7 +47,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `lib/supabase/server.ts` — Server client (use in Server Components/Actions)
 - `lib/supabase/service-role.ts` — Service role client (admin operations only)
 - Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Server actions: `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp), `lib/actions/profile.ts` (getProfile, updateProfile)
+- Server actions: `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp), `lib/actions/profile.ts` (getProfile, updateProfile), `lib/actions/init.ts` (checkAdminExists, createFirstAdmin)
 
 ## UI Components
 
@@ -80,21 +96,48 @@ All UI components use `class-variance-authority` (cva) for variants. **Never add
 
 ## Authentication
 
-**Hook:** `useAuth()` in `hooks/useAuth.ts` — Returns `{ user, isLoading, isAuthenticated }`. Manages session state and reactivity.
+### Arquitectura de roles y perfiles
+
+```
+signUp → user_metadata { first_name, last_name, phone }  → trigger → user_profiles (queries/JOINs)
+      → app_metadata  { role }                           → JWT     → RLS sin queries extra
+```
+
+| Dato | Dónde vive | Por qué |
+|---|---|---|
+| `first_name`, `last_name`, `phone` | `user_profiles` | Queries, JOINs, índices |
+| `role` | `app_metadata` (JWT) | Control de acceso, viaja en el token, no editable por el cliente |
+
+- **Nunca** leer `first_name`/`last_name`/`phone` de `user.user_metadata` después del signup. Usar siempre `user_profiles`.
+- **Nunca** leer `role` de `user_profiles`. Usar siempre `user.app_metadata?.role` del JWT.
+- **Nunca** aceptar `role` desde el cliente en el registro público. El trigger asigna `'user'` por defecto en `app_metadata`.
+- **⚠️ Si un usuario cambia de rol**, necesita refrescar su sesión para que el JWT se actualice: `await supabase.auth.refreshSession()`.
+
+### Hook y Server Actions
+
+**Hook:** `useAuth()` in `hooks/useAuth.ts` — Returns `{ user, role, isLoading, isAuthenticated }`. Lee el `role` directamente de `user.app_metadata?.role` (sin query extra a la DB).
 
 **Server Actions:** `lib/actions/auth.ts`
-- `signUpWithEmail(email, password, firstName, lastName)`
+- `signUpWithEmail(email, password, firstName, lastName, phone)` — Sin parámetro `role`; el trigger asigna `role:'user'` en `app_metadata` vía `UPDATE auth.users` (usando `SECURITY DEFINER`)
 - `signInWithEmail(email, password)`
 - `signInWithGoogle()` — Throws `RedirectError` for OAuth redirect
 - `signOut()`
 - `verifyOtp(email, token)`
 - `resendOtp(email)`
+- `getUserRole()` — Lee `role` de `user.app_metadata` (0 queries a la DB)
 
 **Profile Actions:** `lib/actions/profile.ts`
-- `getProfile()` — Returns `{ firstName, lastName, email }`
-- `updateProfile(firstName, lastName)` — Updates user metadata
+- `getProfile()` — Returns `{ firstName, lastName, phone, email }` — lee de `user_profiles`
+- `updateProfile(firstName, lastName)` — Escribe en `user_profiles` (no en metadata)
 
 **Session flow:** After login/signup success, call `window.location.reload()` to refresh session state.
+
+## Database & Migrations
+
+**Supabase CLI Migrations:**
+- **Strict 14-digit timestamps:** ALWAYS use the `YYYYMMDDHHMMSS` format for migration files (e.g., `20260612235959_feature.sql`).
+- **Never use short dates:** Using 8-digit dates (e.g., `20260612_feature.sql`) causes irreversible conflicts and duplicate entries in the CLI's `schema_migrations` tracking table during `supabase db push`.
+- **Repairing History:** If migrations desync, use `supabase migration repair --status reverted <version>` to clean remote history, fix local filenames to 14-digits, and push again.
 
 ## Modals
 
@@ -125,10 +168,17 @@ All UI components use `class-variance-authority` (cva) for variants. **Never add
 
 **Validation pattern:**
 ```tsx
+import { validateRequired } from "@/lib/validation"
+
 const [errors, setErrors] = useState({ field: "" })
 
 const validateField = (name: string, value: string): string => {
-  return value.trim() ? "" : "Este campo es requerido"
+  switch (name) {
+    case "field":
+      return validateRequired(value, "El campo")
+    default:
+      return ""
+  }
 }
 
 const handleChange = (name: string) => (value: string) => {
