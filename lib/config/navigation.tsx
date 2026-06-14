@@ -11,7 +11,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { icon: <Home className="w-6 h-6" />, label: "Inicio", href: "/" },
-  { icon: <Bell className="w-6 h-6" />, label: "Pedidos", href: "/orders" },
+  { icon: <Bell className="w-6 h-6" />, label: "Pedidos", href: "/pedidos" },
   { icon: <LayoutDashboard className="w-6 h-6" />, label: "Panel", href: "/panel", requireRole: true },
   { icon: <User className="w-6 h-6" />, label: "Perfil", href: "/profile", isModal: true, mobileOnly: true },
 ]
