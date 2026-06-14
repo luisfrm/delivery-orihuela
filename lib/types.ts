@@ -66,6 +66,7 @@ export interface Order {
   service_type: ServiceType
   status: OrderStatus
   pickup_reference: string | null
+  additional_notes: string | null
   items_estimated_cost: number
   delivery_fee: number
   total_amount: number
