@@ -1,27 +1,50 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { OrdersService } from "@/lib/services/orders.service"
+import { Order } from "@/lib/types"
 
-export interface CreateOrderParams {
-  pickupReference: string
-  storeId: string | null
-  customStoreName: string | null
-  customStoreAddress: string | null
-  addressId: string
-  additionalNotes: string | null
-  deliveryFee: number
+export interface RiderProfile {
+  id: string
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
 }
 
-export interface OrderResult {
-  success?: boolean
-  error?: string
-  orderId?: string
+export async function getOrders(): Promise<Order[]> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return []
+  }
+
+  return service.getUserOrders(user.id)
+}
+
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.getOrderById(orderId)
+}
+
+export async function getAdminOrders(): Promise<Order[]> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.getAdminOrders()
 }
 
 export async function createOrder(
-  params: CreateOrderParams
-): Promise<OrderResult> {
+  params: Parameters<typeof import("@/lib/services/orders.service").OrdersService.prototype.createOrder>[0]
+): Promise<import("@/lib/services/orders.service").OrderResult> {
   const supabase = await createClient()
+  const service = new OrdersService(supabase)
 
   const {
     data: { user },
@@ -41,44 +64,80 @@ export async function createOrder(
     return { error: "Perfil de usuario no encontrado" }
   }
 
-  const { data: address } = await supabase
-    .from("user_addresses")
-    .select("address_line")
-    .eq("id", params.addressId)
-    .single()
+  return service.createOrder(params, profile.id)
+}
 
-  if (!address) {
-    return { error: "Dirección no encontrada" }
+export async function cancelOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "Usuario no autenticado" }
   }
 
-  if (params.customStoreName && params.customStoreAddress) {
-    await supabase.from("custom_stores").insert({
-      name: params.customStoreName,
-      address: params.customStoreAddress,
-      suggested_by: profile.id,
-    })
-  }
+  return service.cancelOrder(orderId, user.id)
+}
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: import("@/lib/types").OrderStatus
+): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.updateOrderStatus(orderId, status)
+}
+
+export async function assignDriver(
+  orderId: string,
+  driverId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.assignDriver(orderId, driverId)
+}
+
+export async function getRiders(): Promise<RiderProfile[]> {
+  const supabase = await createServiceRoleClient()
 
   const { data, error } = await supabase
-    .from("orders")
-    .insert({
-      client_id: profile.id,
-      store_id: params.storeId,
-      custom_store_name: params.customStoreName,
-      custom_store_address: params.customStoreAddress,
-      service_type: "pickup_only",
-      status: "pending",
-      pickup_reference: params.pickupReference,
-      items_estimated_cost: 0,
-      delivery_fee: params.deliveryFee,
-      total_amount: params.deliveryFee,
-    })
-    .select("id")
-    .single()
+    .from("user_profiles")
+    .select("id, first_name, last_name, phone")
+    .limit(100)
 
   if (error) {
-    return { error: error.message }
+    console.error("Error fetching riders:", error)
+    return []
   }
 
-  return { success: true, orderId: data.id }
+  const profileIds = (data || []).map((p) => p.id)
+
+  if (profileIds.length === 0) {
+    return []
+  }
+
+  const { data: authData } = await supabase
+    .from("auth.users")
+    .select("id, email, raw_app_meta_data")
+    .in("id", profileIds)
+
+  const riders = (data || []).map((profile) => {
+    const authUser = authData?.find((u) => u.id === profile.id)
+    const role = authUser?.raw_app_meta_data?.role as string | undefined
+    if (role !== "rider") return null
+    return {
+      id: profile.id,
+      first_name: profile.first_name ?? "",
+      last_name: profile.last_name ?? "",
+      phone: profile.phone ?? "",
+      email: authUser?.email ?? "",
+    }
+  }).filter(Boolean) as RiderProfile[]
+
+  return riders
 }
