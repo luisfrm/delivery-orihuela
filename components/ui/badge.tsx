@@ -24,6 +24,8 @@ const badgeVariants = cva(
           "bg-green-100 text-green-800 [a]:hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300",
         warning:
           "bg-yellow-100 text-yellow-800 [a]:hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300",
+        muted:
+          "bg-surface-container-high text-on-surface [a]:hover:bg-surface-container-highest",
       },
     },
     defaultVariants: {
