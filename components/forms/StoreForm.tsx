@@ -29,6 +29,7 @@ import {
   validatePhone,
   validateRequired,
 } from "@/lib/validation"
+import type { StoreWithMetadata } from "@/lib/types"
 
 type Step = "info" | "media" | "preview" | "success"
 
@@ -39,6 +40,8 @@ interface FormData {
   description: string
   coverFile: File | null
   logoFile: File | null
+  currentCoverUrl: string | null
+  currentLogoUrl: string | null
   categoryIds: string[]
 }
 
@@ -53,27 +56,47 @@ const STEP_TITLES: Record<Step, { title: string; subtitle: string }> = {
 
 const STEP_ORDER: Step[] = ["info", "media", "preview", "success"]
 
-interface AddRestaurantFormProps {
+interface StoreFormProps {
+  mode: "create" | "edit"
+  store?: StoreWithMetadata
   onClose: () => void
+  onSaved?: (store: StoreWithMetadata, newSlug?: string) => void
 }
 
 const MAX_NAME = 60
 const MAX_ADDRESS = 200
 const MAX_DESCRIPTION = 500
 
-export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
+export function StoreForm({ mode, store, onClose, onSaved }: StoreFormProps) {
   const router = useRouter()
   const categoriesHintId = useId()
 
   const [step, setStep] = useState<Step>("info")
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    address: "",
-    phone: "",
-    description: "",
-    coverFile: null,
-    logoFile: null,
-    categoryIds: [],
+  const [formData, setFormData] = useState<FormData>(() => {
+    if (mode === "edit" && store) {
+      return {
+        name: store.name,
+        address: store.address,
+        phone: store.phone,
+        description: store.description ?? "",
+        coverFile: null,
+        logoFile: null,
+        currentCoverUrl: store.cover_image_url ?? null,
+        currentLogoUrl: store.logo_url ?? null,
+        categoryIds: [...store.category_ids],
+      }
+    }
+    return {
+      name: "",
+      address: "",
+      phone: "",
+      description: "",
+      coverFile: null,
+      logoFile: null,
+      currentCoverUrl: null,
+      currentLogoUrl: null,
+      categoryIds: [],
+    }
   })
   const [errors, setErrors] = useState<ErrorMap>({})
   const [generalError, setGeneralError] = useState("")
@@ -155,6 +178,8 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
       description: "",
       coverFile: null,
       logoFile: null,
+      currentCoverUrl: null,
+      currentLogoUrl: null,
       categoryIds: [],
     })
     setErrors({})
@@ -166,11 +191,14 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
     setGeneralError("")
     setIsSubmitting(true)
 
-    const toastId = toast.loading("Creando restaurante...")
+    const isEditing = mode === "edit" && store
+    const toastId = toast.loading(
+      isEditing ? "Guardando cambios..." : "Creando restaurante..."
+    )
 
     try {
-      const { createStore } = await import("@/lib/actions/stores")
-      const result = await createStore({
+      const actions = await import("@/lib/actions/stores")
+      const payload = {
         name: formData.name.trim(),
         address: formData.address.trim(),
         phone: formData.phone.trim(),
@@ -178,7 +206,11 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
         categoryIds: formData.categoryIds,
         coverFile: formData.coverFile,
         logoFile: formData.logoFile,
-      })
+      }
+
+      const result = isEditing
+        ? await actions.updateStore(store!.slug, payload)
+        : await actions.createStore(payload)
 
       if (result.error) {
         toast.error(result.error, { id: toastId })
@@ -187,9 +219,25 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
         return
       }
 
-      toast.success("Restaurante creado exitosamente", { id: toastId })
-      router.refresh()
-      setStep("success")
+      const successMessage = isEditing
+        ? "Cambios guardados"
+        : "Restaurante creado exitosamente"
+      toast.success(successMessage, { id: toastId })
+
+      if (isEditing) {
+        const updatedStore: StoreWithMetadata = {
+          ...store!,
+          ...result.store!,
+          category_ids: payload.categoryIds,
+        }
+        const newSlug = (result as { newSlug?: string }).newSlug
+        onSaved?.(updatedStore, newSlug)
+        router.refresh()
+        onClose()
+      } else {
+        router.refresh()
+        setStep("success")
+      }
     } catch {
       toast.error("Ocurrió un error inesperado", { id: toastId })
       setGeneralError("Ocurrió un error inesperado. Intenta de nuevo.")
@@ -198,8 +246,8 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
     }
   }
 
-  // ─── SUCCESS ──────────────────────────────────────────────────────────
-  if (step === "success") {
+  // ─── SUCCESS (only in create mode) ───────────────────────────────────
+  if (step === "success" && mode === "create") {
     return (
       <div className="flex flex-col items-center gap-4 py-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
@@ -274,11 +322,13 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
             <PreviewImage
               label="Portada"
               file={formData.coverFile}
+              existingUrl={formData.currentCoverUrl}
               aspectClass="aspect-[16/9]"
             />
             <PreviewImage
               label="Logo"
               file={formData.logoFile}
+              existingUrl={formData.currentLogoUrl}
               aspectClass="aspect-square"
             />
           </div>
@@ -323,7 +373,11 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >
-            {isSubmitting ? "Creando..." : "Crear restaurante"}
+            {isSubmitting
+              ? "Guardando..."
+              : mode === "edit"
+                ? "Guardar cambios"
+                : "Crear restaurante"}
           </Button>
         </div>
       </div>
@@ -426,6 +480,7 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
             label="Imagen de portada"
             name="cover"
             value={formData.coverFile}
+            existingUrl={formData.currentCoverUrl}
             onChange={(file) => updateField("coverFile", file)}
             aspectRatio="cover"
             helperText="Aparece como banner superior en la card."
@@ -434,6 +489,7 @@ export function AddRestaurantForm({ onClose }: AddRestaurantFormProps) {
             label="Logo"
             name="logo"
             value={formData.logoFile}
+            existingUrl={formData.currentLogoUrl}
             onChange={(file) => updateField("logoFile", file)}
             aspectRatio="square"
             helperText="Aparece superpuesto en la esquina inferior izquierda."
@@ -548,13 +604,15 @@ function PreviewItem({ icon, label, value }: PreviewItemProps) {
 interface PreviewImageProps {
   label: string
   file: File | null
+  existingUrl: string | null
   aspectClass: string
 }
 
-function PreviewImage({ label, file, aspectClass }: PreviewImageProps) {
-  const url = useObjectURL(file)
+function PreviewImage({ label, file, existingUrl, aspectClass }: PreviewImageProps) {
+  const fileUrl = useObjectURL(file)
+  const displayUrl = fileUrl ?? existingUrl ?? null
 
-  if (!file) {
+  if (!displayUrl) {
     return (
       <div>
         <p className="text-label-md text-on-surface-variant mb-1.5">{label}</p>
@@ -569,16 +627,14 @@ function PreviewImage({ label, file, aspectClass }: PreviewImageProps) {
     <div>
       <p className="text-label-md text-on-surface-variant mb-1.5">{label}</p>
       <div className={`relative max-h-32 overflow-hidden rounded-lg border border-outline-variant ${aspectClass}`}>
-        {url && (
-          <Image
-            src={url}
-            alt={label}
-            fill
-            sizes="(min-width: 768px) 25vw, 50vw"
-            className="object-cover"
-            unoptimized
-          />
-        )}
+        <Image
+          src={displayUrl}
+          alt={label}
+          fill
+          sizes="(min-width: 768px) 25vw, 50vw"
+          className="object-cover"
+          unoptimized
+        />
       </div>
     </div>
   )

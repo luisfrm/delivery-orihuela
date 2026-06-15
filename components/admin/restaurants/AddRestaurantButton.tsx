@@ -1,7 +1,7 @@
 "use client"
 
-import { AddRestaurantModal } from "@/components/modal/AddRestaurantModal"
+import { StoreFormModal } from "@/components/modal/StoreFormModal"
 
 export function AddRestaurantButton() {
-  return <AddRestaurantModal />
+  return <StoreFormModal mode="create" />
 }

@@ -23,6 +23,7 @@ export interface ImageUploadProps {
   aspectRatio?: "square" | "video" | "cover"
   helperText?: string
   maxSize?: number
+  existingUrl?: string | null
 }
 
 const aspectClasses: Record<NonNullable<ImageUploadProps["aspectRatio"]>, string> = {
@@ -43,6 +44,7 @@ export function ImageUpload({
   aspectRatio = "video",
   helperText,
   maxSize = MAX_IMAGE_SIZE,
+  existingUrl = null,
 }: ImageUploadProps) {
   const inputId = useId()
   const errorId = `${inputId}-error`
@@ -52,7 +54,10 @@ export function ImageUpload({
   const [localError, setLocalError] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
 
-  const previewUrl = useObjectURL(value)
+  const filePreviewUrl = useObjectURL(value)
+  const displayUrl = filePreviewUrl ?? existingUrl ?? null
+  const hasNewFile = value !== null
+  const hasExistingImage = !hasNewFile && existingUrl != null
 
   const handleFile = (file: File | null) => {
     setLocalError(null)
@@ -149,10 +154,10 @@ export function ImageUpload({
           disabled && "cursor-not-allowed opacity-60"
         )}
       >
-        {previewUrl ? (
+        {displayUrl ? (
           <>
             <Image
-              src={previewUrl}
+              src={displayUrl}
               alt={label}
               fill
               sizes="(min-width: 768px) 50vw, 100vw"
@@ -160,21 +165,29 @@ export function ImageUpload({
               unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <button
-              type="button"
-              onClick={handleRemove}
-              disabled={disabled}
-              aria-label="Eliminar imagen"
-              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-on-surface shadow-sm transition-transform hover:scale-105 active:scale-95"
-            >
-              <X className="size-4" />
-            </button>
-            <div className="absolute bottom-2 left-2 flex max-w-[calc(100%-3.5rem)] items-center gap-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
-              <span className="truncate font-medium">{value?.name}</span>
-              <span className="shrink-0 opacity-80">
-                {value ? formatFileSize(value.size) : ""}
-              </span>
-            </div>
+            {hasNewFile ? (
+              <button
+                type="button"
+                onClick={handleRemove}
+                disabled={disabled}
+                aria-label="Eliminar imagen"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-on-surface shadow-sm transition-transform hover:scale-105 active:scale-95"
+              >
+                <X className="size-4" />
+              </button>
+            ) : null}
+            {hasNewFile ? (
+              <div className="absolute bottom-2 left-2 flex max-w-[calc(100%-3.5rem)] items-center gap-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
+                <span className="truncate font-medium">{value?.name}</span>
+                <span className="shrink-0 opacity-80">
+                  {value ? formatFileSize(value.size) : ""}
+                </span>
+              </div>
+            ) : hasExistingImage ? (
+              <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
+                <span className="font-medium">Imagen actual</span>
+              </div>
+            ) : null}
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-on-surface-variant">
