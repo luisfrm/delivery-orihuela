@@ -10,7 +10,10 @@ const cardVariants = cva(
       variant: {
         default: "bg-card text-card-foreground border-outline-variant",
         primary: "bg-primary-container text-on-primary-container border-transparent",
-        surface: "bg-surface-container-lowest border-outline-variant hover:border-secondary transition-colors duration-300",
+        surface:
+          "bg-surface-container-lowest border-outline-variant hover:border-primary transition-colors duration-300",
+        // nueva variante para el pedido en curso
+        active: "bg-surface-container-lowest border-primary shadow-lg",
       },
     },
     defaultVariants: {
