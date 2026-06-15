@@ -7,8 +7,8 @@ import {
   ResponsiveModalTrigger,
   ResponsiveModalContent,
 } from "@/components/ui/responsive-modal"
-import { ProfileView } from "@/components/profile/profile-view"
-import { EditProfileForm } from "@/components/forms/edit-profile-form"
+import { ProfileView } from "@/components/profile/ProfileView"
+import { EditProfileForm } from "@/components/forms/EditProfileForm"
 import { Button } from "@/components/ui/button"
 import { useProfile } from "@/hooks/useProfile"
 import { toast } from "sonner"

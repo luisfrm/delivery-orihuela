@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom"
 import { User, Mail, Lock, Phone, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
-import { OtpStep } from "@/components/forms/otp-step"
+import { OtpStep } from "@/components/forms/OtpStep"
 import { toast } from "sonner"
 import { cn, capitalize } from "@/lib/utils"
 import {

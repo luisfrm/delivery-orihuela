@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
-import { OtpStep } from "@/components/forms/otp-step"
+import { OtpStep } from "@/components/forms/OtpStep"
 import { toast } from "sonner"
 
 interface LoginFormProps {

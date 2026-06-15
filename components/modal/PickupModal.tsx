@@ -6,7 +6,7 @@ import {
   ResponsiveModalTrigger,
   ResponsiveModalContent,
 } from "@/components/ui/responsive-modal"
-import { PickupForm } from "@/components/forms/pickup-form"
+import { PickupForm } from "@/components/forms/PickupForm"
 import { Button } from "@/components/ui/button"
 
 export default function PickupModal() {

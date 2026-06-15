@@ -6,7 +6,7 @@ import {
   ResponsiveModalTrigger,
   ResponsiveModalContent,
 } from "@/components/ui/responsive-modal"
-import { LoginForm } from "@/components/forms/login-form"
+import { LoginForm } from "@/components/forms/LoginForm"
 import { Button } from "@/components/ui/button"
 
 interface LoginModalProps {

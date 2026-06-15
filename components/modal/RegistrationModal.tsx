@@ -6,7 +6,7 @@ import {
   ResponsiveModalTrigger,
   ResponsiveModalContent,
 } from "@/components/ui/responsive-modal"
-import { RegistrationForm } from "@/components/forms/registration-form"
+import { RegistrationForm } from "@/components/forms/RegistrationForm"
 import { Button } from "@/components/ui/button"
 
 interface RegistrationModalProps {

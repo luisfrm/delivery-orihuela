@@ -6,8 +6,8 @@ import {
 	ResponsiveModalTrigger,
 	ResponsiveModalContent,
 } from "@/components/ui/responsive-modal";
-import { BuyForm } from "../forms/buy-form";
-import { Button } from "../ui/button";
+import { BuyForm } from "@/components/forms/BuyForm";
+import { Button } from "@/components/ui/button";
 
 export default function BuyModal({ onTriggerClick }: { onTriggerClick?: () => void }) {
 	return (
