@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Users, ShoppingCart, LogOut } from "lucide-react"
+import { LayoutDashboard, Users, ShoppingCart, UtensilsCrossed, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/panel", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard" },
   { href: "/panel/users", icon: <Users className="w-5 h-5" />, label: "Usuarios" },
   { href: "/panel/orders", icon: <ShoppingCart className="w-5 h-5" />, label: "Pedidos" },
+  { href: "/panel/restaurants", icon: <UtensilsCrossed className="w-5 h-5" />, label: "Restaurantes" },
 ]
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
