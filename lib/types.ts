@@ -25,6 +25,7 @@ export interface UserAddress {
 
 export interface Store {
   id: string
+  slug: string
   name: string
   address: string
   phone: string
@@ -32,6 +33,7 @@ export interface Store {
   logo_url: string | null
   description: string | null
   category_ids: string | null
+  menu_category_order: string | null
   created_at: string
   updated_at: string
 }
@@ -53,9 +55,13 @@ export interface Product {
   id: string
   store_id: string
   name: string
+  description: string | null
   picture_url: string | null
+  /** Price in cents. 100 = 1€. Display with Intl.NumberFormat. */
   estimated_price: number
   is_active: boolean
+  menu_category: string | null
+  position: number
   created_at: string
   updated_at: string
 }
