@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import { Order, OrderStatus } from "@/lib/types"
-import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ORDER_STATUS_CONFIG, SERVICE_TYPE_CONFIG } from "@/lib/orders/order-status"
+import { formatCurrency, formatOrderDate } from "@/lib/orders/format"
 import { updateOrderStatus, assignDriver } from "@/lib/actions/orders"
 import type { RiderProfile } from "@/lib/actions/orders"
 import { toast } from "sonner"
@@ -13,17 +15,6 @@ interface AdminOrderRowProps {
   order: Order
   riders: RiderProfile[]
   onUpdated: () => void
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString("es-ES", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
 }
 
 const STATUS_ORDER: OrderStatus[] = [
@@ -87,7 +78,9 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
               <h3 className="text-title-lg font-bold text-on-surface truncate">
                 {order.pickup_reference || "Sin referencia"}
               </h3>
-              <OrderStatusBadge status={order.status} />
+              <Badge variant={ORDER_STATUS_CONFIG[order.status].badgeVariant}>
+                {ORDER_STATUS_CONFIG[order.status].label}
+              </Badge>
             </div>
             <div className="mt-1.5 flex items-center gap-3 text-body-sm text-on-surface-variant flex-wrap">
               <span className="flex items-center gap-1">
@@ -104,11 +97,11 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="text-right">
               <p className="text-headline-md font-bold text-primary">
-                €{order.total_amount.toFixed(2)}
+                {formatCurrency(order.total_amount)}
               </p>
               <div className="flex items-center gap-1 text-label-md text-muted-foreground">
                 <Clock className="size-3.5" />
-                <span>{formatDate(order.created_at)}</span>
+                <span>{formatOrderDate(order.created_at)}</span>
               </div>
             </div>
             <ChevronDown
@@ -129,8 +122,8 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
           <div className="grid grid-cols-2 gap-3 text-body-sm">
             <div>
               <p className="text-label-md text-muted-foreground">Servicio</p>
-              <p className="text-body-md font-medium text-on-surface capitalize">
-                {order.service_type === "pickup_only" ? "Solo recogida" : "Comprar y entregar"}
+              <p className="text-body-md font-medium text-on-surface">
+                {SERVICE_TYPE_CONFIG[order.service_type].label}
               </p>
             </div>
             {order.custom_store_address && (
@@ -222,9 +215,9 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
                           e.stopPropagation()
                           handleStatusChange(status)
                         }}
-                        className="w-full text-left px-3 py-2 text-body-sm hover:bg-surface-container-high transition-colors capitalize"
+                        className="w-full text-left px-3 py-2 text-body-sm hover:bg-surface-container-high transition-colors"
                       >
-                        {status.replace("_", " ")}
+                        {ORDER_STATUS_CONFIG[status].label}
                       </button>
                     ))}
                   </div>
