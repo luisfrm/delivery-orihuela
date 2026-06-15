@@ -52,3 +52,26 @@ export function validateConfirmPassword(confirmValue: string, passwordValue: str
   if (confirmValue !== passwordValue) return "Las contraseñas no coinciden."
   return ""
 }
+
+export function validateMinLength(value: string, min: number, label = "Este campo"): string {
+  const trimmed = value.trim()
+  if (!trimmed) return `${label} es requerido.`
+  if (trimmed.length < min) return `${label} debe tener al menos ${min} caracteres.`
+  return ""
+}
+
+export function validateMaxLength(value: string, max: number, label = "Este campo"): string {
+  if (value.length > max) return `${label} debe tener máximo ${max} caracteres.`
+  return ""
+}
+
+export function validatePhone(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return "El teléfono es requerido."
+  if (!/^\+?[0-9\s()-]{8,20}$/.test(trimmed)) {
+    return "Ingresa un teléfono válido (8 a 20 dígitos)."
+  }
+  const digits = trimmed.replace(/\D/g, "")
+  if (digits.length < 8) return "El teléfono debe tener al menos 8 dígitos."
+  return ""
+}

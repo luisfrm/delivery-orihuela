@@ -28,8 +28,17 @@ export interface Store {
   name: string
   address: string
   phone: string
+  cover_image_url: string | null
+  logo_url: string | null
+  description: string | null
+  category_ids: string | null
   created_at: string
   updated_at: string
+}
+
+export interface StoreWithMetadata extends Omit<Store, "category_ids"> {
+  active_items_count: number
+  category_ids: string[]
 }
 
 export interface Category {
