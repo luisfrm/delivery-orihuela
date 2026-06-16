@@ -126,7 +126,7 @@ function SortableProductRow({
   })
 
   return (
-    <div className="group/row relative">
+    <div className="group/row relative grid gap-2">
       <ProductCard
         product={product}
         onClick={onEdit}

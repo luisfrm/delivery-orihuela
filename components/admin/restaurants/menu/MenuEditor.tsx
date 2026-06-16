@@ -238,7 +238,7 @@ export function MenuEditor({
         scrollClassName="px-4 sm:px-6 lg:px-8 py-4"
       >
         <DragDropProvider onDragEnd={handleDragEnd}>
-          <div className="mx-auto max-w-3xl space-y-6 pb-6">
+          <div className="max-w-3xl space-y-6 pb-6">
             {categoryOrder.map((slug, index) => {
               const productsInCategory = productsByCategory.get(slug) ?? []
               return (
