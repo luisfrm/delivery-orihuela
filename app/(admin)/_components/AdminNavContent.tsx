@@ -31,7 +31,18 @@ export function AdminNavContent({ onItemClick }: AdminNavContentProps) {
     const result: RenderEntry[] = []
     let prevSection: NavSection | undefined
     for (const item of adminNavItems) {
-      const isActive = pathname === item.href
+      const isActive = (() => {
+        // "Volver al inicio" is never active (navigates out of admin)
+        if (item.href === "/") {
+          return false
+        }
+        // Dashboard: only exact match
+        if (item.href === "/panel") {
+          return pathname === item.href
+        }
+        // All other modules: exact match or prefix match
+        return pathname === item.href || pathname.startsWith(item.href + "/")
+      })()
       if (item.section && item.section !== prevSection) {
         result.push({
           type: "section",
