@@ -9,7 +9,7 @@ import PickupModal from "@/components/modal/PickupModal"
 
 export function HeroSection() {
   return (
-    <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern py-12">
+    <section className="relative w-full min-h-[460px] lg:min-h-svh flex items-center overflow-hidden bg-primary plus-pattern">
       <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
         <div className="z-10 flex flex-col items-center lg:items-start text-center lg:text-left gap-5 max-w-xl order-last lg:order-first">
           <div className="flex flex-wrap justify-center lg:justify-start gap-3">
@@ -27,13 +27,13 @@ export function HeroSection() {
             </Badge>
           </div>
 
-          <h1 className="text-headline-lg text-5xl lg:text-7xl uppercase tracking-tight text-white leading-tight">
+          <h1 className="text-headline-lg text-3xl lg:text-7xl uppercase tracking-tight text-white leading-tight">
             Pide tu comida
             <br />
             <span className="text-secondary">favorita</span>
           </h1>
 
-          <p className="text-body-md lg:text-body-lg text-white/90 max-w-md">
+          <p className="text-body-sm lg:text-body-lg text-white/90 max-w-md">
             Los mejores sabores latinos directo a tu puerta. Frescura, rapidez y el sazón que te hace sentir en casa.
           </p>
 
