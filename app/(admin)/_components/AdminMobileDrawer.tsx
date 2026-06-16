@@ -7,7 +7,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -19,6 +18,11 @@ interface AdminMobileDrawerProps {
   onOpenChange: (open: boolean) => void
   orgSettings: OrganizationSettings
 }
+
+const DRAWER_BG_STYLE = {
+  background:
+    "linear-gradient(to bottom, color-mix(in oklab, var(--color-primary) 6%, var(--color-surface)), var(--color-surface))",
+} as const
 
 export function AdminMobileDrawer({
   open,
@@ -34,43 +38,61 @@ export function AdminMobileDrawer({
         id="admin-mobile-drawer"
         side="right"
         showCloseButton
-        className="w-[85%] gap-0 bg-surface p-0 sm:max-w-sm"
+        style={DRAWER_BG_STYLE}
+        className="w-[85%] gap-0 p-0 sm:max-w-sm"
       >
-        <SheetHeader className="flex-row items-center gap-3 space-y-0 border-b border-outline-variant/40 px-6 py-5">
-          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-bold text-white">
-            {orgSettings.logoUrl ? (
-              <Image
-                src={orgSettings.logoUrl}
-                alt={orgSettings.logoAlt}
-                width={40}
-                height={40}
-                className="size-full object-cover"
-                unoptimized
-              />
-            ) : (
-              <span>{initial}</span>
-            )}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-40 -right-40 size-96 rounded-full bg-primary/10 blur-3xl"
+        />
+
+        <div className="relative m-4 overflow-hidden rounded-2xl border border-outline-variant/40 bg-gradient-to-br from-surface-container-low to-surface p-4 shadow-sm">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 -top-px h-1.5 bg-gradient-to-r from-primary via-primary to-secondary-container"
+          />
+          <div className="flex items-center gap-3 pt-1">
+            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-bold text-white ring-2 ring-primary/20 ring-offset-2 ring-offset-surface-container-low">
+              {orgSettings.logoUrl ? (
+                <Image
+                  src={orgSettings.logoUrl}
+                  alt={orgSettings.logoAlt}
+                  width={40}
+                  height={40}
+                  className="size-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <span>{initial}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <SheetTitle className="truncate font-bold text-on-surface">
+                  {orgSettings.name}
+                </SheetTitle>
+                <span
+                  aria-label="Sistema en línea"
+                  className="size-2 shrink-0 rounded-full bg-green-500 animate-pulse"
+                />
+              </div>
+              <SheetDescription>Panel Admin</SheetDescription>
+            </div>
           </div>
-          <div className="min-w-0">
-            <SheetTitle className="truncate font-bold text-on-surface">
-              {orgSettings.name}
-            </SheetTitle>
-            <SheetDescription>Panel Admin</SheetDescription>
-          </div>
-        </SheetHeader>
+        </div>
 
         <nav
           aria-label="Navegación principal"
-          className="flex-1 overflow-y-auto px-3 py-4"
+          className="relative flex-1 overflow-y-auto px-3 py-2"
         >
           <AdminNavContent onItemClick={handleItemClick} />
         </nav>
 
-        <div className="border-t border-outline-variant/40 p-3">
+        <div className="relative border-t border-outline-variant/40 p-3">
           <button
             type="button"
             className={cn(
-              "group/logout flex w-full items-center gap-3 rounded-lg px-4 py-3 text-body-md font-semibold tracking-tight text-error transition-colors duration-200",
+              "group/logout flex w-full items-center gap-3 rounded-xl px-4 py-3 text-body-md font-semibold tracking-tight text-error transition-colors duration-200",
               "hover:bg-error-container/30 focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:outline-none"
             )}
           >
