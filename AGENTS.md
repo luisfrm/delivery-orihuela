@@ -6,10 +6,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Commands
 
-- `npm run dev` — Start dev server
+- `npm run dev` — Start dev server (**restart after applying migrations** to refresh Supabase PostgREST schema cache)
 - `npm run build` — Production build
 - `npm run lint` — ESLint (no path argument, lints entire project)
+- `npx supabase db push` — Apply pending migrations to remote
+- `npx supabase migration list` — Check local vs remote migration status
+- `npx supabase migration repair --status reverted <version>` — Fix desynced migration history
 - No test framework configured yet
+- Use **pnpm** for installs (npm was failing with cryptic error)
 
 ## First Admin (/init)
 
@@ -28,6 +32,12 @@ El primer usuario admin se crea a través de la página `/init`:
 
 ## Architecture
 
+**File Naming Conventions:**
+- **Component files:** PascalCase (e.g., `OrderList.tsx`, `StoreForm.tsx`, `MenuEditor.tsx`)
+- **Utility/service files in `lib/`:** kebab-case (e.g., `slug.ts`, `file-validation.ts`, `stores.service.ts`, `menu-format.ts`)
+- **Hooks:** camelCase (e.g., `useAuth.ts`, `useObjectURL.ts`)
+- **`components/ui/`:** stay **kebab-case** (shadcn convention, e.g., `button.tsx`, `image-upload.tsx`, `dropdown-menu.tsx`)
+
 **Route Groups:**
 - `app/(client)/` — Public-facing client app with TopAppBar + BottomNav layout
 - `app/(admin)/` — Admin panel (separate layout)
@@ -44,23 +54,45 @@ El primer usuario admin se crea a través de la página `/init`:
 - Supports properties such as `requireRole` (only rendered for users with administrative roles) and `mobileOnly` (e.g., Profile modal trigger, since desktop manages the Profile modal via the TopAppBar user icon menu).
 
 **Component Structure:**
-- `components/ui/` — shadcn/ui components (Button, Badge, Dialog, etc.)
+- `components/ui/` — shadcn-style primitives (kebab-case, e.g., `button.tsx`, `image-upload.tsx`, `dropdown-menu.tsx`)
 - `components/home/` — Home page sections (HeroSection, PopularRestaurants, DailyOffersBanner)
 - `components/layout/` — TopAppBar, BottomNav, AuthenticatedNav, DesktopNav, GuestNav
-- `components/modal/` — Modal components (LoginModal, RegistrationModal, ProfileModal, BuyModal)
-- `components/forms/` — Form components (login-form, registration-form, edit-profile-form, buy-form)
+- `components/modal/` — Modal components (LoginModal, RegistrationModal, ProfileModal, BuyModal, StoreFormModal)
+- `components/forms/` — Form components (PascalCase, e.g., `StoreForm.tsx`, `ProductFormModal.tsx`, `LoginForm.tsx`)
 - `components/profile/` — Profile view components
+- `components/admin/` — Admin panel components
+  - `orders/` — Orders list, rows, details
+  - `restaurants/` — Restaurant CRUD + menu editor (8 components: `MenuHeader`, `MenuCategoryFilter`, `MenuCategorySection`, `ProductCard`, `AddProductCard`, `ProductFormModal`, `MenuFooter`, `MenuEditor`)
+  - `settings/`, `users/` — Other admin sections
+- `components/orders/` — Client-facing order components (ActiveOrderCard, etc.)
 
 **Supabase Integration:**
 - `lib/supabase/client.ts` — Browser client (use in Client Components)
 - `lib/supabase/server.ts` — Server client (use in Server Components/Actions)
 - `lib/supabase/service-role.ts` — Service role client (admin operations only)
+- `lib/supabase/storage.ts` — Restaurant image upload/delete (`Delivery Orihuela Bucket`)
+- `lib/supabase/organization-storage.ts` — Organization assets
 - Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Server actions: `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp), `lib/actions/profile.ts` (getProfile, updateProfile), `lib/actions/init.ts` (checkAdminExists, createFirstAdmin)
+- Server actions:
+  - `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp, getUserRole)
+  - `lib/actions/profile.ts` (getProfile, updateProfile)
+  - `lib/actions/init.ts` (checkAdminExists, createFirstAdmin)
+  - `lib/actions/stores.ts` — Restaurant CRUD + menu (`getStores`, `getStoreBySlug`, `getAdminStores`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenu`) — all require admin auth
+
+**Service Layer:**
+- `lib/services/stores.service.ts` — `StoresService` class with all DB methods (`getStores`, `getStoreBySlug`, `getStoresWithMetadata`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenu`)
+- `lib/services/organization.service.ts` — Organization settings
 
 ## UI Components
 
 All UI components use `class-variance-authority` (cva) for variants. **Never add hardcoded classes to override component styles.** Use existing variants or create new ones.
+
+**Base-ui specifics (NOT Radix):**
+- The project uses `@base-ui/react/*` primitives, not Radix. Conventions differ.
+- `Button` `render` prop for composing with `Link`/other elements (replaces Radix's `asChild`). Example: `<Button render={<Link href="..." />} />`
+- `DropdownMenu` items use `onClick` (NOT `onSelect` — base-ui uses native React events; `onSelect` is silently ignored)
+- `DropdownMenu` items render as `<div>` by default (not `<button>`) → need `cursor-pointer` explicitly because there's no native button cursor
+- All menu primitives (Menu, MenuTrigger, MenuItem, etc.) come from `@base-ui/react/menu`
 
 **Available components:**
 - `Button` — Actions with variants and sizes
@@ -71,12 +103,14 @@ All UI components use `class-variance-authority` (cva) for variants. **Never add
 - `Avatar` — User avatars (Avatar, AvatarImage, AvatarFallback, AvatarBadge, AvatarGroup)
 - `Separator` — Visual dividers
 - `ResponsiveModal` — Modal that adapts to mobile (bottom sheet) and desktop (centered dialog)
+- `ImageUpload` — Drag-and-drop image uploader with `existingUrl` prop for edit mode
+- `Textarea` — Multiline text input
 - `Dialog`, `Sheet`, `DropdownMenu`, `Select`, `Tabs`, `Table`, `Label`
 
 **Variant examples:**
-- `Button` variants: `primary`, `secondary`, `outline`, `ghost`, `toolbar`
+- `Button` variants: `primary`, `secondary`, `tertiary`, `outline`, `outline_primary`, `ghost`, `link`, `toolbar`
 - `Button` sizes: `default`, `sm`, `lg`, `xl`, `icon`, `icon-xs`, `icon-sm`, `icon-lg`, `icon-xl`
-- `Badge` variants: `default`, `secondary`, `destructive`, `outline`, `ghost`, `link`, `hero`
+- `Badge` variants: `default`, `secondary`, `destructive`, `outline`, `ghost`, `link`, `hero`, `success`, `warning`, `muted`
 - `Input` variants: `default`, `error`
 - `Input` sizes: `default`, `sm`, `lg`
 - `Card` variants: `default`, `primary`, `surface`
@@ -165,6 +199,24 @@ El cliente público (con `ANON_KEY`) no tiene permisos para escribir en `app_met
 - **Strict 14-digit timestamps:** ALWAYS use the `YYYYMMDDHHMMSS` format for migration files (e.g., `20260612235959_feature.sql`).
 - **Never use short dates:** Using 8-digit dates (e.g., `20260612_feature.sql`) causes irreversible conflicts and duplicate entries in the CLI's `schema_migrations` tracking table during `supabase db push`.
 - **Repairing History:** If migrations desync, use `supabase migration repair --status reverted <version>` to clean remote history, fix local filenames to 14-digits, and push again.
+- **Never edit applied migrations:** If a migration needs changes, write a new one. Editing applied migrations causes irreversible conflicts.
+
+**Schema Cache Gotcha (PostgREST):**
+After applying migrations that add/rename columns, **the Supabase client (`@supabase/ssr`) may have a stale schema cache** from PostgREST introspection. Symptoms:
+- INSERT/SELECT silently omits new columns (returns `null` for them in results)
+- Queries with `.single()` fail with `PGRST116: Results contain 0 rows` because the filter column is null
+- URL like `/panel/restaurants/undefined/menu` renders (template literal with null/undefined)
+
+**Fix:** Restart the dev server (`Ctrl+C` + `npm run dev`) to refresh the schema cache. Required after any migration that adds columns.
+
+## Storage
+
+- **Restaurant images:** `Delivery Orihuela Bucket` (URL-encoded as `Delivery%20Orihuela%20Bucket`). Public read for authenticated users, admin+service_role manage.
+- **Organization assets:** `organization-assets` bucket.
+- Constraints: 512KB max, JPEG/PNG/WebP only.
+- Path pattern: `${storeId}/cover.${ext}` and `${storeId}/logo.${ext}` (deterministic, used with `upsert: true`).
+- RLS policies: see `supabase/migrations/20260615*_restaurant_images*.sql`.
+- Helper `extractStoragePath(url)` in `lib/actions/stores.ts` converts public URL back to storage path (handles URL encoding).
 
 ## Modals
 
@@ -240,3 +292,109 @@ const handleChange = (name: string) => (value: string) => {
 import heroImage from "@/assets/hero.webp"
 <Image src={heroImage} alt="..." />
 ```
+
+## Patterns
+
+### Slug Pattern
+`lib/restaurants/slug.ts` exports:
+- `slugify(text)` — lowercase, strip diacritics (`Café` → `cafe`), replace non-alphanumeric with hyphens, collapse, trim, max 60 chars. Falls back to `"restaurante"` if empty.
+- `generateStoreSlug(name)` — `${slugify(name)}-${random4CharBase36Suffix}` for collision resistance (e.g., `la-cantina-abc1`).
+
+Used in `StoresService.createStore` and `StoresService.updateStore` (regenerated on name change). Routes use `[slug]` (not UUID) for readable URLs.
+
+### Multi-step Form (Create + Edit Reuse)
+Components like `StoreForm` accept a `mode: "create" | "edit"` prop and `store?: StoreWithMetadata` for edit mode:
+- Same form component reused (3 steps: `info` → `media` → `preview` → `success`)
+- `useState` with lazy initializer: `useState<FormData>(() => mode === "edit" && store ? { ... } : { ... })`
+- `key` prop on the inner form body for clean remount when switching between stores: `key={isEditing ? store?.id ?? "edit" : "create"}`
+- After create: `router.refresh()` + show success step with "Crear otro" / "Cerrar"
+- After edit: call `onSaved(updatedStore, newSlug?)` callback → parent updates its `currentStore` state
+- `StoreFormModal` wraps with `ResponsiveModal`, supports both controlled (`open` + `onOpenChange`) and uncontrolled modes
+
+### Image Upload (`ImageUpload` component)
+`components/ui/image-upload.tsx` accepts:
+- `value: File | null` — new file selected by the user
+- `existingUrl?: string | null` — remote URL to display in edit mode (current bucket image)
+- `aspectRatio?: "square" | "video" | "cover"` — controls the dropzone aspect ratio
+
+Display logic:
+- `displayUrl = filePreviewUrl ?? existingUrl ?? null`
+- `<Image src={displayUrl} ... />` shows the file preview if new, otherwise the remote URL, otherwise empty state
+- The X (remove) button **only renders when `value` is set** (a new file was uploaded) — clicking it reverts to `existingUrl` (clears the new file, does NOT remove the bucket image)
+- Footer with file name + size only shows for new files; a "Imagen actual" badge replaces it when only `existingUrl` is set
+
+Drop zone: `<div role="button" tabIndex={0}>` (NOT `<button>` — avoids button-in-button HTML error when nested in another button). Size cap: `max-h-32 sm:max-h-40` (no XL feel).
+
+### Object URLs (`useObjectURL` hook)
+`hooks/useObjectURL.ts` uses `useState` + `useEffect` (NOT `useMemo` — useMemo's cleanup is unreliable in React Strict Mode):
+- Creates `URL.createObjectURL(file)` on mount/file change
+- Calls `URL.revokeObjectURL(url)` on cleanup
+- `// eslint-disable-next-line react-hooks/set-state-in-effect` on the specific lines that fire the rule (not blanket disable)
+
+### Image Cleanup Pattern (Update / Delete)
+**On update** (e.g., `updateStore`):
+1. Upload new file first → `uploadedPaths.push(newPath)` (for rollback)
+2. **If `newUrl !== oldUrl`** (different extension or different file), `oldPaths.push(extractStoragePath(oldUrl))`
+3. `UPDATE` DB with new URL
+4. If DB update succeeds → `deleteRestaurantImages(oldPaths)` (cleanup old)
+5. If DB update fails → `deleteRestaurantImages(uploadedPaths)` (rollback new)
+
+**On delete** (e.g., `deleteStore`):
+1. `DELETE` DB row first
+2. Extract paths from URLs of deleted store
+3. `deleteRestaurantImages(paths)` (cleanup)
+
+Helper: `extractStoragePath(url)` in `lib/actions/stores.ts` converts public URL back to storage path (handles `Delivery%20Orihuela%20Bucket` URL encoding).
+
+### Upsert Bug (CRITICAL)
+`uploadRestaurantImage` uses `upsert: true` with deterministic path `${storeId}/${folder}.${extension}`. **If the user uploads a new file with the same extension as the old one (e.g., `cover.jpg` → `cover.jpg`), the same file is overwritten in place.**
+
+**Bug:** Naively adding the old URL's path to `oldPaths` after upload will delete the new file you just uploaded.
+
+**Fix:** Compare `newUrl !== current.cover_image_url` before pushing to `oldPaths`:
+```ts
+if (input.coverFile) {
+  const { url, path, error } = await uploadRestaurantImage(...)
+  if (error || !url || !path) { /* rollback new */ return { error } }
+  coverImageUrl = url
+  uploadedPaths.push(path)
+  // Only mark old for deletion if the new file has a different path
+  if (url !== current.cover_image_url) {
+    const oldCoverPath = extractStoragePath(current.cover_image_url)
+    if (oldCoverPath) oldPaths.push(oldCoverPath)
+  }
+}
+```
+
+### Restaurant Categories (Hardcoded)
+- `lib/restaurants/categories.ts` — 14 hardcoded `RESTAURANT_CATEGORIES` (slugs + names)
+- `parseCategoryIds(value)` — splits semicolon-separated string from DB, filters empty
+- `serializeCategoryIds(ids)` — joins array with `;` for storage
+- `getCategoryNames(ids)` — returns display names for a list of IDs
+- Stored as `text` column on `stores` (no join table)
+
+### Menu Categories (Hardcoded)
+- `lib/restaurants/menu-categories.ts` — 6 hardcoded `MENU_CATEGORIES` (entradas, platos-fuertes, bebidas, postres, acompañamientos, ensaladas) with Lucide icons
+- `parseCategoryOrder(value)` — splits semicolon string, validates against `MENU_CATEGORIES`, fills missing with defaults
+- `serializeCategoryOrder(ids)` — joins valid IDs with `;`
+- `getDefaultCategoryOrder()` — returns the 6 IDs in default order
+- Stored as `text` column `menu_category_order` on `stores`
+
+### Price Formatting
+Prices stored as `bigint` cents in DB (`100` = `1€`). Display with EUR and locale `es-ES`:
+- `lib/restaurants/menu-format.ts` exports:
+  - `formatPriceCents(cents: number | bigint)` — uses `Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })` → returns e.g. `"1,50 €"`
+  - `parsePriceEurosToCents(input: string)` — converts user input to integer cents
+
+### Menu Editor (Drag & Drop)
+`@dnd-kit/react@0.5.0` (new API) + `@dnd-kit/helpers@0.5.0` for `move`:
+- `DragDropProvider` wraps the entire editor
+- Categories have no `group`; products have `group: categorySlug` + `type/accept: "product"` (nested sortable)
+- `useSortable` with `ref` prop only (no `attributes`/`listeners` like classic dnd-kit API)
+- Multi-container moves via `move()` from `@dnd-kit/helpers` — splits in-category products, moves, merges back into target category
+- 8 components in `components/admin/restaurants/menu/`: `MenuHeader`, `MenuCategoryFilter`, `MenuCategorySection`, `ProductCard`, `AddProductCard`, `ProductFormModal`, `MenuFooter`, `MenuEditor`
+
+### DropdownMenu Fixes (Base-UI gotchas)
+- **API:** `onClick` not `onSelect` (base-ui uses native React events). `onSelect` is silently ignored.
+- **Cursor:** base-ui `MenuItem` renders `<div>` by default (not `<button>`), so `cursor-pointer` must be set explicitly. The shadcn/Radix default `cursor-default` does NOT work for clickable items.
+- **Trigger:** `DropdownMenuTrigger` renders a `<button>` by default — has native cursor-pointer. Style with `className`.
