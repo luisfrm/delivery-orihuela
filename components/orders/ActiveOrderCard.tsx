@@ -87,7 +87,7 @@ export function ActiveOrderCard({
           Ver detalles
           <ArrowRight />
         </Button>
-        {order.driver_id && (
+        {order.rider_id && (
           <Button
             variant="tertiary"
             size="lg"

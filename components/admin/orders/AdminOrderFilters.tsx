@@ -12,7 +12,7 @@ const STATUS_OPTIONS: { value: OrderStatus | "all"; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "pending", label: "Pendiente" },
   { value: "assigned", label: "Asignado" },
-  { value: "at_store", label: "En tienda" },
+  { value: "at_customer", label: "En destino" },
   { value: "on_the_way", label: "En camino" },
   { value: "delivered", label: "Entregado" },
   { value: "cancelled", label: "Cancelado" },

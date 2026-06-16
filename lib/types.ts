@@ -1,6 +1,6 @@
 export type UserRole = "admin" | "rider" | "user"
 export type ServiceType = "buy_and_deliver" | "pickup_only"
-export type OrderStatus = "pending" | "assigned" | "at_store" | "on_the_way" | "delivered" | "cancelled"
+export type OrderStatus = "pending" | "assigned" | "at_customer" | "on_the_way" | "delivered" | "cancelled"
 
 export interface UserProfile {
   id: string
@@ -74,7 +74,7 @@ export interface ProductCategory {
 export interface Order {
   id: string
   client_id: string
-  driver_id: string | null
+  rider_id: string | null
   store_id: string | null
   custom_store_name: string | null
   custom_store_address: string | null

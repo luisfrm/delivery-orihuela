@@ -135,10 +135,10 @@ export class OrdersService {
     return { success: true }
   }
 
-  async assignDriver(orderId: string, driverId: string): Promise<{ success?: boolean; error?: string }> {
+  async assignRider(orderId: string, riderId: string): Promise<{ success?: boolean; error?: string }> {
     const { error } = await this.supabase
       .from("orders")
-      .update({ driver_id: driverId, status: "assigned" })
+      .update({ rider_id: riderId, status: "assigned" })
       .eq("id", orderId)
 
     if (error) {

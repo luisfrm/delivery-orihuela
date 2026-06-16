@@ -93,13 +93,13 @@ export async function updateOrderStatus(
   return service.updateOrderStatus(orderId, status)
 }
 
-export async function assignDriver(
+export async function assignRider(
   orderId: string,
-  driverId: string
+  riderId: string
 ): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
-  return service.assignDriver(orderId, driverId)
+  return service.assignRider(orderId, riderId)
 }
 
 export async function getRiders(): Promise<RiderProfile[]> {
