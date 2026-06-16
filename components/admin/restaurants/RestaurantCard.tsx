@@ -111,13 +111,15 @@ export function RestaurantCard({ store }: RestaurantCardProps) {
           </p>
         )}
 
-        <Button
-          variant="outline_primary"
-          size="default"
-          className="mt-auto w-full"
-        >
-          <Link href={`/panel/restaurants/${currentStore.slug}/menu`}>Ver Menú</Link>
-        </Button>
+        <Link href={`/panel/restaurants/${currentStore.slug}/menu`}>
+          <Button
+            variant="outline_primary"
+            size="default"
+            className="mt-auto w-full"
+          >
+            Ver Menú
+          </Button>
+        </Link>
       </div>
 
       <StoreFormModal
