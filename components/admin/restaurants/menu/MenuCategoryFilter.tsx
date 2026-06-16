@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react"
 
+import { ScrollShadow } from "@/components/ui/scroll-shadow"
 import { cn } from "@/lib/utils"
 import { MENU_CATEGORIES } from "@/lib/restaurants/menu-categories"
 
@@ -15,7 +16,11 @@ export function MenuCategoryFilter({
   onSelect,
 }: MenuCategoryFilterProps) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <ScrollShadow
+      direction="x"
+      className="pb-1"
+      scrollClassName="flex items-center gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    >
       <span className="shrink-0 text-label-lg font-semibold text-on-surface-variant pr-1">
         Categorías:
       </span>
@@ -51,6 +56,6 @@ export function MenuCategoryFilter({
           </button>
         )
       })}
-    </div>
+    </ScrollShadow>
   )
 }

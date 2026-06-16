@@ -8,6 +8,7 @@ import { move } from "@dnd-kit/helpers"
 import { toast } from "sonner"
 
 import type { Product, Store } from "@/lib/types"
+import { ScrollShadow } from "@/components/ui/scroll-shadow"
 import { MenuHeader } from "./MenuHeader"
 import { MenuCategoryFilter } from "./MenuCategoryFilter"
 import { MenuCategorySection } from "./MenuCategorySection"
@@ -226,8 +227,12 @@ export function MenuEditor({
         </div>
       </div>
 
-      <DragDropProvider onDragEnd={handleDragEnd}>
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
+      <ScrollShadow
+        direction="y"
+        className="flex-1"
+        scrollClassName="px-4 sm:px-6 lg:px-8 py-4"
+      >
+        <DragDropProvider onDragEnd={handleDragEnd}>
           <div className="mx-auto max-w-3xl space-y-6 pb-6">
             {categoryOrder.map((slug, index) => {
               const productsInCategory = productsByCategory.get(slug) ?? []
@@ -253,8 +258,8 @@ export function MenuEditor({
               </div>
             )}
           </div>
-        </div>
-      </DragDropProvider>
+        </DragDropProvider>
+      </ScrollShadow>
 
       <ProductFormModal
         key={editingProduct?.id ?? "new"}
