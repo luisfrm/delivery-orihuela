@@ -5,7 +5,7 @@ import { randomUUID } from "crypto"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import {
-  deleteRestaurantImages,
+  deleteStorageObjects,
   uploadRestaurantImage,
 } from "@/lib/supabase/storage"
 import { StoresService } from "@/lib/services/stores.service"
@@ -124,7 +124,7 @@ export async function createStore(
       folderId
     )
     if (error || !url || !path) {
-      await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+      await deleteStorageObjects(serviceSupabase, uploadedPaths)
       return { error: error ?? "Error al subir la imagen de portada." }
     }
     coverImageUrl = url
@@ -140,7 +140,7 @@ export async function createStore(
       folderId
     )
     if (error || !url || !path) {
-      await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+      await deleteStorageObjects(serviceSupabase, uploadedPaths)
       return { error: error ?? "Error al subir el logo." }
     }
     logoImageUrl = url
@@ -161,7 +161,7 @@ export async function createStore(
   })
 
   if (result.error) {
-    await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+    await deleteStorageObjects(serviceSupabase, uploadedPaths)
     return { error: result.error }
   }
 
@@ -209,7 +209,7 @@ export async function updateStore(
       current.id
     )
     if (error || !url || !path) {
-      await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+      await deleteStorageObjects(serviceSupabase, uploadedPaths)
       return { error: error ?? "Error al subir la imagen de portada." }
     }
     coverImageUrl = url
@@ -229,7 +229,7 @@ export async function updateStore(
       current.id
     )
     if (error || !url || !path) {
-      await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+      await deleteStorageObjects(serviceSupabase, uploadedPaths)
       return { error: error ?? "Error al subir el logo." }
     }
     logoImageUrl = url
@@ -251,12 +251,12 @@ export async function updateStore(
   })
 
   if (result.error) {
-    await deleteRestaurantImages(serviceSupabase, uploadedPaths)
+    await deleteStorageObjects(serviceSupabase, uploadedPaths)
     return { error: result.error }
   }
 
   if (oldPaths.length > 0) {
-    await deleteRestaurantImages(serviceSupabase, oldPaths)
+    await deleteStorageObjects(serviceSupabase, oldPaths)
   }
 
   return { store: result.store, newSlug: result.store?.slug }
@@ -288,7 +288,7 @@ export async function deleteStore(slug: string): Promise<DeleteStoreActionResult
   if (logoPath) oldPaths.push(logoPath)
 
   if (oldPaths.length > 0) {
-    await deleteRestaurantImages(serviceSupabase, oldPaths)
+    await deleteStorageObjects(serviceSupabase, oldPaths)
   }
 
   return {}
@@ -306,20 +306,19 @@ export async function getStoreMenuBySlug(slug: string): Promise<StoreMenuData | 
   return service.getStoreMenuBySlug(slug)
 }
 
-export interface SaveMenuPayload {
+export interface SaveMenuOrderingPayload {
   categoryOrder: string[]
-  products: Product[]
-  deletedProductIds: string[]
+  productOrdering: { id: string; menu_category: string; position: number }[]
 }
 
-export interface SaveMenuResult {
+export interface SaveMenuOrderingResult {
   error?: string
 }
 
-export async function saveMenu(
+export async function saveMenuOrdering(
   storeId: string,
-  payload: SaveMenuPayload
-): Promise<SaveMenuResult> {
+  payload: SaveMenuOrderingPayload
+): Promise<SaveMenuOrderingResult> {
   const {
     data: { user },
   } = await (await createClient()).auth.getUser()
@@ -336,9 +335,9 @@ export async function saveMenu(
   const supabase = await createClient()
   const service = new StoresService(supabase)
 
-  return service.saveMenu(storeId, {
+  return service.saveMenuOrdering(storeId, {
     categoryOrder: serializeCategoryOrder(payload.categoryOrder).split(";").filter(Boolean),
-    products: payload.products,
-    deletedProductIds: payload.deletedProductIds,
+    productOrdering: payload.productOrdering,
   })
 }
+

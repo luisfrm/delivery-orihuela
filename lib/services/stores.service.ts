@@ -232,15 +232,14 @@ export class StoresService {
     }
   }
 
-  async saveMenu(
+  async saveMenuOrdering(
     storeId: string,
     payload: {
       categoryOrder: string[]
-      products: Product[]
-      deletedProductIds: string[]
+      productOrdering: { id: string; menu_category: string; position: number }[]
     }
   ): Promise<{ error?: string }> {
-    const { categoryOrder, products, deletedProductIds } = payload
+    const { categoryOrder, productOrdering } = payload
 
     const serializedOrder = categoryOrder.join(";")
 
@@ -254,59 +253,15 @@ export class StoresService {
       return { error: storeError.message }
     }
 
-    if (deletedProductIds.length > 0) {
-      const { error: deleteError } = await this.supabase
+    for (const { id, menu_category, position } of productOrdering) {
+      const { error: updateError } = await this.supabase
         .from("products")
-        .delete()
-        .in("id", deletedProductIds)
+        .update({ menu_category, position })
+        .eq("id", id)
 
-      if (deleteError) {
-        console.error("Error deleting products:", deleteError)
-        return { error: deleteError.message }
-      }
-    }
-
-    for (const product of products) {
-      const { id, created_at: _ca, updated_at: _ua, ...updateData } = product
-      void _ca
-      void _ua
-
-      if (id.startsWith("tmp_")) {
-        const { error: insertError } = await this.supabase
-          .from("products")
-          .insert({
-            store_id: storeId,
-            name: updateData.name,
-            description: updateData.description ?? null,
-            picture_url: updateData.picture_url,
-            estimated_price: updateData.estimated_price,
-            is_active: updateData.is_active,
-            menu_category: updateData.menu_category,
-            position: updateData.position,
-          })
-
-        if (insertError) {
-          console.error("Error inserting product:", insertError)
-          return { error: insertError.message }
-        }
-      } else {
-        const { error: updateError } = await this.supabase
-          .from("products")
-          .update({
-            name: updateData.name,
-            description: updateData.description ?? null,
-            picture_url: updateData.picture_url,
-            estimated_price: updateData.estimated_price,
-            is_active: updateData.is_active,
-            menu_category: updateData.menu_category,
-            position: updateData.position,
-          })
-          .eq("id", id)
-
-        if (updateError) {
-          console.error("Error updating product:", updateError)
-          return { error: updateError.message }
-        }
+      if (updateError) {
+        console.error("Error updating product ordering:", updateError)
+        return { error: updateError.message }
       }
     }
 
