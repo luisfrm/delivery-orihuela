@@ -42,7 +42,34 @@ export async function uploadRestaurantImage(
   return { url: publicUrl, path }
 }
 
-export async function deleteRestaurantImages(
+export async function uploadProductImage(
+  supabase: SupabaseClient,
+  file: File,
+  storeId: string,
+  productId: string
+): Promise<{ url?: string; path?: string; error?: string }> {
+  const extension = getExtensionFromMimeType(file.type)
+  const path = `${storeId}/products/${productId}.${extension}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(RESTAURANT_IMAGES_BUCKET)
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: true,
+    })
+
+  if (uploadError) {
+    return { error: `Error al subir la imagen: ${uploadError.message}` }
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(RESTAURANT_IMAGES_BUCKET).getPublicUrl(path)
+
+  return { url: publicUrl, path }
+}
+
+export async function deleteStorageObjects(
   supabase: SupabaseClient,
   paths: string[]
 ): Promise<void> {
