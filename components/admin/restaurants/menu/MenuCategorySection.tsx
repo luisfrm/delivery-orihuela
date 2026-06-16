@@ -1,6 +1,6 @@
 "use client"
 
-import { Trash2 } from "lucide-react"
+import { GripVertical, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/react/sortable"
 
 import { cn } from "@/lib/utils"
@@ -35,7 +35,7 @@ export function MenuCategorySection({
 }: MenuCategorySectionProps) {
   const category = getCategoryById(slug)
 
-  const { ref, isDragging } = useSortable({
+  const { ref, handleRef, isDragging } = useSortable({
     id: slug,
     index,
   })
@@ -57,7 +57,14 @@ export function MenuCategorySection({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div
+          ref={handleRef}
+          className="group/handle flex min-w-0 items-center gap-2 cursor-grab-custom touch-none select-none rounded-md -ml-1 pl-1 pr-2 transition-colors hover:bg-surface-container-low active:cursor-grabbing-custom"
+        >
+          <GripVertical
+            aria-hidden="true"
+            className="size-4 shrink-0 text-on-surface-variant/60 transition-colors group-hover/handle:text-on-surface-variant"
+          />
           {category && (
             <category.icon className="size-5 shrink-0 text-primary" />
           )}
