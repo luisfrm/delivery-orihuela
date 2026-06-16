@@ -12,7 +12,7 @@ const buttonVariants = cva(
         secondary: "bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim",
         tertiary: "bg-card text-card-foreground border-border hover:border-primary/30 hover:bg-muted/50",
         outline: "hover:bg-white border-white/60 text-white hover:text-foreground hover:border-white",
-        outline_primary: "hover:bg-primary border-primary/60 text-primary hover:text-white hover:border-primary",
+        outline_primary: "hover:bg-primary border-primary/60 text-primary hover:text-white hover:border-primary active:bg-primary/90 active:text-white active:border-primary active:scale-[0.95]",
         ghost: "hover:bg-accent border-transparent text-foreground hover:border-border",
         link: "border-transparent text-black hover:underline underline-offset-4", // add separation from text and underline
         toolbar: "bg-white text-primary hover:bg-muted shadow-sm",
