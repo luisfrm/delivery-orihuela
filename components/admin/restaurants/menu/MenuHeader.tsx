@@ -1,9 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { MapPin } from "lucide-react"
+import Link from "next/link"
+import { ArrowLeft, MapPin } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import type { Store } from "@/lib/types"
 
 interface MenuHeaderProps {
@@ -14,6 +16,14 @@ interface MenuHeaderProps {
 export function MenuHeader({ store, className }: MenuHeaderProps) {
   return (
     <div className={cn("flex gap-4 items-center", className)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        render={<Link href="/panel/restaurants" />}
+        aria-label="Volver a restaurantes"
+      >
+        <ArrowLeft className="size-5" />
+      </Button>
       <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-xl border border-outline-variant bg-surface-container shadow-sm">
         {store.cover_image_url ? (
           <Image
