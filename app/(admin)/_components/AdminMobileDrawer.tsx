@@ -32,7 +32,7 @@ export function AdminMobileDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         id="admin-mobile-drawer"
-        side="left"
+        side="right"
         showCloseButton
         className="w-[85%] gap-0 bg-surface p-0 sm:max-w-sm"
       >
