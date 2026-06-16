@@ -77,7 +77,7 @@ export function MenuCategorySection({
         </div>
         <button
           type="button"
-          onClick={() => onSelectCategory(slug)}
+          onClick={() => onSelectCategory(selectedCategory === slug ? null : slug)}
           className="text-label-md text-on-surface-variant hover:text-primary transition-colors"
           aria-label="Filtrar por esta categoría"
         >

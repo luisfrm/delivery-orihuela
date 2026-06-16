@@ -26,7 +26,7 @@ export function MenuCategoryFilter({
       </span>
       <button
         type="button"
-        onClick={() => onSelect(null)}
+        onClick={() => selectedCategory !== null && onSelect(null)}
         className={cn(
           "shrink-0 px-4 py-1.5 text-label-lg font-semibold rounded-full transition-colors",
           selectedCategory === null
@@ -42,7 +42,7 @@ export function MenuCategoryFilter({
           <button
             key={cat.id}
             type="button"
-            onClick={() => onSelect(cat.id)}
+            onClick={() => onSelect(isActive ? null : cat.id)}
             className={cn(
               "shrink-0 inline-flex items-center gap-1.5 px-4 py-1.5 text-label-lg font-semibold rounded-full transition-colors",
               isActive
