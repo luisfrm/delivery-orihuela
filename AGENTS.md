@@ -70,17 +70,19 @@ El primer usuario admin se crea a través de la página `/init`:
 - `lib/supabase/client.ts` — Browser client (use in Client Components)
 - `lib/supabase/server.ts` — Server client (use in Server Components/Actions)
 - `lib/supabase/service-role.ts` — Service role client (admin operations only)
-- `lib/supabase/storage.ts` — Restaurant image upload/delete (`Delivery Orihuela Bucket`)
+- `lib/supabase/storage.ts` — Restaurant + product image upload/delete (`Delivery Orihuela Bucket`): `uploadRestaurantImage`, `uploadProductImage`, `deleteStorageObjects`
 - `lib/supabase/organization-storage.ts` — Organization assets
 - Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Server actions:
   - `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp, getUserRole)
   - `lib/actions/profile.ts` (getProfile, updateProfile)
   - `lib/actions/init.ts` (checkAdminExists, createFirstAdmin)
-  - `lib/actions/stores.ts` — Restaurant CRUD + menu (`getStores`, `getStoreBySlug`, `getAdminStores`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenu`) — all require admin auth
+  - `lib/actions/stores.ts` — Restaurant CRUD + menu ordering (`getStores`, `getStoreBySlug`, `getAdminStores`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenuOrdering`) — all require admin auth
+  - `lib/actions/products.ts` — Product CRUD + image upload (`createProductAction`, `updateProductAction`, `deleteProductAction`, `uploadProductImageAction`, `deleteProductImageAction`)
 
 **Service Layer:**
-- `lib/services/stores.service.ts` — `StoresService` class with all DB methods (`getStores`, `getStoreBySlug`, `getStoresWithMetadata`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenu`)
+- `lib/services/stores.service.ts` — `StoresService` class with all DB methods (`getStores`, `getStoreBySlug`, `getStoresWithMetadata`, `createStore`, `updateStore`, `deleteStore`, `getStoreMenuBySlug`, `saveMenuOrdering`)
+- `lib/services/products.service.ts` — `ProductsService` class with `createProduct`, `updateProduct`, `deleteProduct` (computes `position` server-side, returns `picture_url` on delete for caller cleanup)
 - `lib/services/organization.service.ts` — Organization settings
 
 ## UI Components
@@ -211,12 +213,32 @@ After applying migrations that add/rename columns, **the Supabase client (`@supa
 
 ## Storage
 
-- **Restaurant images:** `Delivery Orihuela Bucket` (URL-encoded as `Delivery%20Orihuela%20Bucket`). Public read for authenticated users, admin+service_role manage.
+- **Restaurant + product images:** `Delivery Orihuela Bucket` (URL-encoded as `Delivery%20Orihuela%20Bucket`). Public read for authenticated users, admin+service_role manage.
 - **Organization assets:** `organization-assets` bucket.
 - Constraints: 512KB max, JPEG/PNG/WebP only.
-- Path pattern: `${storeId}/cover.${ext}` and `${storeId}/logo.${ext}` (deterministic, used with `upsert: true`).
+- Path pattern: `${storeId}/cover.${ext}`, `${storeId}/logo.${ext}`, `${storeId}/products/${productId}.${ext}` (deterministic, used with `upsert: true`).
 - RLS policies: see `supabase/migrations/20260615*_restaurant_images*.sql`.
-- Helper `extractStoragePath(url)` in `lib/actions/stores.ts` converts public URL back to storage path (handles URL encoding).
+- Helper `extractStoragePath(url)` in `lib/actions/stores.ts` and `lib/actions/products.ts` converts public URL back to storage path (handles URL encoding).
+
+### Image Storage Layout
+
+```
+Delivery Orihuela Bucket/
+  ${storeId}/
+    cover.{jpg|png|webp}
+    logo.{jpg|png|webp}
+    products/
+      ${productId}.{jpg|png|webp}
+      ...
+```
+
+| Recurso | Path | Función de upload | Estable desde |
+|---|---|---|---|
+| Cover restaurante | `${storeId}/cover.{ext}` | `uploadRestaurantImage(folder="cover")` | creación de tienda |
+| Logo restaurante | `${storeId}/logo.{ext}` | `uploadRestaurantImage(folder="logo")` | creación de tienda |
+| Imagen de plato | `${storeId}/products/${productId}.{ext}` | `uploadProductImage` | creación del plato (id real) |
+
+**Regla:** todo asset vive dentro de `${storeId}/...` (carpeta con id de la tienda). El `productId` se genera en el cliente con `crypto.randomUUID()` al abrir el formulario, de modo que el archivo y la fila en `products` nacen con el mismo id desde el primer momento — sin `tmp_`, sin renames, sin huérfanos.
 
 ## Modals
 
@@ -336,13 +358,13 @@ Drop zone: `<div role="button" tabIndex={0}>` (NOT `<button>` — avoids button-
 1. Upload new file first → `uploadedPaths.push(newPath)` (for rollback)
 2. **If `newUrl !== oldUrl`** (different extension or different file), `oldPaths.push(extractStoragePath(oldUrl))`
 3. `UPDATE` DB with new URL
-4. If DB update succeeds → `deleteRestaurantImages(oldPaths)` (cleanup old)
-5. If DB update fails → `deleteRestaurantImages(uploadedPaths)` (rollback new)
+4. If DB update succeeds → `deleteStorageObjects(oldPaths)` (cleanup old)
+5. If DB update fails → `deleteStorageObjects(uploadedPaths)` (rollback new)
 
 **On delete** (e.g., `deleteStore`):
 1. `DELETE` DB row first
 2. Extract paths from URLs of deleted store
-3. `deleteRestaurantImages(paths)` (cleanup)
+3. `deleteStorageObjects(paths)` (cleanup)
 
 Helper: `extractStoragePath(url)` in `lib/actions/stores.ts` converts public URL back to storage path (handles `Delivery%20Orihuela%20Bucket` URL encoding).
 
@@ -393,6 +415,26 @@ Prices stored as `bigint` cents in DB (`100` = `1€`). Display with EUR and loc
 - `useSortable` with `ref` prop only (no `attributes`/`listeners` like classic dnd-kit API)
 - Multi-container moves via `move()` from `@dnd-kit/helpers` — splits in-category products, moves, merges back into target category
 - 8 components in `components/admin/restaurants/menu/`: `MenuHeader`, `MenuCategoryFilter`, `MenuCategorySection`, `ProductCard`, `AddProductCard`, `ProductFormModal`, `MenuFooter`, `MenuEditor`
+
+### Menu Editor — Persistence Model
+
+**Regla:** la DB es la única fuente de verdad. Cada acción del CRUD de platos persiste inmediatamente — el botón "Guardar menú" solo sincroniza el orden.
+
+| Acción del usuario | Persiste en DB | Storage |
+|---|---|---|
+| Añadir plato (form submit) | `INSERT products` (fila completa con `picture_url`) | Sube imagen → URL |
+| Editar plato (form submit) | `UPDATE products` | Si hay imagen nueva: sube + borra la anterior |
+| Eliminar plato | `DELETE products` | Borra imagen del storage |
+| Drag & drop (mover/reordenar) | Solo state local | — |
+| **Guardar menú** | `UPDATE stores.menu_category_order` + `UPDATE products.{menu_category, position}` | — |
+
+**Generación de id:** al abrir el formulario para crear un plato, el cliente llama `crypto.randomUUID()`. Ese id se usa como nombre de archivo en storage (`${storeId}/products/${id}.${ext}`) Y como id de la fila al hacer INSERT. Imagen y fila nacen 1:1 — sin `tmp_`, sin renames.
+
+**`saveMenuOrdering` (action de orden):**
+- Recibe `{ categoryOrder: string[], productOrdering: { id, menu_category, position }[] }`
+- **No** recibe los productos completos — solo metadata de orden
+- **No** crea ni borra productos (ya se hizo en el momento)
+- Solo `UPDATE stores.menu_category_order` y bulk-update de `menu_category`/`position` por producto
 
 ### DropdownMenu Fixes (Base-UI gotchas)
 - **API:** `onClick` not `onSelect` (base-ui uses native React events). `onSelect` is silently ignored.
