@@ -4,25 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-/* ─────────────────────────────────────────────
-	 Hook: detect mobile breakpoint
-───────────────────────────────────────────── */
-function useIsMobile(breakpoint = 768) {
-	const [isMobile, setIsMobile] = React.useState(() => {
-		if (typeof window === "undefined") return false
-		return window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches
-	})
-
-	React.useEffect(() => {
-		const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
-		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-		mq.addEventListener("change", handler)
-		return () => mq.removeEventListener("change", handler)
-	}, [breakpoint])
-
-	return isMobile
-}
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 /* ─────────────────────────────────────────────
 	 Context
