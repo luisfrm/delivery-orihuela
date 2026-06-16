@@ -14,6 +14,11 @@ import { MenuCategoryFilter } from "./MenuCategoryFilter"
 import { MenuCategorySection } from "./MenuCategorySection"
 import { MenuFooter } from "./MenuFooter"
 import { ProductFormModal } from "./ProductFormModal"
+import {
+  deleteProductAction,
+  deleteProductImageAction,
+} from "@/lib/actions/products"
+import { saveMenuOrdering } from "@/lib/actions/stores"
 
 interface MenuEditorProps {
   initialStore: Store
@@ -32,7 +37,6 @@ export function MenuEditor({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const [isDirty, setIsDirty] = useState(false)
-  const [deletedProductIds, setDeletedProductIds] = useState<string[]>([])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -140,15 +144,25 @@ export function MenuEditor({
   }, [])
 
   const handleDeleteProduct = useCallback(
-    (productId: string) => {
+    async (productId: string) => {
+      const previous = products.find((p) => p.id === productId) ?? null
       setProducts((prev) => prev.filter((p) => p.id !== productId))
-      if (!productId.startsWith("tmp_")) {
-        setDeletedProductIds((prev) => [...prev, productId])
+
+      const result = await deleteProductAction(productId)
+      if (result.error) {
+        if (previous) {
+          setProducts((prev) => [...prev, previous].sort((a, b) => a.position - b.position))
+        }
+        toast.error(result.error)
+        return
       }
-      markDirty()
+
+      if (result.pictureUrl) {
+        await deleteProductImageAction(result.pictureUrl)
+      }
       toast.success("Plato eliminado")
     },
-    [markDirty]
+    [products]
   )
 
   const handleSaveProduct = useCallback(
@@ -160,28 +174,16 @@ export function MenuEditor({
           next[existingIndex] = product
           return next
         }
-
-        const inCategory = prev.filter(
-          (p) => p.menu_category === product.menu_category
-        )
-        const newPosition = inCategory.length
-        return [
-          ...prev,
-          { ...product, position: newPosition },
-        ]
+        return [...prev, product]
       })
-      markDirty()
-      toast.success(
-        product.id.startsWith("tmp_") ? "Plato añadido" : "Plato actualizado"
-      )
+      toast.success("Plato guardado")
     },
-    [markDirty]
+    []
   )
 
   const handleDiscard = useCallback(() => {
     setProducts(initialProducts.map((p) => ({ ...p })))
     setCategoryOrder([...initialCategoryOrder])
-    setDeletedProductIds([])
     setIsDirty(false)
     toast.info("Cambios descartados")
   }, [initialProducts, initialCategoryOrder])
@@ -191,11 +193,15 @@ export function MenuEditor({
     setIsSaving(true)
     const saveToast = toast.loading("Guardando menú...")
     try {
-      const { saveMenu } = await import("@/lib/actions/stores")
-      const result = await saveMenu(initialStore.id, {
+      const productOrdering = products.map((p) => ({
+        id: p.id,
+        menu_category: p.menu_category ?? "",
+        position: p.position,
+      }))
+
+      const result = await saveMenuOrdering(initialStore.id, {
         categoryOrder,
-        products,
-        deletedProductIds,
+        productOrdering,
       })
 
       if (result.error) {
@@ -206,14 +212,13 @@ export function MenuEditor({
 
       toast.success("Menú guardado", { id: saveToast })
       setIsDirty(false)
-      setDeletedProductIds([])
       router.refresh()
     } catch {
       toast.error("Error al guardar el menú", { id: saveToast })
     } finally {
       setIsSaving(false)
     }
-  }, [initialStore.id, categoryOrder, products, deletedProductIds, router])
+  }, [initialStore.id, categoryOrder, products, router])
 
   return (
     <div className="flex h-full flex-col">
@@ -263,6 +268,7 @@ export function MenuEditor({
 
       <ProductFormModal
         key={editingProduct?.id ?? "new"}
+        storeId={initialStore.id}
         product={editingProduct}
         categorySlug={modalCategory}
         open={modalOpen}

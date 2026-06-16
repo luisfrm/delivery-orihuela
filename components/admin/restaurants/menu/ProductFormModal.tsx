@@ -21,9 +21,16 @@ import {
   validateMaxLength,
   validateRequired,
 } from "@/lib/validation"
+import {
+  createProductAction,
+  deleteProductImageAction,
+  updateProductAction,
+  uploadProductImageAction,
+} from "@/lib/actions/products"
 import type { Product } from "@/lib/types"
 
 interface ProductFormModalProps {
+  storeId: string
   product: Product | null
   categorySlug: string
   open: boolean
@@ -34,6 +41,7 @@ interface ProductFormModalProps {
 }
 
 export function ProductFormModal({
+  storeId,
   product,
   categorySlug,
   open,
@@ -62,6 +70,7 @@ export function ProductFormModal({
       >
         <ProductFormBody
           key={`${open ? "open" : "closed"}-${product?.id ?? "new"}`}
+          storeId={storeId}
           initialName={initialName}
           initialDescription={initialDescription}
           initialPrice={initialPrice}
@@ -70,9 +79,6 @@ export function ProductFormModal({
           categorySlug={categorySlug}
           productId={product?.id}
           existingIsActive={product?.is_active ?? true}
-          existingPosition={product?.position ?? 0}
-          existingStoreId={product?.store_id ?? ""}
-          existingCreatedAt={product?.created_at ?? new Date().toISOString()}
           onClose={() => onOpenChange(false)}
           onSave={onSave}
           onDelete={onDelete}
@@ -83,6 +89,7 @@ export function ProductFormModal({
 }
 
 interface ProductFormBodyProps {
+  storeId: string
   initialName: string
   initialDescription: string
   initialPrice: string
@@ -91,15 +98,13 @@ interface ProductFormBodyProps {
   categorySlug: string
   productId?: string
   existingIsActive: boolean
-  existingPosition: number
-  existingStoreId: string
-  existingCreatedAt: string
   onClose: () => void
   onSave: (product: Product) => void
   onDelete?: (productId: string) => void
 }
 
 function ProductFormBody({
+  storeId,
   initialName,
   initialDescription,
   initialPrice,
@@ -108,9 +113,6 @@ function ProductFormBody({
   categorySlug,
   productId,
   existingIsActive,
-  existingPosition,
-  existingStoreId,
-  existingCreatedAt,
   onClose,
   onSave,
   onDelete,
@@ -150,19 +152,58 @@ function ProductFormBody({
 
     setIsSaving(true)
     try {
-      onSave({
-        id: productId ?? `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        store_id: existingStoreId,
-        name: name.trim(),
-        description: description.trim() || null,
-        picture_url: existingPictureUrl,
-        estimated_price: cents,
-        is_active: existingIsActive,
-        menu_category: categorySlug,
-        position: existingPosition,
-        created_at: existingCreatedAt,
-        updated_at: new Date().toISOString(),
-      })
+      const finalProductId = productId ?? crypto.randomUUID()
+
+      let pictureUrl: string | null = existingPictureUrl
+      if (pictureFile) {
+        const { url, error } = await uploadProductImageAction(
+          storeId,
+          finalProductId,
+          pictureFile
+        )
+        if (error || !url) {
+          setGeneralError(error ?? "Error al subir la imagen.")
+          setIsSaving(false)
+          return
+        }
+        pictureUrl = url
+      }
+
+      const trimmedDescription = description.trim() || null
+      const trimmedName = name.trim()
+
+      let result: { product?: Product; error?: string }
+      if (isEditing && productId) {
+        result = await updateProductAction(productId, {
+          name: trimmedName,
+          description: trimmedDescription,
+          pictureUrl,
+          estimatedPrice: cents,
+          isActive: existingIsActive,
+        })
+        if (!result.error && pictureUrl && pictureUrl !== existingPictureUrl) {
+          await deleteProductImageAction(existingPictureUrl as string)
+        }
+      } else {
+        result = await createProductAction({
+          id: finalProductId,
+          storeId,
+          name: trimmedName,
+          description: trimmedDescription,
+          pictureUrl,
+          estimatedPrice: cents,
+          isActive: existingIsActive,
+          menuCategory: categorySlug,
+        })
+      }
+
+      if (result.error || !result.product) {
+        setGeneralError(result.error ?? "Error al guardar el plato.")
+        setIsSaving(false)
+        return
+      }
+
+      onSave(result.product)
       onClose()
     } catch {
       setGeneralError("Ocurrió un error inesperado.")
