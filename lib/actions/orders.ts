@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { OrdersService } from "@/lib/services/orders.service"
-import { Order } from "@/lib/types"
+import { Order, OrderWithDetails } from "@/lib/types"
 
 export interface RiderProfile {
   id: string
@@ -26,6 +26,21 @@ export async function getOrders(): Promise<Order[]> {
   }
 
   return service.getUserOrders(user.id)
+}
+
+export async function getOrdersWithDetails(): Promise<OrderWithDetails[]> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return []
+  }
+
+  return service.getUserOrdersWithDetails(user.id)
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {

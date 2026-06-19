@@ -79,6 +79,9 @@ export interface Order {
   store_id: string | null
   custom_store_name: string | null
   custom_store_address: string | null
+  address_id: string | null
+  delivery_address_name: string | null
+  delivery_address_line: string | null
   service_type: ServiceType
   status: OrderStatus
   pickup_reference: string | null
@@ -93,11 +96,80 @@ export interface Order {
 export interface OrderItem {
   id: string
   order_id: string
-  product_id: string
+  product_id: string | null
+  product_name: string | null
+  product_picture_url: string | null
   quantity: number
   estimated_unit_price: number
   created_at: string
   updated_at: string
+}
+
+export interface OrderItemWithProduct {
+  id: string
+  order_id: string
+  product_id: string | null
+  product_name: string | null
+  product_picture_url: string | null
+  quantity: number
+  estimated_unit_price: number
+}
+
+export interface OrderWithDetails extends Order {
+  items: OrderItemWithProduct[]
+  deliveryAddress: { name: string; address_line: string } | null
+  storeName: string | null
+}
+
+// ─── Vistas específicas para cliente ────────────────────────────
+// OrderWithDetails es la fila completa del servidor.
+// ActiveOrderData y OrderHistoryData son las formas optimizadas
+// para cada vista del cliente. TypeScript no deja pasar el tipo
+// equivocado a cada componente.
+
+export interface ActiveOrderData {
+  id: string
+  order_number: number
+  created_at: string
+  status: OrderStatus
+  service_type: ServiceType
+  rider_id: string | null
+
+  custom_store_name: string | null
+  storeName: string | null
+  deliveryAddress: { name: string; address_line: string } | null
+
+  items: {
+    id: string
+    product_name: string | null
+    product_picture_url: string | null
+    quantity: number
+    estimated_unit_price: number
+  }[]
+
+  additional_notes: string | null
+  total_amount: number
+}
+
+export interface OrderHistoryData {
+  id: string
+  created_at: string
+  status: OrderStatus
+  service_type: ServiceType
+
+  custom_store_name: string | null
+  storeName: string | null
+  deliveryAddress: { name: string } | null
+
+  items: {
+    id: string
+    product_name: string | null
+    quantity: number
+    estimated_unit_price: number
+  }[]
+
+  additional_notes: string | null
+  total_amount: number
 }
 
 export interface CustomStore {
