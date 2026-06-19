@@ -25,8 +25,7 @@ interface BuyModalProps {
 export default function BuyModal({ onTriggerClick }: BuyModalProps) {
   const [step, setStep] = useState<string>("store")
 
-  const subtitle =
-    step === "menu" ? STEP_SUBTITLES.menu : STEP_SUBTITLES.store
+  const subtitle = STEP_SUBTITLES[step] ?? STEP_SUBTITLES.store
 
   return (
     <ResponsiveModal>

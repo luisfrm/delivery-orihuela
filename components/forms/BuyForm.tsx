@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Store as StoreIcon,
@@ -22,6 +22,8 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import type { Store } from "@/lib/types"
 import { MenuForm, type Cart } from "./MenuForm"
+import { DeliveryForm } from "./DeliveryForm"
+import type { AddressSelection } from "@/components/ui/address-selector"
 
 type Step = "store" | "menu" | "address" | "preview" | "success"
 
@@ -36,6 +38,27 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
   const [step, setStep] = useState<Step>("store")
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [cart, setCart] = useState<Cart>({})
+  const [addressSelection, setAddressSelection] = useState<AddressSelection>({
+    type: "existing",
+    addressId: null,
+  })
+  const [additionalNotes, setAdditionalNotes] = useState("")
+
+  // Height transition: measure content and animate changes
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState<number | undefined>(undefined)
+
+  useLayoutEffect(() => {
+    if (!containerRef.current) return
+
+    const observer = new ResizeObserver((entries) => {
+      const newHeight = entries[0]?.contentRect.height ?? 0
+      setHeight(newHeight)
+    })
+
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     onStepChange?.(step)
@@ -45,8 +68,9 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
     setStep(next)
   }
 
+  let content: React.ReactNode
   if (step === "menu" && selectedStore) {
-    return (
+    content = (
       <MenuForm
         store={selectedStore}
         cart={cart}
@@ -58,15 +82,35 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         onBack={() => handleStepChange("store")}
       />
     )
+  } else if (step === "address") {
+    content = (
+      <DeliveryForm
+        addressSelection={addressSelection}
+        onAddressChange={setAddressSelection}
+        additionalNotes={additionalNotes}
+        onNotesChange={setAdditionalNotes}
+        onContinue={() => handleStepChange("preview")}
+        onBack={() => handleStepChange("menu")}
+      />
+    )
+  } else {
+    content = (
+      <StoreStep
+        onSelect={(store) => {
+          setSelectedStore(store)
+          handleStepChange("menu")
+        }}
+      />
+    )
   }
 
   return (
-    <StoreStep
-      onSelect={(store) => {
-        setSelectedStore(store)
-        handleStepChange("menu")
-      }}
-    />
+    <div
+      style={{ height: height !== undefined ? `${height}px` : "auto" }}
+      className="transition-[height] duration-300 ease-out overflow-hidden"
+    >
+      <div ref={containerRef}>{content}</div>
+    </div>
   )
 }
 
@@ -206,11 +250,7 @@ function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
               <Loader2 className="size-4 animate-spin" />
               <span>Cargando más...</span>
             </div>
-          ) : (
-            <div className="py-4 text-center text-label-md text-on-surface-variant">
-              No hay más tiendas
-            </div>
-          )}
+          ) : null}
         </>
       )}
 

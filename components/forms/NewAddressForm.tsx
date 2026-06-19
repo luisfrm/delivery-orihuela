@@ -82,7 +82,7 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
           <path d="M19 12H5" />
           <polyline points="12 19 5 12 12 5" />
         </svg>
-        Volver
+        Volver al selector
       </button>
 
       <div className="pt-2">

@@ -158,7 +158,7 @@ export function MenuForm({
           <div className="flex gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="outline_primary"
               size="lg"
               onClick={onBack}
               className="shrink-0"
