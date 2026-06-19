@@ -19,6 +19,7 @@ interface MenuFormProps {
   store: Store
   cart: Cart
   onCartChange: (cart: Cart) => void
+  onProductsLoaded: (products: Product[]) => void
   onContinue: () => void
   onBack: () => void
 }
@@ -27,6 +28,7 @@ export function MenuForm({
   store,
   cart,
   onCartChange,
+  onProductsLoaded,
   onContinue,
   onBack,
 }: MenuFormProps) {
@@ -44,15 +46,17 @@ export function MenuForm({
         setIsLoading(false)
         return
       }
-      setProducts(data.products.filter((p) => p.is_active))
+      const active = data.products.filter((p) => p.is_active)
+      setProducts(active)
       setCategoryOrder(data.categoryOrder)
       setIsLoading(false)
+      onProductsLoaded(active)
     }
     load()
     return () => {
       cancelled = true
     }
-  }, [store.slug])
+  }, [store.slug, onProductsLoaded])
 
   const activeProducts = products.filter((p) => p.is_active)
 

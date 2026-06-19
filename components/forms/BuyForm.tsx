@@ -17,12 +17,14 @@ import {
   ListItemContent,
 } from "@/components/ui/list-item-selector"
 import { getStores } from "@/lib/actions/stores"
+import { getDeliveryFee } from "@/lib/actions/settings"
 import { getCategoryNames, parseCategoryIds } from "@/lib/restaurants/categories"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
-import type { Store } from "@/lib/types"
+import type { Product, Store } from "@/lib/types"
 import { MenuForm, type Cart } from "./MenuForm"
 import { DeliveryForm } from "./DeliveryForm"
+import { PreviewForm, PreviewSuccess } from "./PreviewForm"
 import type { AddressSelection } from "@/components/ui/address-selector"
 
 type Step = "store" | "menu" | "address" | "preview" | "success"
@@ -43,6 +45,17 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
     addressId: null,
   })
   const [additionalNotes, setAdditionalNotes] = useState("")
+  const [products, setProducts] = useState<Product[]>([])
+  const [deliveryFee, setDeliveryFee] = useState<number>(0)
+  const [orderId, setOrderId] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadFee() {
+      const fee = await getDeliveryFee()
+      setDeliveryFee(fee)
+    }
+    loadFee()
+  }, [])
 
   // Height transition: measure content and animate changes
   const containerRef = useRef<HTMLDivElement>(null)
@@ -69,12 +82,31 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
   }
 
   let content: React.ReactNode
-  if (step === "menu" && selectedStore) {
+  if (step === "success" && orderId) {
+    content = <PreviewSuccess orderId={orderId} />
+  } else if (step === "preview" && selectedStore) {
+    content = (
+      <PreviewForm
+        store={selectedStore}
+        products={products}
+        cart={cart}
+        addressSelection={addressSelection}
+        additionalNotes={additionalNotes}
+        deliveryFee={deliveryFee}
+        onBack={() => handleStepChange("address")}
+        onSuccess={(id) => {
+          setOrderId(id)
+          handleStepChange("success")
+        }}
+      />
+    )
+  } else if (step === "menu" && selectedStore) {
     content = (
       <MenuForm
         store={selectedStore}
         cart={cart}
         onCartChange={setCart}
+        onProductsLoaded={setProducts}
         onContinue={() => {
           onContinue?.({ store: selectedStore, cart })
           handleStepChange("address")
