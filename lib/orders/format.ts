@@ -1,9 +1,9 @@
 export function formatCurrency(amount: number) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "USD",
+    currency: "EUR",
     minimumFractionDigits: 2,
-  }).format(amount)
+  }).format(amount / 100)
 }
 
 export function formatOrderDate(dateString: string) {
