@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Order Management - FlashDelivery Admin</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#ffffff",
+            "on-primary-fixed": "#410000",
+            "surface-container-lowest": "#ffffff",
+            "secondary": "#705d00",
+            "error-container": "#ffdad6",
+            "inverse-surface": "#313030",
+            "primary-container": "#cc0000",
+            "on-primary-container": "#ffdad4",
+            "on-surface-variant": "#5e3f3a",
+            "on-tertiary-fixed-variant": "#930100",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e5e2e1",
+            "surface-bright": "#fcf9f8",
+            "on-surface": "#1c1b1b",
+            "tertiary-container": "#cc0000",
+            "surface-dim": "#dcd9d9",
+            "on-error": "#ffffff",
+            "on-secondary-fixed": "#221b00",
+            "on-background": "#1c1b1b",
+            "tertiary-fixed-dim": "#ffb4a8",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f3f0ef",
+            "background": "#fcf9f8",
+            "outline-variant": "#e8bdb6",
+            "on-secondary-container": "#6e5c00",
+            "primary-fixed-dim": "#ffb4a8",
+            "on-tertiary-fixed": "#410000",
+            "surface-container-highest": "#e5e2e1",
+            "secondary-fixed": "#ffe16d",
+            "on-primary-fixed-variant": "#930000",
+            "outline": "#926e69",
+            "tertiary-fixed": "#ffdad4",
+            "surface-tint": "#c00000",
+            "on-secondary-fixed-variant": "#544600",
+            "secondary-container": "#fcd400",
+            "surface-container-low": "#f6f3f2",
+            "tertiary": "#9e0100",
+            "surface": "#fcf9f8",
+            "primary-fixed": "#ffdad4",
+            "secondary-fixed-dim": "#e9c400",
+            "error": "#ba1a1a",
+            "surface-container-high": "#ebe7e7",
+            "on-tertiary": "#ffffff",
+            "primary": "#9e0000",
+            "on-tertiary-container": "#ffdad4",
+            "surface-container": "#f0edec",
+            "inverse-primary": "#ffb4a8"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "container-margin": "20px",
+            "xs": "8px",
+            "sm": "12px",
+            "xl": "32px",
+            "md": "16px",
+            "lg": "24px",
+            "base": "4px",
+            "gutter": "16px"
+          },
+          "fontFamily": {
+            "display-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "title-lg": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "body-lg": ["18px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "700" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1;
+    }
+
+    /* Custom scrollbar for webkit */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #e5e2e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #dcd9d9;
+    }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden flex h-screen">
+  <!-- SideNavBar -->
+  <aside
+    class="bg-surface dark:bg-inverse-surface text-primary dark:text-primary-fixed-dim font-body-md text-body-md h-screen w-64 border-r border-surface-variant dark:border-outline-variant flex flex-col h-full overflow-y-auto hidden md:flex flex-shrink-0">
+    <div class="p-lg border-b border-surface-variant dark:border-outline-variant flex items-center justify-between">
+      <div>
+        <h1 class="font-display-lg text-display-lg font-extrabold text-primary dark:text-inverse-primary truncate">
+          FlashDelivery</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant mt-1">Admin Console</p>
+      </div>
+    </div>
+    <nav class="flex-1 py-lg px-sm space-y-xs">
+      <a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors text-on-surface-variant dark:text-on-surface-variant"
+        href="#">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-title-lg text-title-lg">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary bg-surface-container-low opacity-80 duration-150"
+        href="#">
+        <span class="material-symbols-outlined fill">list_alt</span>
+        <span class="font-title-lg text-title-lg">Orders</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors text-on-surface-variant dark:text-on-surface-variant"
+        href="#">
+        <span class="material-symbols-outlined">delivery_dining</span>
+        <span class="font-title-lg text-title-lg">Drivers</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors text-on-surface-variant dark:text-on-surface-variant"
+        href="#">
+        <span class="material-symbols-outlined">restaurant</span>
+        <span class="font-title-lg text-title-lg">Restaurants</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors text-on-surface-variant dark:text-on-surface-variant"
+        href="#">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="font-title-lg text-title-lg">Settings</span>
+      </a>
+    </nav>
+    <div class="p-lg mt-auto border-t border-surface-variant dark:border-outline-variant">
+      <button
+        class="w-full bg-primary-container text-on-primary-container hover:bg-primary transition-colors py-sm rounded-full font-label-lg text-label-lg flex items-center justify-center gap-sm">
+        <span class="material-symbols-outlined">add</span>
+        New Dispatch
+      </button>
+      <div class="mt-lg flex items-center gap-sm">
+        <div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+          <span class="material-symbols-outlined text-on-surface-variant">person</span>
+        </div>
+        <div>
+          <p class="font-label-lg text-label-lg">Admin User Profile</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+    <!-- TopNavBar (Mobile Only) -->
+    <header
+      class="bg-surface-bright dark:bg-inverse-surface text-primary dark:text-primary-fixed-dim font-title-lg text-title-lg flex justify-between items-center w-full px-lg h-16 sticky top-0 z-40 md:hidden shadow-sm dark:shadow-none border-b border-surface-variant dark:border-outline-variant transition-all duration-200 ease-in-out">
+      <div class="flex items-center gap-sm">
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high text-on-surface-variant">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary">FlashDelivery
+          Admin</span>
+      </div>
+      <div class="flex items-center gap-xs">
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high text-on-surface-variant">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high text-on-surface-variant">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high text-on-surface-variant">
+          <span class="material-symbols-outlined">help</span>
+        </button>
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high text-on-surface-variant">
+          <span class="material-symbols-outlined">account_circle</span>
+        </button>
+      </div>
+    </header>
+    <!-- TopNavBar (Desktop specific elements added manually for layout completion since json TopNavBar was requested but SideNavBar dictates layout largely) -->
+    <header
+      class="hidden md:flex justify-between items-center w-full px-lg h-16 sticky top-0 z-40 bg-surface-bright border-b border-surface-variant shadow-sm">
+      <div class="flex-1 max-w-md relative">
+        <span
+          class="material-symbols-outlined absolute left-sm top-1/2 transform -translate-y-1/2 text-on-surface-variant">search</span>
+        <input
+          class="w-full pl-xl pr-sm py-xs rounded-full bg-surface-container-low border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-body-md transition-all"
+          placeholder="Search orders, customers..." type="text" />
+      </div>
+      <div class="flex items-center gap-sm ml-auto">
+        <button
+          class="p-xs rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors relative">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+        </button>
+        <button class="p-xs rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors">
+          <span class="material-symbols-outlined">help</span>
+        </button>
+      </div>
+    </header>
+    <!-- Canvas Content -->
+    <div class="flex-1 overflow-y-auto p-md md:p-lg space-y-lg pb-24 md:pb-lg">
+      <!-- Page Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Gestion de pedidos
+          </h2>
+          <p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Administra todos los pedidos activos e
+            históricos.</p>
+        </div>
+      </div>
+      <!-- Filters & Tabs -->
+      <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant overflow-hidden">
+        <div
+          class="flex items-center overflow-x-auto border-b border-surface-variant no-scrollbar bg-surface-container-low">
+          <button
+            class="px-lg py-md font-title-lg text-title-lg text-primary border-b-2 border-primary whitespace-nowrap bg-surface-container-lowest">
+            Todos
+          </button>
+          <button
+            class="px-lg py-md font-title-lg text-title-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-colors whitespace-nowrap border-b-2 border-transparent">
+            Pendientes
+            <span class="ml-xs bg-error-container text-on-error-container text-xs px-2 py-0.5 rounded-full">42</span>
+          </button>
+          <button
+            class="px-lg py-md font-title-lg text-title-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-colors whitespace-nowrap border-b-2 border-transparent">
+            En Camino
+          </button>
+          <button
+            class="px-lg py-md font-title-lg text-title-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest transition-colors whitespace-nowrap border-b-2 border-transparent">
+            Completados
+          </button>
+        </div>
+        <!-- Action Bar -->
+        <div
+          class="p-sm flex flex-col md:flex-row justify-between items-center gap-sm bg-surface-container-lowest border-b border-surface-variant">
+          <div class="flex items-center gap-sm w-full md:w-auto">
+            <div class="relative flex-1 md:w-64">
+              <span
+                class="material-symbols-outlined absolute left-sm top-1/2 transform -translate-y-1/2 text-on-surface-variant text-sm">filter_list</span>
+              <select
+                class="w-full pl-xl pr-sm py-xs rounded-lg border-surface-variant bg-surface-container-low text-body-md focus:ring-primary focus:border-primary cursor-pointer appearance-none">
+                <option>Filter by Date: Today</option>
+                <option>Yesterday</option>
+                <option>This Week</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-xs w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <span class="font-label-md text-label-md text-on-surface-variant mr-xs">Quick Views:</span>
+            <button
+              class="bg-surface-container-highest px-3 py-1 rounded-full font-label-md text-label-md text-on-surface hover:bg-surface-dim transition-colors whitespace-nowrap">High
+              Value</button>
+            <button
+              class="bg-error-container px-3 py-1 rounded-full font-label-md text-label-md text-on-error-container hover:opacity-80 transition-opacity whitespace-nowrap">Delayed</button>
+          </div>
+        </div>
+        <!-- Table Container -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr
+                class="bg-surface-container-low text-on-surface-variant font-label-lg text-label-lg border-b border-surface-variant">
+                <th class="p-md font-semibold w-16">ID</th>
+                <th class="p-md font-semibold">Date &amp; Time</th>
+                <th class="p-md font-semibold">Customer / Destination</th>
+                <th class="p-md font-semibold">Driver</th>
+                <th class="p-md font-semibold text-right">Total</th>
+                <th class="p-md font-semibold">Status</th>
+                <th class="p-md font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-variant font-body-md text-body-md text-on-surface">
+              <!-- Row 1: Urgent/Pending -->
+              <tr class="hover:bg-surface-container-lowest transition-colors bg-surface-bright relative">
+                <td class="p-md font-label-lg text-label-lg">
+                  <div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+                  #8942
+                </td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span>Oct 24, 2023</span>
+                    <span class="text-error font-semibold text-sm">14:32 (Delayed)</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">Maria Rodriguez</span>
+                    <span class="text-on-surface-variant text-sm truncate max-w-xs">124 Main St, Apt 4B, Metro
+                      Area</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <span class="text-on-surface-variant text-sm italic">Unassigned</span>
+                </td>
+                <td class="p-md text-right font-semibold">$45.90</td>
+                <td class="p-md">
+                  <div class="relative inline-block text-left w-full max-w-[140px]">
+                    <button aria-expanded="true" aria-haspopup="true"
+                      class="inline-flex justify-between w-full rounded-md border border-error bg-error-container px-3 py-1.5 text-sm font-semibold text-on-error-container shadow-sm hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-error"
+                      id="menu-button-1" type="button">
+                      Pendiente
+                      <span class="material-symbols-outlined text-sm ml-2">arrow_drop_down</span>
+                    </button>
+                  </div>
+                </td>
+                <td class="p-md text-right">
+                  <button class="p-xs text-primary hover:bg-primary-container rounded-full transition-colors"
+                    title="View Details">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 2: In Transit -->
+              <tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+                <td class="p-md font-label-lg text-label-lg">#8941</td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span>Oct 24, 2023</span>
+                    <span class="text-on-surface-variant text-sm">14:15</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">Carlos Slim</span>
+                    <span class="text-on-surface-variant text-sm truncate max-w-xs">890 Corporate Blvd, Suite 200</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex items-center gap-xs">
+                    <div
+                      class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                      <span class="material-symbols-outlined text-xs">person</span>
+                    </div>
+                    <span>J. Martinez</span>
+                  </div>
+                </td>
+                <td class="p-md text-right font-semibold">$124.50</td>
+                <td class="p-md">
+                  <div class="relative inline-block text-left w-full max-w-[140px]">
+                    <button aria-expanded="true" aria-haspopup="true"
+                      class="inline-flex justify-between w-full rounded-md border border-secondary bg-secondary-container px-3 py-1.5 text-sm font-semibold text-on-secondary-container shadow-sm hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-secondary"
+                      id="menu-button-2" type="button">
+                      En Camino
+                      <span class="material-symbols-outlined text-sm ml-2">arrow_drop_down</span>
+                    </button>
+                  </div>
+                </td>
+                <td class="p-md text-right">
+                  <button class="p-xs text-primary hover:bg-primary-container rounded-full transition-colors"
+                    title="View Details">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 3: Completed -->
+              <tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest opacity-70">
+                <td class="p-md font-label-lg text-label-lg">#8940</td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span>Oct 24, 2023</span>
+                    <span class="text-on-surface-variant text-sm">13:45</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">Elena Gomez</span>
+                    <span class="text-on-surface-variant text-sm truncate max-w-xs">45 Residential Way</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex items-center gap-xs">
+                    <div
+                      class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                      <span class="material-symbols-outlined text-xs">person</span>
+                    </div>
+                    <span>L. Torres</span>
+                  </div>
+                </td>
+                <td class="p-md text-right font-semibold">$32.00</td>
+                <td class="p-md">
+                  <div class="relative inline-block text-left w-full max-w-[140px]">
+                    <button
+                      class="inline-flex justify-between w-full rounded-md border border-surface-variant bg-surface px-3 py-1.5 text-sm font-semibold text-on-surface-variant shadow-sm hover:bg-surface-container-low focus:outline-none focus:ring-2 focus:ring-surface-variant"
+                      disabled="" type="button">
+                      Completado
+                      <span class="material-symbols-outlined text-sm ml-2">check_circle</span>
+                    </button>
+                  </div>
+                </td>
+                <td class="p-md text-right">
+                  <button class="p-xs text-primary hover:bg-primary-container rounded-full transition-colors"
+                    title="View Details">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </td>
+              </tr>
+              <!-- Row 4: Pending Normal -->
+              <tr class="hover:bg-surface-container-lowest transition-colors bg-surface-container-lowest">
+                <td class="p-md font-label-lg text-label-lg">#8939</td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span>Oct 24, 2023</span>
+                    <span class="text-on-surface-variant text-sm">14:50</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">Tech Corp Office</span>
+                    <span class="text-on-surface-variant text-sm truncate max-w-xs">Bldg 4, Innovation Park</span>
+                  </div>
+                </td>
+                <td class="p-md">
+                  <span class="text-on-surface-variant text-sm italic">Unassigned</span>
+                </td>
+                <td class="p-md text-right font-semibold">$210.00</td>
+                <td class="p-md">
+                  <div class="relative inline-block text-left w-full max-w-[140px]">
+                    <button
+                      class="inline-flex justify-between w-full rounded-md border border-surface-variant bg-surface-container-highest px-3 py-1.5 text-sm font-semibold text-on-surface shadow-sm hover:bg-surface-dim focus:outline-none focus:ring-2 focus:ring-primary"
+                      type="button">
+                      Pendiente
+                      <span class="material-symbols-outlined text-sm ml-2">arrow_drop_down</span>
+                    </button>
+                  </div>
+                </td>
+                <td class="p-md text-right">
+                  <button class="p-xs text-primary hover:bg-primary-container rounded-full transition-colors"
+                    title="View Details">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="p-md border-t border-surface-variant bg-surface-container-lowest flex items-center justify-between">
+          <span class="font-body-md text-body-md text-on-surface-variant">Showing 1 to 10 of 1,248 entries</span>
+          <div class="flex gap-1">
+            <button
+              class="p-2 rounded-lg border border-surface-variant text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50"
+              disabled="">
+              <span class="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            <button class="px-3 py-1 rounded-lg bg-primary text-on-primary font-label-md">1</button>
+            <button
+              class="px-3 py-1 rounded-lg border border-surface-variant hover:bg-surface-container-low font-label-md">2</button>
+            <button
+              class="px-3 py-1 rounded-lg border border-surface-variant hover:bg-surface-container-low font-label-md">3</button>
+            <span class="px-2 py-1 text-on-surface-variant">...</span>
+            <button
+              class="px-3 py-1 rounded-lg border border-surface-variant hover:bg-surface-container-low font-label-md">125</button>
+            <button
+              class="p-2 rounded-lg border border-surface-variant text-on-surface-variant hover:bg-surface-container-low">
+              <span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>
