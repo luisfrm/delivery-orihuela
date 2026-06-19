@@ -141,3 +141,127 @@ export async function getRiders(): Promise<RiderProfile[]> {
 
   return riders
 }
+
+// ============================================
+// Order State Transitions (Admin Panel)
+// ============================================
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { ok: false as const, error: "Usuario no autenticado" }
+  }
+
+  if (user.app_metadata?.role !== "admin") {
+    return { ok: false as const, error: "No tienes permisos de administrador" }
+  }
+
+  return { ok: true as const, userId: user.id }
+}
+
+/**
+ * Aceptar pedido: el admin acepta el pedido y lo asigna al rider autenticado
+ */
+export async function acceptOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  // Asignar al rider que está aceptando (el admin logueado)
+  return service.assignRider(orderId, admin.userId)
+}
+
+/**
+ * Iniciar entrega: cambia estado de assigned a on_the_way
+ */
+export async function startDelivery(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  // Verificar que el pedido esté asignado
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "assigned") {
+    return { error: "El pedido debe estar asignado para iniciar entrega" }
+  }
+
+  return service.updateOrderStatus(orderId, "on_the_way")
+}
+
+/**
+ * Llegar al cliente: cambia estado de on_the_way a at_customer
+ */
+export async function arriveAtCustomer(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "on_the_way") {
+    return { error: "El pedido debe estar en camino para marcar llegada" }
+  }
+
+  return service.updateOrderStatus(orderId, "at_customer")
+}
+
+/**
+ * Completar pedido: cambia estado de at_customer a delivered
+ */
+export async function completeOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "at_customer") {
+    return { error: "El rider debe estar en el cliente para completar" }
+  }
+
+  return service.updateOrderStatus(orderId, "delivered")
+}
+
+/**
+ * Desasignar pedido: remueve el rider asignado y vuelve a pending
+ */
+export async function unassignOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createServiceRoleClient()
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ rider_id: null, status: "pending" })
+    .eq("id", orderId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
