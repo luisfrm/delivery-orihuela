@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { ShoppingBag, ShoppingCart } from "lucide-react"
 import {
   ResponsiveModal,
@@ -8,14 +9,25 @@ import {
 } from "@/components/ui/responsive-modal"
 import { BuyForm } from "@/components/forms/BuyForm"
 import { Button } from "@/components/ui/button"
-import type { Store } from "@/lib/types"
+
+const STEP_SUBTITLES: Record<string, string> = {
+  store: "Paso 1 de 4 · Selección",
+  menu: "Paso 2 de 4 · Menú",
+  address: "Paso 3 de 4 · Entrega",
+  preview: "Paso 4 de 4 · Confirmar",
+  success: "Pedido enviado",
+}
 
 interface BuyModalProps {
   onTriggerClick?: () => void
-  onContinue?: (store: Store) => void
 }
 
-export default function BuyModal({ onTriggerClick, onContinue }: BuyModalProps) {
+export default function BuyModal({ onTriggerClick }: BuyModalProps) {
+  const [step, setStep] = useState<string>("store")
+
+  const subtitle =
+    step === "menu" ? STEP_SUBTITLES.menu : STEP_SUBTITLES.store
+
   return (
     <ResponsiveModal>
       <ResponsiveModalTrigger asChild>
@@ -33,10 +45,10 @@ export default function BuyModal({ onTriggerClick, onContinue }: BuyModalProps) 
       <ResponsiveModalContent
         icon={<ShoppingCart className="size-[18px]" />}
         title="Comprar"
-        subtitle="Paso 1 de 4 · Selección"
-        desktopMaxWidth="max-w-sm"
+        subtitle={subtitle}
+        desktopMaxWidth="max-w-md"
       >
-        <BuyForm onContinue={onContinue} />
+        <BuyForm onStepChange={setStep} />
       </ResponsiveModalContent>
     </ResponsiveModal>
   )

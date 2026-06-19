@@ -21,14 +21,56 @@ import { getCategoryNames, parseCategoryIds } from "@/lib/restaurants/categories
 import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import type { Store } from "@/lib/types"
+import { MenuForm, type Cart } from "./MenuForm"
+
+type Step = "store" | "menu" | "address" | "preview" | "success"
 
 interface BuyFormProps {
-  onContinue?: (store: Store) => void
+  onStepChange?: (step: Step) => void
+  onContinue?: (data: { store: Store; cart: Cart }) => void
 }
 
 const PAGE_SIZE = 6
 
-export function BuyForm({ onContinue }: BuyFormProps) {
+export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
+  const [step, setStep] = useState<Step>("store")
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+  const [cart, setCart] = useState<Cart>({})
+
+  useEffect(() => {
+    onStepChange?.(step)
+  }, [step, onStepChange])
+
+  const handleStepChange = (next: Step) => {
+    setStep(next)
+  }
+
+  if (step === "menu" && selectedStore) {
+    return (
+      <MenuForm
+        store={selectedStore}
+        cart={cart}
+        onCartChange={setCart}
+        onContinue={() => {
+          onContinue?.({ store: selectedStore, cart })
+          handleStepChange("address")
+        }}
+        onBack={() => handleStepChange("store")}
+      />
+    )
+  }
+
+  return (
+    <StoreStep
+      onSelect={(store) => {
+        setSelectedStore(store)
+        handleStepChange("menu")
+      }}
+    />
+  )
+}
+
+function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
   const [stores, setStores] = useState<Store[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
@@ -37,14 +79,12 @@ export function BuyForm({ onContinue }: BuyFormProps) {
 
   const debouncedSearch = useDebounce(search, 300)
 
-  // Reset visible count when the debounced search changes
   const [prevSearch, setPrevSearch] = useState(debouncedSearch)
   if (prevSearch !== debouncedSearch) {
     setPrevSearch(debouncedSearch)
     setVisibleCount(PAGE_SIZE)
   }
 
-  // Load stores on mount (must be unconditional — Rules of Hooks)
   useLoadStores(setStores, setIsLoading)
 
   const filteredStores = stores.filter((store) => {
@@ -75,7 +115,7 @@ export function BuyForm({ onContinue }: BuyFormProps) {
 
   const handleContinue = () => {
     if (!isValid || !selectedStore) return
-    onContinue?.(selectedStore)
+    onSelect(selectedStore)
   }
 
   return (
