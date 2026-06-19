@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
-import { getOrders } from "@/lib/actions/orders"
+import { getOrdersWithDetails } from "@/lib/actions/orders"
 import { OrderList } from "@/components/orders/OrderList"
+
+export const metadata = {
+  title: "Mis pedidos",
+}
 
 export default async function PedidosPage() {
   const supabase = await createClient()
@@ -15,10 +19,10 @@ export default async function PedidosPage() {
     redirect("/")
   }
 
-  const orders = await getOrders()
+  const orders = await getOrdersWithDetails()
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl px-4 lg:px-6 pt-4 pb-6">
       <OrderList initialOrders={orders} userId={user.id} />
     </div>
   )

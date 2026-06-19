@@ -1,4 +1,8 @@
-import { MapPin, Receipt, MessageSquareText, ArrowRight } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import { MapPin, Receipt, MessageSquareText, ChevronDown } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,28 +12,40 @@ import {
   ORDER_STATUS_CONFIG,
   SERVICE_TYPE_CONFIG,
 } from "@/lib/orders/order-status"
-import { formatCurrency, shortOrderId } from "@/lib/orders/format"
-import type { Order } from "@/lib/types"
+import {
+  formatCurrency,
+  formatOrderDateOnly,
+  shortOrderId,
+} from "@/lib/orders/format"
+import type { ActiveOrderData } from "@/lib/types"
 
 export interface ActiveOrderCardProps {
-  order: Order
-  onViewDetails?: (orderId: string) => void
+  order: ActiveOrderData
   onContactDriver?: (orderId: string) => void
   className?: string
 }
 
 export function ActiveOrderCard({
   order,
-  onViewDetails,
   onContactDriver,
   className,
 }: ActiveOrderCardProps) {
+  const [itemsExpanded, setItemsExpanded] = useState(true)
   const status = ORDER_STATUS_CONFIG[order.status]
   const service = SERVICE_TYPE_CONFIG[order.service_type]
   const StatusIcon = status.icon
 
-  const title = order.custom_store_name ?? `Pedido #${shortOrderId(order.id)}`
-  const address = order.custom_store_address ?? order.pickup_reference
+  const title =
+    order.custom_store_name ??
+    order.storeName ??
+    `Pedido #${shortOrderId(order.id)}`
+  const hasRealTitle = title !== `Pedido #${shortOrderId(order.id)}`
+
+  const itemsSubtotalCents = order.items.reduce(
+    (sum, item) => sum + item.quantity * item.estimated_unit_price,
+    0
+  )
+  const deliveryFeeCents = order.total_amount - itemsSubtotalCents
 
   return (
     <Card variant="active" className={cn("p-4 sm:p-6 gap-4", className)}>
@@ -49,45 +65,128 @@ export function ActiveOrderCard({
       <div>
         <h3 className="text-title-lg font-bold text-on-surface">{title}</h3>
         <p className="text-label-md text-on-surface-variant">
-          Pedido #{shortOrderId(order.id)}
+          {hasRealTitle
+            ? `Pedido #${shortOrderId(order.id)} · ${formatOrderDateOnly(order.created_at)}`
+            : formatOrderDateOnly(order.created_at)}
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {address && (
-          <div className="flex items-start gap-3 text-on-surface-variant">
-            <MapPin className="size-5 shrink-0 mt-0.5" />
-            <span className="text-body-md">{address}</span>
+      {order.deliveryAddress && (
+        <div className="flex items-start gap-3 text-on-surface-variant">
+          <MapPin className="size-5 shrink-0 mt-0.5 text-primary" />
+          <div>
+            <p className="text-body-md font-medium text-on-surface">
+              {order.deliveryAddress.name}
+            </p>
+            <p className="text-body-sm text-on-surface-variant">
+              {order.deliveryAddress.address_line}
+            </p>
           </div>
-        )}
-        {order.additional_notes && (
-          <div className="flex items-start gap-3 text-on-surface-variant">
-            <Receipt className="size-5 shrink-0 mt-0.5" />
-            <span className="text-body-md line-clamp-2">
-              {order.additional_notes}
+        </div>
+      )}
+
+      {order.items.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setItemsExpanded((v) => !v)}
+            className="flex items-center justify-between w-full text-label-md text-on-surface-variant hover:text-on-surface transition-colors"
+          >
+            <span>
+              Items ({order.items.reduce((sum, i) => sum + i.quantity, 0)})
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform",
+                itemsExpanded && "rotate-180"
+              )}
+            />
+          </button>
+          {itemsExpanded && (
+            <ul className="space-y-2">
+              {order.items.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5"
+                >
+                  <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-surface-container">
+                    {item.product_picture_url ? (
+                      <Image
+                        src={item.product_picture_url}
+                        alt={item.product_name ?? "Producto"}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-on-surface-variant/40 text-xs">
+                        🍽
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body-sm font-medium text-on-surface truncate">
+                      {item.product_name ?? "Producto eliminado"}
+                    </p>
+                    <p className="text-label-md text-on-surface-variant">
+                      ×{item.quantity}
+                    </p>
+                  </div>
+                  <span className="text-body-sm font-semibold text-on-surface shrink-0">
+                    {formatCurrency(item.quantity * item.estimated_unit_price)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {order.additional_notes && (
+        <div className="flex items-start gap-3 text-on-surface-variant">
+          <Receipt className="size-5 shrink-0 mt-0.5" />
+          <span className="text-body-sm italic line-clamp-3">
+            {order.additional_notes}
+          </span>
+        </div>
+      )}
+
+      {order.items.length > 0 && (
+        <div className="space-y-1.5 pt-3 border-t border-outline-variant/60">
+          <div className="flex items-center justify-between text-body-sm">
+            <span className="text-on-surface-variant">Subtotal</span>
+            <span className="text-on-surface">
+              {formatCurrency(itemsSubtotalCents)}
             </span>
           </div>
-        )}
-      </div>
+          <div className="flex items-center justify-between text-body-sm">
+            <span className="text-on-surface-variant">Costo de entrega</span>
+            <span className="text-on-surface">
+              {formatCurrency(deliveryFeeCents)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between pt-1.5">
+            <span className="text-body-md font-semibold text-on-surface">
+              Total
+            </span>
+            <span className="text-title-lg font-bold text-primary">
+              {formatCurrency(order.total_amount)}
+            </span>
+          </div>
+        </div>
+      )}
 
-      <div className="flex items-center justify-between pt-3 border-t border-outline-variant/60">
-        <span className="text-label-md text-on-surface-variant">Total</span>
-        <span className="text-title-lg font-bold text-primary">
-          {formatCurrency(order.total_amount)}
-        </span>
-      </div>
+      {order.items.length === 0 && (
+        <div className="flex items-center justify-between pt-3 border-t border-outline-variant/60">
+          <span className="text-label-md text-on-surface-variant">Total</span>
+          <span className="text-title-lg font-bold text-primary">
+            {formatCurrency(order.total_amount)}
+          </span>
+        </div>
+      )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full sm:w-auto"
-          onClick={() => onViewDetails?.(order.id)}
-        >
-          Ver detalles
-          <ArrowRight />
-        </Button>
-        {order.rider_id && (
+      {order.rider_id && (
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <Button
             variant="tertiary"
             size="lg"
@@ -97,8 +196,8 @@ export function ActiveOrderCard({
             <MessageSquareText />
             Contactar repartidor
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </Card>
   )
 }
