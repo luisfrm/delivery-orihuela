@@ -1,5 +1,6 @@
 "use client"
 
+import { cn } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -67,7 +68,24 @@ export function OrdersTable({
           </TableRow>
         ) : (
           orders.map((order) => (
-            <TableRow key={order.id}>
+            <TableRow
+              key={order.id}
+              className={cn(
+                "transition-colors",
+                order.status === "pending" &&
+                  "bg-warning/5 hover:bg-warning/10",
+                order.status === "assigned" &&
+                  "bg-primary/5 hover:bg-primary/10",
+                order.status === "on_the_way" &&
+                  "bg-info/5 hover:bg-info/10",
+                order.status === "at_customer" &&
+                  "bg-secondary/5 hover:bg-secondary/10",
+                order.status === "delivered" &&
+                  "bg-success/5 hover:bg-success/10",
+                order.status === "cancelled" &&
+                  "bg-destructive/5 hover:bg-destructive/10"
+              )}
+            >
               <TableCell className="font-semibold">
                 #{order.order_number}
               </TableCell>

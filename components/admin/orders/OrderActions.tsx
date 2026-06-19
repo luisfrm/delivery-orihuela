@@ -53,10 +53,12 @@ export function OrderActions({
 
         <DropdownMenuSeparator />
 
-        {/* Acciones según estado */}
         {order.status === "pending" && (
-          <DropdownMenuItem onClick={() => handleAction(() => onAcceptOrder(order.id))}>
-            <UserCheck className="size-4" />
+          <DropdownMenuItem
+            onClick={() => handleAction(() => onAcceptOrder(order.id))}
+            className="text-success focus:text-success focus:bg-success/10"
+          >
+            <UserCheck className="size-4 text-success" />
             Aceptar pedido
           </DropdownMenuItem>
         )}
@@ -64,11 +66,14 @@ export function OrderActions({
         {order.status === "assigned" && (
           <>
             <DropdownMenuItem onClick={() => handleAction(() => onStartDelivery(order.id))}>
-              <Truck className="size-4" />
+              <Truck className="size-4 text-primary" />
               Iniciar entrega
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAction(() => onUnassignOrder(order.id))}>
-              <XCircle className="size-4" />
+            <DropdownMenuItem
+              onClick={() => handleAction(() => onUnassignOrder(order.id))}
+              className="text-warning focus:text-warning focus:bg-warning/10"
+            >
+              <XCircle className="size-4 text-warning" />
               Desasignar
             </DropdownMenuItem>
           </>
@@ -76,14 +81,17 @@ export function OrderActions({
 
         {order.status === "on_the_way" && (
           <DropdownMenuItem onClick={() => handleAction(() => onArriveAtCustomer(order.id))}>
-            <MapPin className="size-4" />
+            <MapPin className="size-4 text-info" />
             Llegué al cliente
           </DropdownMenuItem>
         )}
 
         {order.status === "at_customer" && (
-          <DropdownMenuItem onClick={() => handleAction(() => onCompleteOrder(order.id))}>
-            <CheckCircle className="size-4" />
+          <DropdownMenuItem
+            onClick={() => handleAction(() => onCompleteOrder(order.id))}
+            className="text-success focus:text-success focus:bg-success/10"
+          >
+            <CheckCircle className="size-4 text-success" />
             Marcar completado
           </DropdownMenuItem>
         )}
