@@ -13,7 +13,13 @@ import {
   type UpdateOrganizationSettingsResult,
 } from "@/lib/types/organization"
 
-const ORG_KEYS = ["org.name", "org.tagline", "org.logo_url", "org.logo_alt"] as const
+const ORG_KEYS = [
+  "org.name",
+  "org.tagline",
+  "org.logo_url",
+  "org.logo_alt",
+  "delivery_fee",
+] as const
 type OrgKey = (typeof ORG_KEYS)[number]
 
 export class OrganizationService {
@@ -37,11 +43,19 @@ export class OrganizationService {
       ])
     )
 
+    const deliveryFeeRaw = map.get("delivery_fee")
+    const deliveryFee = deliveryFeeRaw
+      ? parseFloat(deliveryFeeRaw)
+      : DEFAULT_ORGANIZATION_SETTINGS.deliveryFee
+
     return {
       name: map.get("org.name") || DEFAULT_ORGANIZATION_SETTINGS.name,
       tagline: map.get("org.tagline") || DEFAULT_ORGANIZATION_SETTINGS.tagline,
       logoUrl: map.get("org.logo_url") || DEFAULT_ORGANIZATION_SETTINGS.logoUrl,
       logoAlt: map.get("org.logo_alt") || DEFAULT_ORGANIZATION_SETTINGS.logoAlt,
+      deliveryFee: Number.isFinite(deliveryFee)
+        ? deliveryFee
+        : DEFAULT_ORGANIZATION_SETTINGS.deliveryFee,
     }
   }
 
@@ -67,6 +81,15 @@ export async function updateOrganizationSettings(
   if (!name) return { error: "El nombre de la organización es requerido." }
   if (!tagline) return { error: "El eslogan es requerido." }
   if (!logoAlt) return { error: "El texto alternativo del logo es requerido." }
+
+  if (!Number.isFinite(input.deliveryFee) || input.deliveryFee < 0 || input.deliveryFee > 100) {
+    return { error: "El costo de entrega debe estar entre 0 y 100€." }
+  }
+
+  const rounded = Math.round(input.deliveryFee * 100) / 100
+  if (Math.abs(rounded - input.deliveryFee) > 0.001) {
+    return { error: "El costo de entrega admite máximo 2 decimales." }
+  }
 
   let nextLogoUrl = input.currentLogoUrl
 
@@ -97,6 +120,7 @@ export async function updateOrganizationSettings(
     ["org.tagline", tagline],
     ["org.logo_alt", logoAlt],
     ["org.logo_url", nextLogoUrl],
+    ["delivery_fee", String(rounded)],
   ]
 
   for (const [key, value] of entries) {
@@ -112,6 +136,7 @@ export async function updateOrganizationSettings(
       tagline,
       logoAlt,
       logoUrl: nextLogoUrl,
+      deliveryFee: rounded,
     },
   }
 }

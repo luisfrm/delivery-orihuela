@@ -3,6 +3,7 @@ export interface OrganizationSettings {
   tagline: string
   logoUrl: string
   logoAlt: string
+  deliveryFee: number
 }
 
 export const DEFAULT_ORGANIZATION_SETTINGS: OrganizationSettings = {
@@ -10,6 +11,7 @@ export const DEFAULT_ORGANIZATION_SETTINGS: OrganizationSettings = {
   tagline: "Delivery",
   logoUrl: "/assets/logo.webp",
   logoAlt: "Los Latinos Logo",
+  deliveryFee: 4,
 }
 
 export interface UpdateOrganizationSettingsInput {
@@ -18,6 +20,7 @@ export interface UpdateOrganizationSettingsInput {
   logoAlt: string
   logoFile: File | null
   currentLogoUrl: string
+  deliveryFee: number
 }
 
 export interface UpdateOrganizationSettingsResult {
