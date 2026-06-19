@@ -73,6 +73,7 @@ export interface ProductCategory {
 
 export interface Order {
   id: string
+  order_number: number
   client_id: string
   rider_id: string | null
   store_id: string | null
