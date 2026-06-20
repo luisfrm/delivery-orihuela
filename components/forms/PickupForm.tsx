@@ -58,10 +58,8 @@ export function PickupForm() {
       const result = await createOrder({
         pickupReference,
         storeId: storeSelection.type === "store" ? storeSelection.storeId : null,
-        customStoreName:
-          storeSelection.type === "custom" ? storeSelection.storeName : null,
-        customStoreAddress:
-          storeSelection.type === "custom" ? storeSelection.storeAddress : null,
+        customStoreName: storeSelection.storeName || null,
+        customStoreAddress: storeSelection.storeAddress || null,
         addressId: addressSelection.addressId!,
         additionalNotes: additionalNotes.trim() || null,
         deliveryFee,

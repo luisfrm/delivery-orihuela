@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { OrdersService } from "@/lib/services/orders.service"
-import { Order } from "@/lib/types"
+import { Order, OrderWithDetails } from "@/lib/types"
 
 export interface RiderProfile {
   id: string
@@ -26,6 +26,21 @@ export async function getOrders(): Promise<Order[]> {
   }
 
   return service.getUserOrders(user.id)
+}
+
+export async function getOrdersWithDetails(): Promise<OrderWithDetails[]> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return []
+  }
+
+  return service.getUserOrdersWithDetails(user.id)
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
@@ -93,19 +108,20 @@ export async function updateOrderStatus(
   return service.updateOrderStatus(orderId, status)
 }
 
-export async function assignDriver(
+export async function assignRider(
   orderId: string,
-  driverId: string
+  riderId: string
 ): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
-  return service.assignDriver(orderId, driverId)
+  return service.assignRider(orderId, riderId)
 }
 
 export async function getRiders(): Promise<RiderProfile[]> {
   const supabase = await createServiceRoleClient()
 
-  const { data, error } = await supabase
+  // Fetch all user profiles
+  const { data: profiles, error } = await supabase
     .from("user_profiles")
     .select("id, first_name, last_name, phone")
     .limit(100)
@@ -115,21 +131,23 @@ export async function getRiders(): Promise<RiderProfile[]> {
     return []
   }
 
-  const profileIds = (data || []).map((p) => p.id)
-
-  if (profileIds.length === 0) {
+  if (!profiles || profiles.length === 0) {
     return []
   }
 
-  const { data: authData } = await supabase
-    .from("auth.users")
-    .select("id, email, raw_app_meta_data")
-    .in("id", profileIds)
+  // Use the Admin API to get auth user data (roles live in app_metadata)
+  // .from("auth.users") does NOT work via PostgREST — auth schema is not exposed
+  const { data: authList } = await supabase.auth.admin.listUsers({
+    perPage: 1000,
+  })
 
-  const riders = (data || []).map((profile) => {
-    const authUser = authData?.find((u) => u.id === profile.id)
-    const role = authUser?.raw_app_meta_data?.role as string | undefined
-    if (role !== "rider") return null
+  const authUsers = authList?.users ?? []
+
+  const riders = profiles.map((profile) => {
+    const authUser = authUsers.find((u) => u.id === profile.id)
+    const role = authUser?.app_metadata?.role as string | undefined
+    // Include both riders and admins (admins can accept and deliver orders)
+    if (role !== "rider" && role !== "admin") return null
     return {
       id: profile.id,
       first_name: profile.first_name ?? "",
@@ -140,4 +158,128 @@ export async function getRiders(): Promise<RiderProfile[]> {
   }).filter(Boolean) as RiderProfile[]
 
   return riders
+}
+
+// ============================================
+// Order State Transitions (Admin Panel)
+// ============================================
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { ok: false as const, error: "Usuario no autenticado" }
+  }
+
+  if (user.app_metadata?.role !== "admin") {
+    return { ok: false as const, error: "No tienes permisos de administrador" }
+  }
+
+  return { ok: true as const, userId: user.id }
+}
+
+/**
+ * Aceptar pedido: el admin acepta el pedido y lo asigna al rider autenticado
+ */
+export async function acceptOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  // Asignar al rider que está aceptando (el admin logueado)
+  return service.assignRider(orderId, admin.userId)
+}
+
+/**
+ * Iniciar entrega: cambia estado de assigned a on_the_way
+ */
+export async function startDelivery(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  // Verificar que el pedido esté asignado
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "assigned") {
+    return { error: "El pedido debe estar asignado para iniciar entrega" }
+  }
+
+  return service.updateOrderStatus(orderId, "on_the_way")
+}
+
+/**
+ * Llegar al cliente: cambia estado de on_the_way a at_customer
+ */
+export async function arriveAtCustomer(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "on_the_way") {
+    return { error: "El pedido debe estar en camino para marcar llegada" }
+  }
+
+  return service.updateOrderStatus(orderId, "at_customer")
+}
+
+/**
+ * Completar pedido: cambia estado de at_customer a delivered
+ */
+export async function completeOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status !== "at_customer") {
+    return { error: "El rider debe estar en el cliente para completar" }
+  }
+
+  return service.updateOrderStatus(orderId, "delivered")
+}
+
+/**
+ * Desasignar pedido: remueve el rider asignado y vuelve a pending
+ */
+export async function unassignOrder(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createServiceRoleClient()
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ rider_id: null, status: "pending" })
+    .eq("id", orderId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
 }

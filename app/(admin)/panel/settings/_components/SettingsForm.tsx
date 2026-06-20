@@ -11,6 +11,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Info,
+  DollarSign,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { validateMaxLength, validateRequired } from "@/lib/validation"
 import type { OrganizationSettings } from "@/lib/types/organization"
 
@@ -29,6 +31,7 @@ interface FormErrors {
   name: string
   tagline: string
   logoAlt: string
+  deliveryFee: string
   general: string
 }
 
@@ -36,12 +39,14 @@ const EMPTY_ERRORS: FormErrors = {
   name: "",
   tagline: "",
   logoAlt: "",
+  deliveryFee: "",
   general: "",
 }
 
 const MAX_NAME = 60
 const MAX_TAGLINE = 40
 const MAX_LOGO_ALT = 100
+const MAX_DELIVERY_FEE = 100
 
 function validateField(name: keyof Omit<FormErrors, "general">, value: string): string {
   switch (name) {
@@ -60,9 +65,25 @@ function validateField(name: keyof Omit<FormErrors, "general">, value: string): 
         validateRequired(value, "El texto alternativo") ||
         validateMaxLength(value, MAX_LOGO_ALT, "El texto alternativo")
       )
+    case "deliveryFee":
+      return validateDeliveryFee(value)
     default:
       return ""
   }
+}
+
+function validateDeliveryFee(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return "El costo de entrega es requerido."
+  const parsed = parseFloat(trimmed)
+  if (!Number.isFinite(parsed)) return "Ingresa un número válido."
+  if (parsed < 0) return "El costo no puede ser negativo."
+  if (parsed > MAX_DELIVERY_FEE) return `El costo no puede superar ${MAX_DELIVERY_FEE}€.`
+  const rounded = Math.round(parsed * 100) / 100
+  if (Math.abs(rounded - parsed) > 0.001) {
+    return "Máximo 2 decimales permitidos."
+  }
+  return ""
 }
 
 export function SettingsForm({ initial }: SettingsFormProps) {
@@ -75,6 +96,9 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [logoAlt, setLogoAlt] = useState(initial.logoAlt)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [currentLogoUrl, setCurrentLogoUrl] = useState(initial.logoUrl)
+  const [deliveryFee, setDeliveryFee] = useState(
+    String(initial.deliveryFee)
+  )
 
   const [errors, setErrors] = useState<FormErrors>(EMPTY_ERRORS)
 
@@ -83,7 +107,8 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     name !== savedSnapshot.name ||
     tagline !== savedSnapshot.tagline ||
     logoAlt !== savedSnapshot.logoAlt ||
-    hasLogoChange
+    hasLogoChange ||
+    deliveryFee !== String(savedSnapshot.deliveryFee)
 
   const handleChange = (
     field: keyof Omit<FormErrors, "general">,
@@ -92,6 +117,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     if (field === "name") setName(value)
     if (field === "tagline") setTagline(value)
     if (field === "logoAlt") setLogoAlt(value)
+    if (field === "deliveryFee") setDeliveryFee(value)
 
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: validateField(field, value), general: "" }))
@@ -113,6 +139,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       name: validateField("name", name),
       tagline: validateField("tagline", tagline),
       logoAlt: validateField("logoAlt", logoAlt),
+      deliveryFee: validateField("deliveryFee", deliveryFee),
       general: "",
     }
 
@@ -122,6 +149,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     }
 
     const finalLogoUrl = logoFile ? currentLogoUrl : currentLogoUrl
+    const parsedFee = Math.round(parseFloat(deliveryFee) * 100) / 100
 
     const toastId = toast.loading("Guardando configuración…")
 
@@ -135,6 +163,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
         logoAlt: logoAlt.trim(),
         logoFile,
         currentLogoUrl: finalLogoUrl,
+        deliveryFee: parsedFee,
       })
 
       if (result.error) {
@@ -149,6 +178,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
         setTagline(result.settings.tagline)
         setLogoAlt(result.settings.logoAlt)
         setCurrentLogoUrl(result.settings.logoUrl)
+        setDeliveryFee(String(result.settings.deliveryFee))
         setLogoFile(null)
       }
 
@@ -284,6 +314,58 @@ export function SettingsForm({ initial }: SettingsFormProps) {
             icon={<ImageIcon className="size-4" />}
             maxLength={MAX_LOGO_ALT}
           />
+        </CardContent>
+      </Card>
+
+      <Card variant="surface">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <DollarSign className="size-4" />
+            </div>
+            <div>
+              <CardTitle>Precios de entrega</CardTitle>
+              <CardDescription>
+                Costo aplicado a los pedidos de compra y recogida.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="deliveryFee"
+              className="text-label-lg text-on-surface font-medium pl-1 block"
+            >
+              Costo de entrega estándar
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-body-md text-on-surface-variant pointer-events-none">
+                €
+              </span>
+              <Input
+                id="deliveryFee"
+                name="deliveryFee"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min={0}
+                max={MAX_DELIVERY_FEE}
+                value={deliveryFee}
+                onChange={(e) => handleChange("deliveryFee", e.target.value)}
+                placeholder="0.00"
+                className={`pl-9 pr-4 ${errors.deliveryFee ? "border-destructive focus:border-destructive/80" : ""}`}
+              />
+            </div>
+            {errors.deliveryFee && (
+              <p className="text-label-md text-destructive pl-1">
+                {errors.deliveryFee}
+              </p>
+            )}
+            <p className="text-body-sm text-on-surface-variant pl-1">
+              Se aplica a todos los pedidos de compra y recogida.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

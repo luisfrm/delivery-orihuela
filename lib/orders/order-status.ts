@@ -1,4 +1,4 @@
-import { Clock, CheckCircle, Truck, Store, XCircle, Package } from "lucide-react"
+import { Clock, CheckCircle, Truck, Store, XCircle, Package, MapPin } from "lucide-react"
 import type { OrderStatus, ServiceType } from "@/lib/types"
 
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, {
@@ -8,7 +8,7 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, {
 }> = {
   pending: { label: "Pendiente", icon: Clock, badgeVariant: "warning" },
   assigned: { label: "Asignado", icon: Package, badgeVariant: "default" },
-  at_store: { label: "En tienda", icon: Store, badgeVariant: "secondary" },
+  at_customer: { label: "En destino", icon: MapPin, badgeVariant: "secondary" },
   on_the_way: { label: "En camino", icon: Truck, badgeVariant: "default" },
   delivered: { label: "Entregado", icon: CheckCircle, badgeVariant: "success" },
   cancelled: { label: "Cancelado", icon: XCircle, badgeVariant: "destructive" },

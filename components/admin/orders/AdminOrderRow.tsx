@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ORDER_STATUS_CONFIG, SERVICE_TYPE_CONFIG } from "@/lib/orders/order-status"
 import { formatCurrency, formatOrderDate } from "@/lib/orders/format"
-import { updateOrderStatus, assignDriver } from "@/lib/actions/orders"
+import { updateOrderStatus, assignRider } from "@/lib/actions/orders"
 import type { RiderProfile } from "@/lib/actions/orders"
 import { toast } from "sonner"
 import { MapPin, Store, User, Clock, ChevronDown } from "lucide-react"
@@ -20,7 +20,7 @@ interface AdminOrderRowProps {
 const STATUS_ORDER: OrderStatus[] = [
   "pending",
   "assigned",
-  "at_store",
+  "at_customer",
   "on_the_way",
   "delivered",
   "cancelled",
@@ -48,7 +48,7 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
   const handleAssignRider = async (riderId: string) => {
     setIsUpdating(true)
     setShowRiderMenu(false)
-    const result = await assignDriver(order.id, riderId)
+    const result = await assignRider(order.id, riderId)
     if (result?.error) {
       toast.error(result.error)
     } else {
@@ -58,8 +58,8 @@ export function AdminOrderRow({ order, riders, onUpdated }: AdminOrderRowProps) 
     setIsUpdating(false)
   }
 
-  const assignedRider = order.driver_id
-    ? riders.find((r) => r.id === order.driver_id)
+  const assignedRider = order.rider_id
+    ? riders.find((r) => r.id === order.rider_id)
     : null
 
   const nextStatuses = STATUS_ORDER.filter(

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Plus_Jakarta_Sans } from "next/font/google"
+import { Tooltip } from "@base-ui/react/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
@@ -24,8 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={jakarta.variable} suppressHydrationWarning>
-      <body className="min-h-[max(884px,100dvh)] flex flex-col" suppressHydrationWarning>
-        {children}
+      <body
+        className="min-h-[max(884px,100dvh)] flex flex-col"
+        suppressHydrationWarning
+      >
+        <Tooltip.Provider delay={200}>{children}</Tooltip.Provider>
         <Toaster position="bottom-right" richColors />
       </body>
     </html>
