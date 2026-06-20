@@ -120,7 +120,8 @@ export async function assignRider(
 export async function getRiders(): Promise<RiderProfile[]> {
   const supabase = await createServiceRoleClient()
 
-  const { data, error } = await supabase
+  // Fetch all user profiles
+  const { data: profiles, error } = await supabase
     .from("user_profiles")
     .select("id, first_name, last_name, phone")
     .limit(100)
@@ -130,21 +131,23 @@ export async function getRiders(): Promise<RiderProfile[]> {
     return []
   }
 
-  const profileIds = (data || []).map((p) => p.id)
-
-  if (profileIds.length === 0) {
+  if (!profiles || profiles.length === 0) {
     return []
   }
 
-  const { data: authData } = await supabase
-    .from("auth.users")
-    .select("id, email, raw_app_meta_data")
-    .in("id", profileIds)
+  // Use the Admin API to get auth user data (roles live in app_metadata)
+  // .from("auth.users") does NOT work via PostgREST — auth schema is not exposed
+  const { data: authList } = await supabase.auth.admin.listUsers({
+    perPage: 1000,
+  })
 
-  const riders = (data || []).map((profile) => {
-    const authUser = authData?.find((u) => u.id === profile.id)
-    const role = authUser?.raw_app_meta_data?.role as string | undefined
-    if (role !== "rider") return null
+  const authUsers = authList?.users ?? []
+
+  const riders = profiles.map((profile) => {
+    const authUser = authUsers.find((u) => u.id === profile.id)
+    const role = authUser?.app_metadata?.role as string | undefined
+    // Include both riders and admins (admins can accept and deliver orders)
+    if (role !== "rider" && role !== "admin") return null
     return {
       id: profile.id,
       first_name: profile.first_name ?? "",
