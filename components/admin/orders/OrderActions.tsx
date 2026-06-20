@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Eye, CheckCircle, Truck, MapPin, XCircle, UserCheck, MoreVertical } from "lucide-react"
+import { Eye, CheckCircle, Truck, MapPin, XCircle, MoreVertical } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,16 +52,6 @@ export function OrderActions({
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-
-        {order.status === "pending" && (
-          <DropdownMenuItem
-            onClick={() => handleAction(() => onAcceptOrder(order.id))}
-            className="text-success focus:text-success focus:bg-success/10"
-          >
-            <UserCheck className="size-4 text-success" />
-            Aceptar pedido
-          </DropdownMenuItem>
-        )}
 
         {order.status === "assigned" && (
           <>

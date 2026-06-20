@@ -1,8 +1,8 @@
 "use client"
 
-import { MapPin, Calendar, User } from "lucide-react"
+import { MapPin, Calendar, User, Eye, Check, Truck, X, CheckCircle } from "lucide-react"
 import { OrderStatusBadge } from "./OrderStatusBadge"
-import { OrderActions } from "./OrderActions"
+import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types"
 import type { RiderProfile } from "@/lib/actions/orders"
 import { formatCurrency, formatOrderDate } from "@/lib/orders/format"
@@ -44,15 +44,70 @@ export function OrderCard({
           </span>
           <OrderStatusBadge status={order.status} />
         </div>
-        <OrderActions
-          order={order}
-          onViewDetails={onViewDetails}
-          onAcceptOrder={onAcceptOrder}
-          onStartDelivery={onStartDelivery}
-          onArriveAtCustomer={onArriveAtCustomer}
-          onCompleteOrder={onCompleteOrder}
-          onUnassignOrder={onUnassignOrder}
-        />
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="secondary"
+            size="icon-sm"
+            onClick={() => onViewDetails(order.id)}
+            title="Ver detalles"
+          >
+            <Eye className="size-4" />
+          </Button>
+
+          {order.status === "pending" && (
+            <Button
+              variant="success"
+              size="icon-sm"
+              onClick={() => onAcceptOrder(order.id)}
+              title="Aceptar pedido"
+            >
+              <Check className="size-4" />
+            </Button>
+          )}
+
+          {order.status === "assigned" && (
+            <>
+              <Button
+                variant="info"
+                size="icon-sm"
+                onClick={() => onStartDelivery(order.id)}
+                title="Iniciar entrega"
+              >
+                <Truck className="size-4" />
+              </Button>
+              <Button
+                variant="destructive"
+                size="icon-sm"
+                onClick={() => onUnassignOrder(order.id)}
+                title="Desasignar"
+              >
+                <X className="size-4" />
+              </Button>
+            </>
+          )}
+
+          {order.status === "on_the_way" && (
+            <Button
+              variant="info"
+              size="icon-sm"
+              onClick={() => onArriveAtCustomer(order.id)}
+              title="Llegué al cliente"
+            >
+              <MapPin className="size-4" />
+            </Button>
+          )}
+
+          {order.status === "at_customer" && (
+            <Button
+              variant="success"
+              size="icon-sm"
+              onClick={() => onCompleteOrder(order.id)}
+              title="Marcar completado"
+            >
+              <CheckCircle className="size-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Date */}
@@ -64,12 +119,12 @@ export function OrderCard({
       {/* Client / Address */}
       <div className="space-y-1">
         <div className="font-medium text-body-md text-on-surface">
-          {order.custom_store_name || "Cliente"}
+          {order.custom_store_name || order.pickup_reference || "Sin tienda"}
         </div>
         <div className="flex items-start gap-2 text-label-md text-on-surface-variant">
           <MapPin className="size-4 shrink-0 mt-0.5" />
           <span className="line-clamp-2">
-            {order.custom_store_address || order.pickup_reference || "Sin dirección"}
+            {order.delivery_address_line || "Sin dirección de entrega"}
           </span>
         </div>
       </div>
