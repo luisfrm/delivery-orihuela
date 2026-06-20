@@ -133,7 +133,7 @@ export class OrdersService {
       return { error: "Dirección no encontrada" }
     }
 
-    if (params.customStoreName && params.customStoreAddress) {
+    if (!params.storeId && params.customStoreName && params.customStoreAddress) {
       await this.supabase.from("custom_stores").insert({
         name: params.customStoreName,
         address: params.customStoreAddress,

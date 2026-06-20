@@ -65,8 +65,8 @@ export function PreviewForm({
       const result = await createOrder({
         pickupReference: `Compra en ${store.name}`,
         storeId: store.id,
-        customStoreName: null,
-        customStoreAddress: null,
+        customStoreName: store.name,
+        customStoreAddress: store.address,
         addressId: addressSelection.addressId,
         additionalNotes: additionalNotes.trim() || null,
         deliveryFee: deliveryFeeCents,
