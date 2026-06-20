@@ -16,6 +16,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent border-transparent text-foreground hover:border-border",
         link: "border-transparent text-black hover:underline underline-offset-4", // add separation from text and underline
         toolbar: "bg-white text-primary hover:bg-muted shadow-sm",
+        success: "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 dark:bg-green-700 dark:hover:bg-green-600",
+        info: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600",
+        destructive: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 dark:bg-red-700 dark:hover:bg-red-600",
       },
       size: {
         default: "h-10 px-4 py-2 rounded-lg",
