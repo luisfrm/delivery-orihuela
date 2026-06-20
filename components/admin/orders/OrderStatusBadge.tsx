@@ -18,8 +18,8 @@ export function OrderStatusBadge({ status, className }: OrderStatusBadgeProps) {
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-label-md font-semibold",
         status === "pending" && "bg-warning/10 text-warning",
-        status === "assigned" && "bg-primary/10 text-primary",
-        status === "at_customer" && "bg-secondary/10 text-secondary",
+        status === "assigned" && "bg-warning/10 text-warning",
+        status === "at_customer" && "bg-info/10 text-info",
         status === "on_the_way" && "bg-info/10 text-info",
         status === "delivered" && "bg-success/10 text-success",
         status === "cancelled" && "bg-destructive/10 text-destructive",
