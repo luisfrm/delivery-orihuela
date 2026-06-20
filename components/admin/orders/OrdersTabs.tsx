@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 
-export type OrderTabFilter = "all" | "pending" | "in_progress" | "completed"
+export type OrderTabFilter = "active" | "pending" | "in_progress" | "completed"
 
 interface OrdersTabsProps {
   selectedTab: OrderTabFilter
@@ -11,7 +11,7 @@ interface OrdersTabsProps {
 }
 
 const TABS: { value: OrderTabFilter; label: string }[] = [
-  { value: "all", label: "Todos" },
+  { value: "active", label: "Activos" },
   { value: "pending", label: "Pendientes" },
   { value: "in_progress", label: "En camino" },
   { value: "completed", label: "Completados" },

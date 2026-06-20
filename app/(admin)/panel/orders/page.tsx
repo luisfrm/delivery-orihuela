@@ -1,9 +1,9 @@
-import { getAdminOrders, getRiders } from "@/lib/actions/orders"
+import { getActiveAdminOrders, getRiders } from "@/lib/actions/orders"
 import { AdminOrdersManager } from "@/components/admin/orders/AdminOrdersManager"
 import { Package } from "lucide-react"
 
 export default async function AdminOrdersPage() {
-  const [orders, riders] = await Promise.all([getAdminOrders(), getRiders()])
+  const [orders, riders] = await Promise.all([getActiveAdminOrders(), getRiders()])
 
   return (
     <div className="space-y-6">

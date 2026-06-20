@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { OrdersTabs, type OrderTabFilter } from "./OrdersTabs"
@@ -15,7 +15,16 @@ import {
   arriveAtCustomer,
   completeOrder,
   unassignOrder,
+  getActiveAdminOrders,
+  getCompletedAdminOrders,
 } from "@/lib/actions/orders"
+
+const ACTIVE_STATUSES: OrderStatus[] = [
+  "pending",
+  "assigned",
+  "at_customer",
+  "on_the_way",
+]
 
 interface AdminOrdersManagerProps {
   initialOrders: Order[]
@@ -60,8 +69,8 @@ function filterByDate(orders: Order[], dateFilter: DateFilter): Order[] {
 // Mapea tabs a estados
 function getOrdersForTab(orders: Order[], tab: OrderTabFilter): Order[] {
   switch (tab) {
-    case "all":
-      return orders
+    case "active":
+      return orders.filter((o) => ACTIVE_STATUSES.includes(o.status))
     case "pending":
       return orders.filter((o) => o.status === "pending")
     case "in_progress":
@@ -75,28 +84,54 @@ function getOrdersForTab(orders: Order[], tab: OrderTabFilter): Order[] {
   }
 }
 
-function countByTab(orders: Order[]): Record<OrderTabFilter, number> {
+function countByTab(
+  activeOrders: Order[],
+  completedOrders: Order[]
+): Record<OrderTabFilter, number> {
   return {
-    all: orders.length,
-    pending: orders.filter((o) => o.status === "pending").length,
-    in_progress: orders.filter((o) =>
+    active: activeOrders.length,
+    pending: activeOrders.filter((o) => o.status === "pending").length,
+    in_progress: activeOrders.filter((o) =>
       ["assigned", "on_the_way", "at_customer"].includes(o.status)
     ).length,
-    completed: orders.filter((o) =>
-      o.status === "delivered" || o.status === "cancelled"
-    ).length,
+    completed: completedOrders.length,
   }
 }
 
 export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManagerProps) {
   const router = useRouter()
   const [orders, setOrders] = useState(initialOrders)
-  const [selectedTab, setSelectedTab] = useState<OrderTabFilter>("all")
+  const [completedOrders, setCompletedOrders] = useState<Order[]>([])
+  const [hasLoadedCompleted, setHasLoadedCompleted] = useState(false)
+  const [isLoadingCompleted, setIsLoadingCompleted] = useState(false)
+  const [selectedTab, setSelectedTab] = useState<OrderTabFilter>("active")
   const [dateFilter, setDateFilter] = useState<DateFilter>("all")
 
+  // Carga diferida de pedidos completados al activar la tab "completed"
+  useEffect(() => {
+    if (selectedTab !== "completed") return
+    if (hasLoadedCompleted || isLoadingCompleted) return
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoadingCompleted(true)
+    getCompletedAdminOrders()
+      .then((data) => {
+        setCompletedOrders(data)
+        setHasLoadedCompleted(true)
+      })
+      .catch(() => {
+        toast.error("Error al cargar pedidos completados")
+      })
+      .finally(() => {
+        setIsLoadingCompleted(false)
+      })
+  }, [selectedTab, hasLoadedCompleted, isLoadingCompleted])
+
+  const sourceOrders = selectedTab === "completed" ? completedOrders : orders
+
   const dateFilteredOrders = useMemo(
-    () => filterByDate(orders, dateFilter),
-    [orders, dateFilter]
+    () => filterByDate(sourceOrders, dateFilter),
+    [sourceOrders, dateFilter]
   )
 
   const filteredOrders = useMemo(
@@ -104,13 +139,19 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
     [dateFilteredOrders, selectedTab]
   )
 
-  const counts = useMemo(() => countByTab(dateFilteredOrders), [dateFilteredOrders])
+  const counts = useMemo(
+    () => countByTab(orders, completedOrders),
+    [orders, completedOrders]
+  )
 
   const refreshOrders = async () => {
     try {
-      const { getAdminOrders } = await import("@/lib/actions/orders")
-      const updated = await getAdminOrders()
+      const updated = await getActiveAdminOrders()
       setOrders(updated)
+      if (hasLoadedCompleted) {
+        const updatedCompleted = await getCompletedAdminOrders()
+        setCompletedOrders(updatedCompleted)
+      }
     } catch {
       toast.error("Error al actualizar pedidos")
     }
@@ -184,7 +225,17 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
       </div>
 
       {/* Content */}
-      {orders.length === 0 ? (
+      {selectedTab === "completed" && isLoadingCompleted ? (
+        <div className="p-12 text-center">
+          <div className="mx-auto max-w-md">
+            <p className="text-body-md text-on-surface-variant">
+              Cargando pedidos completados...
+            </p>
+          </div>
+        </div>
+      ) : orders.length === 0 &&
+        completedOrders.length === 0 &&
+        hasLoadedCompleted ? (
         <div>
           {/* Desktop: Table con empty state */}
           <div className="hidden lg:block">
@@ -207,6 +258,14 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
                 No hay pedidos registrados
               </p>
             </div>
+          </div>
+        </div>
+      ) : selectedTab === "completed" && !hasLoadedCompleted ? (
+        <div className="p-12 text-center">
+          <div className="mx-auto max-w-md">
+            <p className="text-body-md text-on-surface-variant">
+              No hay pedidos en esta categoría
+            </p>
           </div>
         </div>
       ) : filteredOrders.length === 0 ? (

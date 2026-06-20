@@ -49,10 +49,25 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   return service.getOrderById(orderId)
 }
 
-export async function getAdminOrders(): Promise<Order[]> {
+export async function getAdminOrders(
+  statuses?: OrderStatus[]
+): Promise<Order[]> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
-  return service.getAdminOrders()
+  return service.getAdminOrders(statuses)
+}
+
+export async function getActiveAdminOrders(): Promise<Order[]> {
+  return getAdminOrders([
+    "pending",
+    "assigned",
+    "at_customer",
+    "on_the_way",
+  ])
+}
+
+export async function getCompletedAdminOrders(): Promise<Order[]> {
+  return getAdminOrders(["delivered", "cancelled"])
 }
 
 export async function createOrder(

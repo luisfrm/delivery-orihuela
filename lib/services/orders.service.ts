@@ -108,11 +108,17 @@ export class OrdersService {
     return data
   }
 
-  async getAdminOrders(): Promise<Order[]> {
-    const { data, error } = await this.supabase
+  async getAdminOrders(statuses?: OrderStatus[]): Promise<Order[]> {
+    let query = this.supabase
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false })
+
+    if (statuses && statuses.length > 0) {
+      query = query.in("status", statuses)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error("Error fetching admin orders:", error)
