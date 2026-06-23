@@ -7,7 +7,7 @@ import { OrdersTabs, type OrderTabFilter } from "./OrdersTabs"
 import { OrdersDateFilter, type DateFilter } from "./OrdersDateFilter"
 import { OrdersTable } from "./OrdersTable"
 import { OrderCard } from "./OrderCard"
-import type { Order } from "@/lib/types"
+import type { Order, OrderStatus } from "@/lib/types"
 import type { RiderProfile } from "@/lib/actions/orders"
 import {
   acceptOrder,

@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { OrdersService } from "@/lib/services/orders.service"
-import { Order, OrderWithDetails } from "@/lib/types"
+import { Order, OrderStatus, OrderWithDetails } from "@/lib/types"
 
 export interface RiderProfile {
   id: string
