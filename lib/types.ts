@@ -1,4 +1,5 @@
 export type UserRole = "admin" | "rider" | "user"
+export type StaffRole = Extract<UserRole, "admin" | "rider">
 export type ServiceType = "buy_and_deliver" | "pickup_only"
 export type OrderStatus = "pending" | "assigned" | "at_customer" | "on_the_way" | "delivered" | "cancelled"
 
@@ -9,6 +10,23 @@ export interface UserProfile {
   phone: string
   created_at: string
   updated_at: string
+}
+
+/**
+ * Usuario completo (auth.users + user_profiles joined en memoria).
+ * El role vive en auth.users.app_metadata (server-only, NO en user_profiles).
+ */
+export interface UserWithProfile {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+  phone: string
+  role: UserRole
+  /** created_at del user_profiles */
+  created_at: string
+  /** created_at del auth.users */
+  auth_created_at: string
 }
 
 export interface UserAddress {

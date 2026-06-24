@@ -3,10 +3,12 @@ import { LogOut } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { OrganizationSettings } from "@/lib/types/organization"
+import type { UserRole } from "@/lib/types"
 import { AdminNavContent } from "./AdminNavContent"
 
 interface AdminDesktopSidebarProps {
   orgSettings: OrganizationSettings
+  userRole: UserRole | null
 }
 
 const SIDEBAR_BG_STYLE = {
@@ -14,7 +16,10 @@ const SIDEBAR_BG_STYLE = {
     "linear-gradient(to bottom, color-mix(in oklab, var(--color-primary) 6%, var(--color-surface)), var(--color-surface))",
 } as const
 
-export function AdminDesktopSidebar({ orgSettings }: AdminDesktopSidebarProps) {
+export function AdminDesktopSidebar({
+  orgSettings,
+  userRole,
+}: AdminDesktopSidebarProps) {
   const initial = orgSettings.name.trim().charAt(0).toUpperCase() || "L"
 
   return (
@@ -69,7 +74,7 @@ export function AdminDesktopSidebar({ orgSettings }: AdminDesktopSidebarProps) {
         aria-label="Navegación principal"
         className="relative flex-1 overflow-y-auto px-3 py-2"
       >
-        <AdminNavContent />
+        <AdminNavContent userRole={userRole} />
       </nav>
 
       <div className="relative border-t border-outline-variant/40 p-3">

@@ -29,6 +29,10 @@ export interface AdminNavItem {
    * item of each section.
    */
   section?: NavSection
+  /**
+   * When true, the item is only visible to users with role='admin'.
+   */
+  requireAdmin?: boolean
 }
 
 export const navSectionLabels: Record<NavSection, string> = {
@@ -57,6 +61,7 @@ export const adminNavItems: AdminNavItem[] = [
     label: "Usuarios",
     iconClass: "text-tertiary",
     section: "principal",
+    requireAdmin: true,
   },
   {
     href: "/panel/orders",

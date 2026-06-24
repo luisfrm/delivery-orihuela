@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import type { OrganizationSettings } from "@/lib/types/organization"
+import type { UserRole } from "@/lib/types"
 import { AdminNavContent } from "./AdminNavContent"
 
 interface AdminMobileDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   orgSettings: OrganizationSettings
+  userRole: UserRole | null
 }
 
 const DRAWER_BG_STYLE = {
@@ -28,6 +30,7 @@ export function AdminMobileDrawer({
   open,
   onOpenChange,
   orgSettings,
+  userRole,
 }: AdminMobileDrawerProps) {
   const initial = orgSettings.name.trim().charAt(0).toUpperCase() || "L"
   const handleItemClick = () => onOpenChange(false)
@@ -85,7 +88,7 @@ export function AdminMobileDrawer({
           aria-label="Navegación principal"
           className="relative flex-1 overflow-y-auto px-3 py-2"
         >
-          <AdminNavContent onItemClick={handleItemClick} />
+          <AdminNavContent onItemClick={handleItemClick} userRole={userRole} />
         </nav>
 
         <div className="relative border-t border-outline-variant/40 p-3">

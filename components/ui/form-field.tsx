@@ -16,6 +16,7 @@ export interface FormFieldProps {
   icon?: React.ReactNode
   children?: React.ReactNode
   maxLength?: number
+  disabled?: boolean
 }
 
 export function FormField({
@@ -29,6 +30,7 @@ export function FormField({
   icon,
   children,
   maxLength,
+  disabled,
 }: FormFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === "password" || name.includes("password")
@@ -56,6 +58,7 @@ export function FormField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           maxLength={maxLength}
+          disabled={disabled}
           className={cn(
             icon && "pl-11",
             isPassword && "pr-11",

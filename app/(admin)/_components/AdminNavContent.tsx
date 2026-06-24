@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
+import type { UserRole } from "@/lib/types"
 import {
   adminNavItems,
   navSectionLabels,
@@ -18,19 +19,28 @@ interface AdminNavContentProps {
    * The mobile drawer uses this to close itself after navigation.
    */
   onItemClick?: () => void
+  /**
+   * Current user role. When provided, items marked as `requireAdmin` are
+   * hidden for non-admin users.
+   */
+  userRole?: UserRole | null
 }
 
 type RenderEntry =
   | { type: "section"; section: NavSection; id: string }
   | { type: "item"; item: AdminNavItem; id: string; isActive: boolean }
 
-export function AdminNavContent({ onItemClick }: AdminNavContentProps) {
+export function AdminNavContent({ onItemClick, userRole }: AdminNavContentProps) {
   const pathname = usePathname()
 
   const entries = useMemo<RenderEntry[]>(() => {
     const result: RenderEntry[] = []
     let prevSection: NavSection | undefined
     for (const item of adminNavItems) {
+      // Hide admin-only items for non-admins
+      if (item.requireAdmin && userRole !== "admin") {
+        continue
+      }
       const isActive = (() => {
         // "Volver al inicio" is never active (navigates out of admin)
         if (item.href === "/") {
@@ -54,7 +64,7 @@ export function AdminNavContent({ onItemClick }: AdminNavContentProps) {
       prevSection = item.section
     }
     return result
-  }, [pathname])
+  }, [pathname, userRole])
 
   return (
     <div className="space-y-1" role="list">
