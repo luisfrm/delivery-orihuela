@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { PackageCheck } from "lucide-react"
 
@@ -14,11 +14,9 @@ import type {
   OrderHistoryData,
   OrderWithDetails,
 } from "@/lib/types"
-import { createClient } from "@/lib/supabase/client"
 
 export interface OrderListProps {
   initialOrders: OrderWithDetails[]
-  userId: string
 }
 
 function toActiveOrder(order: OrderWithDetails): ActiveOrderData {
@@ -66,33 +64,9 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
   }
 }
 
-export function OrderList({ initialOrders, userId }: OrderListProps) {
+export function OrderList({ initialOrders }: OrderListProps) {
   const router = useRouter()
   const orders = initialOrders
-
-  useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel(`orders-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-          filter: `client_id=eq.${userId}`,
-        },
-        () => {
-          router.refresh()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [userId, router])
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active: ActiveOrderData[] = []
