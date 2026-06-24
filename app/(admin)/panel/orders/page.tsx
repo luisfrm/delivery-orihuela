@@ -12,7 +12,7 @@ export default async function AdminOrdersPage() {
           <Package className="size-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-headline-lg font-bold text-on-surface">Pedidos</h1>
+          <h1 className="text-headline-lg font-bold text-on-surface">Pedidoss</h1>
           <p className="text-body-sm text-on-surface-variant">
             {orders.length > 0
               ? `${orders.length} pedido${orders.length !== 1 ? "s" : ""}`
