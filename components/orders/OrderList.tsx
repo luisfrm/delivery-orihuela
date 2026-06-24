@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PackageCheck } from "lucide-react"
 
@@ -8,12 +8,14 @@ import { ActiveOrderCard } from "@/components/orders/ActiveOrderCard"
 import { EmptyOrdersState } from "@/components/orders/EmptyOrderState"
 import { OrdersSectionHeader } from "@/components/orders/OrdersSectionHeader"
 import { RecentOrdersSection } from "@/components/orders/RecentOrdersSection"
+import { RefreshButton } from "@/components/shared/RefreshButton"
 import { isActiveOrder } from "@/lib/orders/order-status"
 import type {
   ActiveOrderData,
   OrderHistoryData,
   OrderWithDetails,
 } from "@/lib/types"
+import { getOrdersWithDetails } from "@/lib/actions/orders"
 
 export interface OrderListProps {
   initialOrders: OrderWithDetails[]
@@ -66,7 +68,17 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
 
 export function OrderList({ initialOrders }: OrderListProps) {
   const router = useRouter()
-  const orders = initialOrders
+  const [orders, setOrders] = useState<OrderWithDetails[]>(initialOrders)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrders(initialOrders)
+  }, [initialOrders])
+
+  const handleRefresh = useCallback(async () => {
+    const updated = await getOrdersWithDetails()
+    setOrders(updated)
+  }, [])
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active: ActiveOrderData[] = []
@@ -89,6 +101,10 @@ export function OrderList({ initialOrders }: OrderListProps) {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      <div className="flex items-center justify-end">
+        <RefreshButton onRefresh={handleRefresh} />
+      </div>
+
       {activeOrders.length > 0 && (
         <section className="space-y-4">
           <OrdersSectionHeader

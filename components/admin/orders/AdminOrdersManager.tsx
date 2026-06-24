@@ -7,6 +7,7 @@ import { OrdersTabs, type OrderTabFilter } from "./OrdersTabs"
 import { OrdersDateFilter, type DateFilter } from "./OrdersDateFilter"
 import { OrdersTable } from "./OrdersTable"
 import { OrderCard } from "./OrderCard"
+import { RefreshButton } from "@/components/shared/RefreshButton"
 import type { Order, OrderStatus } from "@/lib/types"
 import type { RiderProfile } from "@/lib/actions/orders"
 import {
@@ -213,6 +214,10 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
 
   return (
     <div className="max-w-7xl rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest">
+      <div className="flex items-center justify-end gap-2 px-4 py-3 border-b border-outline-variant bg-surface-container-low">
+        <RefreshButton onRefresh={refreshOrders} />
+      </div>
+
       <OrdersTabs
         selectedTab={selectedTab}
         onTabChange={setSelectedTab}
