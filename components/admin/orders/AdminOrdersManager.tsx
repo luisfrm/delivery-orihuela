@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { OrdersTabs, type OrderTabFilter } from "./OrdersTabs"
 import { OrdersDateFilter, type DateFilter } from "./OrdersDateFilter"
 import { OrdersTable } from "./OrdersTable"
 import { OrderCard } from "./OrderCard"
+import { createClient } from "@/lib/supabase/client"
 import type { Order, OrderStatus } from "@/lib/types"
 import type { RiderProfile } from "@/lib/actions/orders"
 import {
@@ -144,7 +145,7 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
     [orders, completedOrders]
   )
 
-  const refreshOrders = async () => {
+  const refreshOrders = useCallback(async () => {
     try {
       const updated = await getActiveAdminOrders()
       setOrders(updated)
@@ -155,7 +156,29 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
     } catch {
       toast.error("Error al actualizar pedidos")
     }
-  }
+  }, [hasLoadedCompleted])
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel("admin-orders")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          void refreshOrders()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [refreshOrders])
 
   const handleViewDetails = (orderId: string) => {
     router.push(`/panel/orders/${orderId}`)
