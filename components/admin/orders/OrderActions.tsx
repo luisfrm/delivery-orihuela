@@ -1,91 +1,46 @@
 "use client"
 
-import { useState } from "react"
-import { Eye, CheckCircle, Truck, MapPin, XCircle, MoreVertical } from "lucide-react"
+import { Eye, MoreVertical } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types"
+import type { ReactNode } from "react"
 
 interface OrderActionsProps {
   order: Order
   onViewDetails: (orderId: string) => void
-  onAcceptOrder: (orderId: string) => void
-  onStartDelivery: (orderId: string) => void
-  onArriveAtCustomer: (orderId: string) => void
-  onCompleteOrder: (orderId: string) => void
-  onUnassignOrder: (orderId: string) => void
+  children?: ReactNode
 }
 
-export function OrderActions({
-  order,
-  onViewDetails,
-  onAcceptOrder,
-  onStartDelivery,
-  onArriveAtCustomer,
-  onCompleteOrder,
-  onUnassignOrder,
-}: OrderActionsProps) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const handleAction = (action: () => void) => {
-    setIsOpen(false)
-    action()
-  }
-
+export function OrderActions({ order, onViewDetails, children }: OrderActionsProps) {
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger
-        aria-label="Acciones del pedido"
-        className="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+    <div className="flex items-center justify-end gap-1.5">
+      <Button
+        variant="secondary"
+        size="icon-sm"
+        onClick={() => onViewDetails(order.id)}
+        title="Ver detalles"
+        aria-label="Ver detalles del pedido"
       >
-        <MoreVertical className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => handleAction(() => onViewDetails(order.id))}>
-          <Eye className="size-4" />
-          Ver detalles
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        {order.status === "assigned" && (
-          <>
-            <DropdownMenuItem onClick={() => handleAction(() => onStartDelivery(order.id))}>
-              <Truck className="size-4 text-primary" />
-              Iniciar entrega
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleAction(() => onUnassignOrder(order.id))}
-              className="text-warning focus:text-warning focus:bg-warning/10"
-            >
-              <XCircle className="size-4 text-warning" />
-              Desasignar
-            </DropdownMenuItem>
-          </>
-        )}
-
-        {order.status === "on_the_way" && (
-          <DropdownMenuItem onClick={() => handleAction(() => onArriveAtCustomer(order.id))}>
-            <MapPin className="size-4 text-info" />
-            Llegué al cliente
-          </DropdownMenuItem>
-        )}
-
-        {order.status === "at_customer" && (
-          <DropdownMenuItem
-            onClick={() => handleAction(() => onCompleteOrder(order.id))}
-            className="text-success focus:text-success focus:bg-success/10"
+        <Eye className="size-4" />
+      </Button>
+      {children && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label="Más acciones del pedido"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
           >
-            <CheckCircle className="size-4 text-success" />
-            Marcar completado
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <MoreVertical className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {children}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
   )
 }
