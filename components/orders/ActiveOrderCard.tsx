@@ -15,7 +15,6 @@ import {
 import {
   formatCurrency,
   formatOrderDateOnly,
-  shortOrderId,
 } from "@/lib/orders/format"
 import type { ActiveOrderData } from "@/lib/types"
 
@@ -36,8 +35,8 @@ export function ActiveOrderCard({
   const title =
     order.custom_store_name ??
     order.storeName ??
-    `Pedido #${shortOrderId(order.id)}`
-  const hasRealTitle = title !== `Pedido #${shortOrderId(order.id)}`
+    `Pedido #${order.order_number}`
+  const hasRealTitle = title !== `Pedido #${order.order_number}`
 
   const itemsSubtotalCents = order.items.reduce(
     (sum, item) => sum + item.quantity * item.estimated_unit_price,
@@ -64,7 +63,7 @@ export function ActiveOrderCard({
         <h3 className="text-title-lg font-bold text-on-surface">{title}</h3>
         <p className="text-label-md text-on-surface-variant">
           {hasRealTitle
-            ? `Pedido #${shortOrderId(order.id)} · ${formatOrderDateOnly(order.created_at)}`
+            ? `Pedido #${order.order_number} · ${formatOrderDateOnly(order.created_at)}`
             : formatOrderDateOnly(order.created_at)}
         </p>
       </div>

@@ -48,6 +48,7 @@ function toActiveOrder(order: OrderWithDetails): ActiveOrderData {
 function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
   return {
     id: order.id,
+    order_number: order.order_number,
     created_at: order.created_at,
     status: order.status,
     service_type: order.service_type,

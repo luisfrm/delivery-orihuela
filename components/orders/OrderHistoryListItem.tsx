@@ -15,7 +15,6 @@ import { ORDER_STATUS_CONFIG } from "@/lib/orders/order-status"
 import {
   formatCurrency,
   formatOrderDate,
-  shortOrderId,
 } from "@/lib/orders/format"
 import { cn } from "@/lib/utils"
 import type { OrderHistoryData } from "@/lib/types"
@@ -80,7 +79,7 @@ export function OrderHistoryListItem({
   const title =
     order.custom_store_name ??
     order.storeName ??
-    `Pedido #${shortOrderId(order.id)}`
+    `Pedido #${order.order_number}`
 
   const isCancelled = order.status === "cancelled"
   const hasItems = order.items.length > 0
