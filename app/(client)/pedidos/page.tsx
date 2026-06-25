@@ -22,7 +22,7 @@ export default async function PedidosPage() {
   const orders = await getOrdersWithDetails()
 
   return (
-    <div className="max-w-7xl px-4 lg:px-6 pt-4 pb-6">
+    <div className="max-w-7xl px-4 lg:px-6 pt-4 pb-6 mx-auto">
       <OrderList initialOrders={orders} />
     </div>
   )

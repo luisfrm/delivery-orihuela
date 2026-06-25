@@ -55,9 +55,9 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
     storeName: order.storeName,
     deliveryAddress: order.deliveryAddress
       ? {
-          name: order.deliveryAddress.name,
-          address_line: order.deliveryAddress.address_line,
-        }
+        name: order.deliveryAddress.name,
+        address_line: order.deliveryAddress.address_line,
+      }
       : null,
     items: order.items.map((item) => ({
       id: item.id,
@@ -105,7 +105,7 @@ export function OrderList({ initialOrders }: OrderListProps) {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 mx-auto">
       <div className="flex items-center justify-end">
         <RefreshButton onRefresh={handleRefresh} />
       </div>
