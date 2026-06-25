@@ -10,8 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { OrderStatusBadge } from "./OrderStatusBadge"
-import { Button } from "@/components/ui/button"
-import { Eye, Check, Truck, X, MapPin, CheckCircle } from "lucide-react"
+import { OrderActions } from "./OrderActions"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { Check, Truck, X, MapPin, CheckCircle } from "lucide-react"
 import type { Order } from "@/lib/types"
 import type { RiderProfile } from "@/lib/actions/orders"
 import { formatCurrency, formatOrderDateOnly, formatOrderTimeOnly } from "@/lib/orders/format"
@@ -126,70 +127,44 @@ export function OrdersTable({
                 <OrderStatusBadge status={order.status} />
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1.5">
-                  <Button
-                    variant="secondary"
-                    size="icon-sm"
-                    onClick={() => onViewDetails(order.id)}
-                    title="Ver detalles"
-                  >
-                    <Eye className="size-4" />
-                  </Button>
-
+                <OrderActions order={order} onViewDetails={onViewDetails}>
                   {order.status === "pending" && (
-                    <Button
-                      variant="success"
-                      size="icon-sm"
-                      onClick={() => onAcceptOrder(order.id)}
-                      title="Aceptar pedido"
-                    >
+                    <DropdownMenuItem onClick={() => onAcceptOrder(order.id)}>
                       <Check className="size-4" />
-                    </Button>
+                      Aceptar pedido
+                    </DropdownMenuItem>
                   )}
-
                   {order.status === "assigned" && (
                     <>
-                      <Button
-                        variant="info"
-                        size="icon-sm"
-                        onClick={() => onStartDelivery(order.id)}
-                        title="Iniciar entrega"
-                      >
-                        <Truck className="size-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon-sm"
+                      <DropdownMenuItem onClick={() => onStartDelivery(order.id)}>
+                        <Truck className="size-4 text-primary" />
+                        Iniciar entrega
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => onUnassignOrder(order.id)}
-                        title="Desasignar"
+                        className="text-warning focus:text-warning focus:bg-warning/10"
                       >
-                        <X className="size-4" />
-                      </Button>
+                        <X className="size-4 text-warning" />
+                        Desasignar
+                      </DropdownMenuItem>
                     </>
                   )}
-
                   {order.status === "on_the_way" && (
-                    <Button
-                      variant="info"
-                      size="icon-sm"
-                      onClick={() => onArriveAtCustomer(order.id)}
-                      title="Llegué al cliente"
-                    >
-                      <MapPin className="size-4" />
-                    </Button>
+                    <DropdownMenuItem onClick={() => onArriveAtCustomer(order.id)}>
+                      <MapPin className="size-4 text-info" />
+                      Llegué al cliente
+                    </DropdownMenuItem>
                   )}
-
                   {order.status === "at_customer" && (
-                    <Button
-                      variant="success"
-                      size="icon-sm"
+                    <DropdownMenuItem
                       onClick={() => onCompleteOrder(order.id)}
-                      title="Marcar completado"
+                      className="text-success focus:text-success focus:bg-success/10"
                     >
-                      <CheckCircle className="size-4" />
-                    </Button>
+                      <CheckCircle className="size-4 text-success" />
+                      Marcar completado
+                    </DropdownMenuItem>
                   )}
-                </div>
+                </OrderActions>
               </TableCell>
             </TableRow>
           ))
