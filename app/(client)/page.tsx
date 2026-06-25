@@ -30,8 +30,6 @@ export default function ClientHomePage() {
         <UnauthorizedHandler />
       </Suspense>
       <HeroSection />
-      <DailyOffersBanner />
-      <PopularRestaurants />
     </>
   )
 }

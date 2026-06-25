@@ -52,15 +52,6 @@ export function TopAppBar({ onCartClick, orgSettings }: TopAppBarProps) {
       </div>
 
       <div className="flex items-center gap-[8px]">
-        <Button
-          variant="secondary"
-          size="icon-xl"
-          onClick={onCartClick}
-          aria-label="Carrito"
-        >
-          <ShoppingCart className="w-5 h-5 fill-black font-bold" />
-        </Button>
-
         {isLoading ? (
           <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse hidden lg:block" />
         ) : isAuthenticated ? (
