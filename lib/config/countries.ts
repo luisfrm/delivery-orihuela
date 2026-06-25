@@ -29,6 +29,7 @@ export const COUNTRY_CODES: CountryCode[] = [
   { code: "CO", name: "Colombia", dialCode: "+57", flag: "🇨🇴" },
   { code: "PE", name: "Perú", dialCode: "+51", flag: "🇵🇪" },
   { code: "CL", name: "Chile", dialCode: "+56", flag: "🇨🇱" },
+  { code: "VE", name: "Venezuela", dialCode: "+58", flag: "🇻🇪" },
 ]
 
 /** Código ISO del país seleccionado por defecto al renderizar el selector. */
