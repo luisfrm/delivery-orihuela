@@ -36,22 +36,21 @@ export function shortOrderId(id: string) {
 
 /**
  * Normaliza un teléfono para construir un enlace de WhatsApp (`wa.me`).
+ * - Asume que el teléfono viene en formato E.164 (incluye código de país).
  * - Elimina todo lo que no sea dígito.
- * - Si no empieza por `34` (España), lo prefija.
  * - No incluye el `+` (wa.me no lo acepta).
  */
 export function formatPhoneForWhatsApp(phone: string): string {
-  const digits = phone.replace(/\D/g, "")
-  return digits.startsWith("34") ? digits : `34${digits}`
+  return phone.replace(/\D/g, "")
 }
 
 /**
  * Normaliza un teléfono para construir un enlace `tel:`.
- * - Elimina todo lo que no sea dígito.
- * - Si no empieza por `34` (España), lo prefija.
- * - Incluye el `+` (formato E.164 para `tel:`).
+ * - Asume que el teléfono viene en formato E.164 (incluye código de país).
+ * - Elimina todo lo que no sea dígito y los devuelve con `+` (formato E.164).
  */
 export function formatPhoneForCall(phone: string): string {
   const digits = phone.replace(/\D/g, "")
-  return digits.startsWith("34") ? `+${digits}` : `+34${digits}`
+  if (!digits) return ""
+  return `+${digits}`
 }
