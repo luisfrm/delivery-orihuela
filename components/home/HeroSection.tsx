@@ -1,13 +1,38 @@
 "use client"
 
-import { Zap, Bike, Phone } from "lucide-react"
+import { useState } from "react"
+import { Zap, Bike, Phone, ShoppingBag, Truck } from "lucide-react"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import heroImage from "@/assets/hero.webp"
 import BuyModal from "@/components/modal/BuyModal"
 import PickupModal from "@/components/modal/PickupModal"
+import { LoginModal } from "@/components/modal/LoginModal"
+import { useAuth } from "@/hooks/useAuth"
 
 export function HeroSection() {
+  const { isAuthenticated, isLoading } = useAuth()
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [buyOpen, setBuyOpen] = useState(false)
+  const [pickupOpen, setPickupOpen] = useState(false)
+
+  const handleBuyOpenChange = (open: boolean) => {
+    if (open && !isAuthenticated) {
+      setLoginOpen(true)
+      return
+    }
+    setBuyOpen(open)
+  }
+
+  const handlePickupOpenChange = (open: boolean) => {
+    if (open && !isAuthenticated) {
+      setLoginOpen(true)
+      return
+    }
+    setPickupOpen(open)
+  }
+
   return (
     <section className="relative w-full min-h-[460px] lg:min-h-screen flex items-center overflow-hidden bg-primary plus-pattern">
       <div className="container mx-auto px-5 lg:px-8 flex flex-col lg:flex-row items-center justify-center gap-12">
@@ -38,8 +63,36 @@ export function HeroSection() {
           </p>
 
           <div className="flex flex-col lg:flex-row gap-3 w-full">
-            <BuyModal />
-            <PickupModal />
+            <BuyModal
+              open={buyOpen}
+              onOpenChange={handleBuyOpenChange}
+              trigger={
+                <Button
+                  variant="secondary"
+                  size="xl"
+                  className="w-full lg:w-auto"
+                  disabled={isLoading}
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  Comprar
+                </Button>
+              }
+            />
+            <PickupModal
+              open={pickupOpen}
+              onOpenChange={handlePickupOpenChange}
+              trigger={
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="w-full lg:w-auto"
+                  disabled={isLoading}
+                >
+                  <Truck className="w-5 h-5" />
+                  Recoger
+                </Button>
+              }
+            />
           </div>
         </div>
 
@@ -57,6 +110,8 @@ export function HeroSection() {
           </div>
         </div>
       </div>
+
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </section>
   )
 }
