@@ -184,8 +184,8 @@ export function PickupForm() {
             {isSubmitting ? "Confirmando..." : "Confirmar pedido"}
           </Button>
           <Button
-            variant="outline"
-            size="lg"
+            variant="outline_primary"
+            size="xl"
             className="w-full"
             onClick={() => setStep("form")}
           >
