@@ -135,8 +135,8 @@ export function PhoneInput({
           </span>
         )}
       </label>
-      <div className="flex">
-        <div className="w-[150px] h-full shrink-0">
+      <div className="flex gap-3">
+        <div className="w-fit h-full shrink-0">
           <Select
             options={countryOptions}
             value={dialCode}
