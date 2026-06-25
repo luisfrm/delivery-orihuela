@@ -18,7 +18,7 @@ export interface SelectOption {
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
-    size?: "sm" | "default"
+    size?: "sm" | "default" | "lg"
   }
 >(({ className, children, size = "default", ...props }, ref) => (
   <SelectPrimitive.Trigger
@@ -26,7 +26,7 @@ const SelectTrigger = React.forwardRef<
     data-slot="select-trigger"
     data-size={size}
     className={cn(
-      "group/select-trigger flex w-fit items-center justify-between gap-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest py-2 pr-2 pl-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/30 hover:border-primary/50 hover:bg-surface-container-low data-[state=open]:border-primary data-[state=open]:ring-3 data-[state=open]:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-on-surface-variant data-placeholder:font-normal data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+      "group/select-trigger flex w-fit items-center justify-between gap-1.5 rounded-lg border border-primary bg-surface-container-lowest py-2 pr-2 pl-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 focus-visible:ring-primary/30 hover:bg-surface-container-low data-[state=open]:ring-3 data-[state=open]:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-on-surface-variant data-placeholder:font-normal data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=lg]:h-14 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
       className
     )}
     {...props}
@@ -155,6 +155,7 @@ interface SelectProps {
   placeholder?: string
   className?: string
   disabled?: boolean
+  size?: "sm" | "default" | "lg"
 }
 
 function Select({
@@ -164,6 +165,7 @@ function Select({
   placeholder,
   className,
   disabled,
+  size = "default",
 }: SelectProps) {
   return (
     <SelectPrimitive.Root
@@ -171,7 +173,7 @@ function Select({
       onValueChange={onChange}
       disabled={disabled}
     >
-      <SelectTrigger className={className}>
+      <SelectTrigger className={className} size={size}>
         <SelectPrimitive.Value placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
