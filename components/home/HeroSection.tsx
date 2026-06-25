@@ -111,7 +111,11 @@ export function HeroSection() {
         </div>
       </div>
 
-      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+      <LoginModal
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        trigger={null}
+      />
     </section>
   )
 }
