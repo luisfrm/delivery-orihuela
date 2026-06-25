@@ -140,11 +140,23 @@ export interface OrderWithDetails extends Order {
   rider: RiderContact | null
 }
 
+export interface OrderWithClient extends OrderWithDetails {
+  client: ClientContact | null
+}
+
 export interface RiderContact {
   id: string
   first_name: string
   last_name: string
   phone: string
+}
+
+export interface ClientContact {
+  id: string
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
 }
 
 // ─── Vistas específicas para cliente ────────────────────────────

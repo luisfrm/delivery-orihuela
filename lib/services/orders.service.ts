@@ -1,8 +1,10 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import {
+  ClientContact,
   Order,
   OrderItemWithProduct,
   OrderStatus,
+  OrderWithClient,
   OrderWithDetails,
   RiderContact,
   ServiceType,
@@ -143,6 +145,105 @@ export class OrdersService {
     }
 
     return data
+  }
+
+  /**
+   * Fetches an order (looked up by order_number) with all related data:
+   * items, store name, rider, and the client's profile + email.
+   * Uses the service role client to bypass RLS on user_profiles and
+   * auth.admin.getUserById for the email.
+   */
+  async getOrderByNumberWithDetails(
+    orderNumber: number
+  ): Promise<OrderWithClient | null> {
+    const serviceSupabase = await createServiceRoleClient()
+
+    const { data: order, error } = await serviceSupabase
+      .from("orders")
+      .select("*")
+      .eq("order_number", orderNumber)
+      .single()
+
+    if (error || !order) {
+      return null
+    }
+
+    const [itemsRes, storeRes, riderProfileRes, clientProfileRes] =
+      await Promise.all([
+        serviceSupabase
+          .from("order_items")
+          .select(
+            "id, order_id, product_id, product_name, product_picture_url, quantity, estimated_unit_price"
+          )
+          .eq("order_id", order.id),
+        order.store_id
+          ? serviceSupabase
+              .from("stores")
+              .select("id, name")
+              .eq("id", order.store_id)
+              .single()
+          : Promise.resolve({ data: null, error: null }),
+        order.rider_id
+          ? serviceSupabase
+              .from("user_profiles")
+              .select("id, first_name, last_name, phone")
+              .eq("id", order.rider_id)
+              .single()
+          : Promise.resolve({ data: null, error: null }),
+        serviceSupabase
+          .from("user_profiles")
+          .select("id, first_name, last_name, phone")
+          .eq("id", order.client_id)
+          .single(),
+      ])
+
+    let rider: RiderContact | null = null
+    if (riderProfileRes.data) {
+      const r = riderProfileRes.data
+      rider = {
+        id: r.id,
+        first_name: r.first_name ?? "",
+        last_name: r.last_name ?? "",
+        phone: r.phone ?? "",
+      }
+    }
+
+    let client: ClientContact | null = null
+    if (clientProfileRes.data) {
+      const c = clientProfileRes.data
+      let email = ""
+      try {
+        const { data: authData } =
+          await serviceSupabase.auth.admin.getUserById(c.id)
+        email = authData?.user?.email ?? ""
+      } catch {
+        // email is optional; ignore
+      }
+      client = {
+        id: c.id,
+        first_name: c.first_name ?? "",
+        last_name: c.last_name ?? "",
+        phone: c.phone ?? "",
+        email,
+      }
+    }
+
+    return {
+      ...order,
+      items: (itemsRes.data ?? []) as OrderItemWithProduct[],
+      deliveryAddress:
+        order.delivery_address_name && order.delivery_address_line
+          ? {
+              name: order.delivery_address_name,
+              address_line: order.delivery_address_line,
+            }
+          : null,
+      storeName: order.store_id
+        ? storeRes.data?.name ?? null
+        : null,
+      rider,
+      client,
+    }
   }
 
   async getAdminOrders(statuses?: OrderStatus[]): Promise<Order[]> {

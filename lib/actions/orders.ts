@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { OrdersService } from "@/lib/services/orders.service"
-import { Order, OrderStatus, OrderWithDetails } from "@/lib/types"
+import { Order, OrderStatus, OrderWithClient, OrderWithDetails } from "@/lib/types"
 
 export interface RiderProfile {
   id: string
@@ -47,6 +47,30 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
   return service.getOrderById(orderId)
+}
+
+/**
+ * Fetches a single order by its order_number (the URL-friendly identifier)
+ * with all related data (items, store, rider, client profile).
+ * Available to admins and riders (riders only see orders assigned to them).
+ */
+export async function getOrderByNumberWithDetails(
+  orderNumber: number
+): Promise<OrderWithClient | null> {
+  const guard = await requireAdminOrRider()
+  if (!guard.ok) return null
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  const order = await service.getOrderByNumberWithDetails(orderNumber)
+  if (!order) return null
+
+  // Riders can only see their own assigned orders
+  if (guard.role === "rider" && order.rider_id !== guard.userId) {
+    return null
+  }
+
+  return order
 }
 
 export async function getAdminOrders(
@@ -196,6 +220,24 @@ async function requireAdmin() {
   return { ok: true as const, userId: user.id }
 }
 
+async function requireAdminOrRider() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { ok: false as const, error: "Usuario no autenticado" }
+  }
+
+  const role = user.app_metadata?.role
+  if (role !== "admin" && role !== "rider") {
+    return { ok: false as const, error: "No tienes permisos para acceder" }
+  }
+
+  return { ok: true as const, userId: user.id, role }
+}
+
 /**
  * Aceptar pedido: el admin acepta el pedido y lo asigna al rider autenticado
  */
@@ -297,4 +339,28 @@ export async function unassignOrder(
   }
 
   return { success: true }
+}
+
+/**
+ * Cancelar pedido (admin): cambia status a 'cancelled'. Mantiene el rider_id
+ * (preserva el audit trail de quién estaba asignado al momento de cancelar).
+ * No se permite cancelar pedidos ya terminales (delivered, cancelled).
+ */
+export async function cancelOrderByAdmin(
+  orderId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
+
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+
+  const order = await service.getOrderById(orderId)
+  if (!order) return { error: "Pedido no encontrado" }
+  if (order.status === "delivered" || order.status === "cancelled") {
+    return { error: "No se puede cancelar un pedido ya completado o cancelado" }
+  }
+
+  // rider_id se mantiene para audit trail
+  return service.updateOrderStatus(orderId, "cancelled")
 }
