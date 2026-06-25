@@ -18,6 +18,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { Select } from "@/components/ui/select"
 import { UserRoleBadge } from "./UserRoleBadge"
 import {
@@ -59,7 +60,6 @@ const STEP_ORDER: Step[] = ["info", "access", "preview", "success"]
 
 const MAX_NAME = 60
 const MAX_EMAIL = 100
-const MAX_PHONE = 20
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Administrador" },
@@ -129,10 +129,7 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
         validateRequired(formData.email, "El correo") ||
         validateMaxLength(formData.email, MAX_EMAIL, "El correo") ||
         validateEmail(formData.email),
-      phone:
-        validateRequired(formData.phone, "El teléfono") ||
-        validateMaxLength(formData.phone, MAX_PHONE, "El teléfono") ||
-        validatePhone(formData.phone),
+      phone: validatePhone(formData.phone),
     }
     setErrors(newErrors)
     return !Object.values(newErrors).some((e) => e)
@@ -451,16 +448,11 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
             </p>
           )}
 
-          <FormField
-            label="Teléfono"
-            name={`${formId}-phone`}
-            type="tel"
-            placeholder="Ej. +34 612 345 678"
+          <PhoneInput
             value={formData.phone}
             onChange={(v) => updateField("phone", v)}
             error={errors.phone}
-            maxLength={MAX_PHONE}
-            icon={<Phone className="size-4" />}
+            required
           />
         </div>
       )}

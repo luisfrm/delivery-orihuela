@@ -15,6 +15,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ImageUpload } from "@/components/ui/image-upload"
@@ -429,15 +430,11 @@ export function StoreForm({ mode, store, onClose, onSaved }: StoreFormProps) {
             maxLength={MAX_ADDRESS}
             icon={<MapPin className="size-4" />}
           />
-          <FormField
-            label="Teléfono"
-            name="phone"
-            type="tel"
-            placeholder="Ej. +34 600 000 000"
+          <PhoneInput
             value={formData.phone}
             onChange={(v) => updateField("phone", v)}
             error={errors.phone}
-            icon={<Phone className="size-4" />}
+            required
           />
           <div className="space-y-1.5">
             <label
