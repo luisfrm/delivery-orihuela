@@ -19,27 +19,39 @@ const STEP_SUBTITLES: Record<string, string> = {
 }
 
 interface BuyModalProps {
-  onTriggerClick?: () => void
+  /** Controlled open state. If provided, the modal is in controlled mode. */
+  open?: boolean
+  /** Notifies the parent when the modal should be opened/closed. */
+  onOpenChange?: (open: boolean) => void
+  /** Custom trigger element (e.g. a Button with `disabled` while auth is loading). */
+  trigger?: React.ReactNode
 }
 
-export default function BuyModal({ onTriggerClick }: BuyModalProps) {
+export default function BuyModal({
+  open,
+  onOpenChange,
+  trigger,
+}: BuyModalProps) {
   const [step, setStep] = useState<string>("store")
 
   const subtitle = STEP_SUBTITLES[step] ?? STEP_SUBTITLES.store
 
   return (
-    <ResponsiveModal>
-      <ResponsiveModalTrigger asChild>
-        <Button
-          variant="secondary"
-          size="xl"
-          className="w-full lg:w-auto"
-          onClick={onTriggerClick}
-        >
-          <ShoppingBag className="w-5 h-5" />
-          Comprar
-        </Button>
-      </ResponsiveModalTrigger>
+    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+      {trigger !== undefined ? (
+        <ResponsiveModalTrigger asChild>{trigger}</ResponsiveModalTrigger>
+      ) : (
+        <ResponsiveModalTrigger asChild>
+          <Button
+            variant="secondary"
+            size="xl"
+            className="w-full lg:w-auto"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            Comprar
+          </Button>
+        </ResponsiveModalTrigger>
+      )}
 
       <ResponsiveModalContent
         icon={<ShoppingCart className="size-[18px]" />}
