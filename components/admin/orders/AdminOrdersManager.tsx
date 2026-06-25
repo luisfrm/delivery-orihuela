@@ -158,8 +158,8 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
     }
   }
 
-  const handleViewDetails = (orderId: string) => {
-    router.push(`/panel/orders/${orderId}`)
+  const handleViewDetails = (orderNumber: number) => {
+    router.push(`/panel/orders/${orderNumber}`)
   }
 
   const handleAcceptOrder = async (orderId: string) => {

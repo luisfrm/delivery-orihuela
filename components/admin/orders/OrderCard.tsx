@@ -11,7 +11,7 @@ import { formatCurrency, formatOrderDate } from "@/lib/orders/format"
 interface OrderCardProps {
   order: Order
   riders: RiderProfile[]
-  onViewDetails: (orderId: string) => void
+  onViewDetails: (orderNumber: number) => void
   onAcceptOrder: (orderId: string) => void
   onStartDelivery: (orderId: string) => void
   onArriveAtCustomer: (orderId: string) => void

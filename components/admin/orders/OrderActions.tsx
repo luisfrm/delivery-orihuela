@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types"
-import type { ReactNode } from "react"
+import { Children, type ReactNode } from "react"
 
 interface OrderActionsProps {
   order: Order
-  onViewDetails: (orderId: string) => void
+  onViewDetails: (orderNumber: number) => void
   children?: ReactNode
 }
 
@@ -22,13 +22,13 @@ export function OrderActions({ order, onViewDetails, children }: OrderActionsPro
       <Button
         variant="secondary"
         size="icon-sm"
-        onClick={() => onViewDetails(order.id)}
+        onClick={() => onViewDetails(order.order_number)}
         title="Ver detalles"
         aria-label="Ver detalles del pedido"
       >
         <Eye className="size-4" />
       </Button>
-      {children && (
+      {Children.count(children) > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Más acciones del pedido"

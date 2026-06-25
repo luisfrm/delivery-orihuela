@@ -20,7 +20,7 @@ import { formatCurrency, formatOrderDateOnly, formatOrderTimeOnly } from "@/lib/
 interface OrdersTableProps {
   orders: Order[]
   riders: RiderProfile[]
-  onViewDetails: (orderId: string) => void
+  onViewDetails: (orderNumber: number) => void
   onAcceptOrder: (orderId: string) => void
   onStartDelivery: (orderId: string) => void
   onArriveAtCustomer: (orderId: string) => void
@@ -129,8 +129,8 @@ export function OrdersTable({
               <TableCell className="text-right">
                 <OrderActions order={order} onViewDetails={onViewDetails}>
                   {order.status === "pending" && (
-                    <DropdownMenuItem onClick={() => onAcceptOrder(order.id)}>
-                      <Check className="size-4" />
+                    <DropdownMenuItem onClick={() => onAcceptOrder(order.id)} className="hover:bg-green-600/20 transition-colors">
+                      <Check className="size-4 text-green-700" />
                       Aceptar pedido
                     </DropdownMenuItem>
                   )}
