@@ -66,12 +66,9 @@ export function validateMaxLength(value: string, max: number, label = "Este camp
 }
 
 export function validatePhone(value: string): string {
-  const trimmed = value.trim()
-  if (!trimmed) return "El teléfono es requerido."
-  if (!/^\+?[0-9\s()-]{8,20}$/.test(trimmed)) {
-    return "Ingresa un teléfono válido (8 a 20 dígitos)."
+  if (!value) return "El teléfono es requerido."
+  if (!/^\+\d{8,15}$/.test(value)) {
+    return "Ingresa un teléfono válido (ej. +34612345678)."
   }
-  const digits = trimmed.replace(/\D/g, "")
-  if (digits.length < 8) return "El teléfono debe tener al menos 8 dígitos."
   return ""
 }

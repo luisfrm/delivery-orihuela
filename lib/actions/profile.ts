@@ -39,7 +39,8 @@ export async function getProfile() {
 
 export async function updateProfile(
   firstName: string,
-  lastName: string
+  lastName: string,
+  phone?: string
 ): Promise<ProfileResult> {
   const supabase = await createClient()
 
@@ -52,9 +53,17 @@ export async function updateProfile(
     return { error: "Usuario no autenticado" }
   }
 
+  const updateData: Record<string, string> = {
+    first_name: firstName,
+    last_name: lastName,
+  }
+  if (phone !== undefined) {
+    updateData.phone = phone
+  }
+
   const { error } = await supabase
     .from("user_profiles")
-    .update({ first_name: firstName, last_name: lastName })
+    .update(updateData)
     .eq("id", user.id)
 
   if (error) {

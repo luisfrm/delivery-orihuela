@@ -44,9 +44,9 @@ export function ProfileModal({
     }
   }
 
-  const handleEditSuccess = (firstName: string, lastName: string) => {
+  const handleEditSuccess = (firstName: string, lastName: string, phone: string) => {
     if (profile) {
-      updateCachedProfile({ firstName, lastName, phone: profile.phone, email: profile.email })
+      updateCachedProfile({ firstName, lastName, phone, email: profile.email })
     }
     setStep("view")
   }
@@ -109,6 +109,7 @@ export function ProfileModal({
           <EditProfileForm
             initialFirstName={profile.firstName}
             initialLastName={profile.lastName}
+            initialPhone={profile.phone}
             email={profile.email}
             onSuccess={handleEditSuccess}
             onCancel={() => setStep("view")}

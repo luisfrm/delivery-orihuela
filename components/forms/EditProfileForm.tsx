@@ -4,20 +4,23 @@ import { useState } from "react"
 import { User, Mail, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { PhoneInput } from "@/components/ui/phone-input"
 
-import { validateRequired } from "@/lib/validation"
+import { validatePhone, validateRequired } from "@/lib/validation"
 
 interface EditProfileFormProps {
   initialFirstName: string
   initialLastName: string
+  initialPhone: string
   email: string
-  onSuccess: (firstName: string, lastName: string) => void
+  onSuccess: (firstName: string, lastName: string, phone: string) => void
   onCancel: () => void
 }
 
 export function EditProfileForm({
   initialFirstName,
   initialLastName,
+  initialPhone,
   email,
   onSuccess,
   onCancel,
@@ -25,11 +28,13 @@ export function EditProfileForm({
   const [formData, setFormData] = useState({
     firstName: initialFirstName,
     lastName: initialLastName,
+    phone: initialPhone,
   })
 
   const [errors, setErrors] = useState({
     firstName: "",
     lastName: "",
+    phone: "",
   })
 
   const [generalError, setGeneralError] = useState("")
@@ -41,6 +46,8 @@ export function EditProfileForm({
         return validateRequired(value, "El nombre")
       case "lastName":
         return validateRequired(value, "El apellido")
+      case "phone":
+        return validatePhone(value)
       default:
         return ""
     }
@@ -60,6 +67,7 @@ export function EditProfileForm({
     const newErrors = {
       firstName: validateField("firstName", formData.firstName),
       lastName: validateField("lastName", formData.lastName),
+      phone: validateField("phone", formData.phone),
     }
 
     setErrors(newErrors)
@@ -72,7 +80,11 @@ export function EditProfileForm({
 
     try {
       const { updateProfile } = await import("@/lib/actions/profile")
-      const result = await updateProfile(formData.firstName, formData.lastName)
+      const result = await updateProfile(
+        formData.firstName,
+        formData.lastName,
+        formData.phone
+      )
 
       if (result?.error) {
         setGeneralError(result.error)
@@ -80,7 +92,7 @@ export function EditProfileForm({
         return
       }
 
-      onSuccess(formData.firstName, formData.lastName)
+      onSuccess(formData.firstName, formData.lastName, formData.phone)
     } catch {
       setGeneralError("Ocurrió un error. Intenta de nuevo.")
       setIsSubmitting(false)
@@ -131,6 +143,13 @@ export function EditProfileForm({
           className="sr-only"
         />
       </FormField>
+
+      <PhoneInput
+        value={formData.phone}
+        onChange={handleChange("phone")}
+        error={errors.phone}
+        required
+      />
 
       <div className="flex flex-col gap-3 pt-2">
         <Button

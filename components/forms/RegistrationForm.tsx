@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useFormStatus } from "react-dom"
-import { User, Mail, Lock, Phone, Check } from "lucide-react"
+import { User, Mail, Lock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { OtpStep } from "@/components/forms/OtpStep"
 import { toast } from "sonner"
 import { cn, capitalize } from "@/lib/utils"
@@ -13,6 +14,7 @@ import {
   validateRequired,
   validatePassword,
   validateConfirmPassword,
+  validatePhone,
   checkPasswordStrength,
 } from "@/lib/validation"
 
@@ -151,7 +153,7 @@ export function RegistrationForm({
       case "lastName":
         return validateRequired(value, "El apellido")
       case "phone":
-        return validateRequired(value, "El teléfono")
+        return validatePhone(value)
       case "email":
         return validateEmail(value)
       case "password":
@@ -276,15 +278,11 @@ export function RegistrationForm({
           error={errors.email}
           icon={<Mail className="size-4" />}
         />
-        <FormField
-          label="Teléfono"
-          name="phone"
-          type="tel"
-          placeholder="Ej. +34 612 345 678"
+        <PhoneInput
           value={formData.phone}
           onChange={handleChange("phone")}
           error={errors.phone}
-          icon={<Phone className="size-4" />}
+          required
         />
       </div>
 
