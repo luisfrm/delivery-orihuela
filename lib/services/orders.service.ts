@@ -249,7 +249,7 @@ export class OrdersService {
   async getAdminOrders(statuses?: OrderStatus[]): Promise<Order[]> {
     let query = this.supabase
       .from("orders")
-      .select("*")
+      .select("*, stores(name)")
       .order("created_at", { ascending: false })
 
     if (statuses && statuses.length > 0) {
@@ -263,7 +263,11 @@ export class OrdersService {
       return []
     }
 
-    return data || []
+    type Row = Order & { stores: { name: string } | null }
+    return ((data || []) as Row[]).map((row) => ({
+      ...row,
+      storeName: row.stores?.name ?? null,
+    }))
   }
 
   async createOrder(params: CreateOrderParams, clientId: string): Promise<OrderResult> {

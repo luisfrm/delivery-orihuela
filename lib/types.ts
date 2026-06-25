@@ -109,6 +109,11 @@ export interface Order {
   total_amount: number
   created_at: string
   updated_at: string
+  /**
+   * Store name from the joined stores table. Populated by the admin
+   * panel queries. Optional because not all queries join stores.
+   */
+  storeName?: string | null
 }
 
 export interface OrderItem {
@@ -191,6 +196,7 @@ export interface ActiveOrderData {
 
 export interface OrderHistoryData {
   id: string
+  order_number: number
   created_at: string
   status: OrderStatus
   service_type: ServiceType

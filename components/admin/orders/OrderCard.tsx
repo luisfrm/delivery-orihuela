@@ -93,9 +93,9 @@ export function OrderCard({
 
       {/* Client / Address */}
       <div className="space-y-1">
-        <div className="font-medium text-body-md text-on-surface">
-          {order.custom_store_name || order.pickup_reference || "Sin tienda"}
-        </div>
+          <div className="font-medium text-body-md text-on-surface">
+            {order.custom_store_name ?? order.storeName ?? "Sin tienda"}
+          </div>
         <div className="flex items-start gap-2 text-label-md text-on-surface-variant">
           <MapPin className="size-4 shrink-0 mt-0.5" />
           <span className="line-clamp-2">

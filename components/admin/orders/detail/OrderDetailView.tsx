@@ -1,6 +1,7 @@
 import { OrderStatusBanner } from "./OrderStatusBanner"
 import { OrderGeneralInfoCard } from "./OrderGeneralInfoCard"
 import { OrderItemsCard } from "./OrderItemsCard"
+import { OrderPickupReferenceCard } from "./OrderPickupReferenceCard"
 import { OrderTotalsCard } from "./OrderTotalsCard"
 import { OrderActionsCard } from "./OrderActionsCard"
 import { MobileContactBar } from "./MobileContactBar"
@@ -22,6 +23,8 @@ export function OrderDetailView({ order }: OrderDetailViewProps) {
   const deliveryFeeCents = order.total_amount - itemsSubtotalCents
   const showImages =
     order.status !== "delivered" && order.status !== "cancelled"
+  const isBuyOrder = order.service_type === "buy_and_deliver"
+  const pickupReference = order.pickup_reference ?? ""
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-24 lg:pb-0">
@@ -31,7 +34,11 @@ export function OrderDetailView({ order }: OrderDetailViewProps) {
         {/* Left column */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           <OrderGeneralInfoCard order={order} />
-          <OrderItemsCard items={order.items} showImages={showImages} />
+          {isBuyOrder ? (
+            <OrderItemsCard items={order.items} showImages={showImages} />
+          ) : (
+            <OrderPickupReferenceCard className="pt-4" reference={pickupReference} />
+          )}
         </div>
 
         {/* Right column */}

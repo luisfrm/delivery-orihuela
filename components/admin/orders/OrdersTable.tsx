@@ -103,9 +103,9 @@ export function OrdersTable({
               </TableCell>
               <TableCell>
                 <div className="flex flex-col max-w-xs">
-                  <span className="font-medium truncate">
-                    {order.custom_store_name || order.pickup_reference || "Sin tienda"}
-                  </span>
+                <span className="font-medium truncate">
+                  {order.custom_store_name ?? order.storeName ?? "Sin tienda"}
+                </span>
                   <span className="text-label-md text-on-surface-variant truncate">
                     {order.delivery_address_line || "Sin dirección de entrega"}
                   </span>
