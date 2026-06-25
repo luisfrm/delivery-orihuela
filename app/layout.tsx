@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={jakarta.variable} suppressHydrationWarning>
       <body
-        className="min-h-[max(884px,100dvh)] flex flex-col"
+        className="min-h-screen flex flex-col"
         suppressHydrationWarning
       >
         <Tooltip.Provider delay={200}>{children}</Tooltip.Provider>

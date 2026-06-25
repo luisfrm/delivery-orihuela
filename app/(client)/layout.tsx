@@ -14,7 +14,7 @@ export default async function ClientLayout({
   return (
     <>
       <TopAppBar orgSettings={orgSettings} />
-      <main className="w-full flex flex-col gap-[24px] pb-[180px] pt-[72px]">
+      <main className="w-full flex flex-col gap-[24px]">
         {children}
       </main>
       <BottomNav />
