@@ -1,4 +1,12 @@
-import { Order, OrderItemWithProduct, OrderStatus, OrderWithDetails, ServiceType } from "@/lib/types"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import {
+  Order,
+  OrderItemWithProduct,
+  OrderStatus,
+  OrderWithDetails,
+  RiderContact,
+  ServiceType,
+} from "@/lib/types"
 
 export interface CreateOrderItem {
   productId: string
@@ -50,6 +58,9 @@ export class OrdersService {
     const storeIds = Array.from(
       new Set(orders.map((o) => o.store_id).filter(Boolean))
     ) as string[]
+    const riderIds = Array.from(
+      new Set(orders.map((o) => o.rider_id).filter(Boolean))
+    ) as string[]
 
     const [itemsRes, storesRes] = await Promise.all([
       this.supabase
@@ -80,6 +91,31 @@ export class OrdersService {
       (storesRes.data ?? []).map((s) => [s.id, s.name])
     )
 
+    // Fetch rider profiles using service role (RLS only allows viewing own
+    // profile, so we need to bypass it to fetch the riders assigned to
+    // the caller's orders).
+    const ridersById = new Map<string, RiderContact>()
+    if (riderIds.length > 0) {
+      const serviceSupabase = await createServiceRoleClient()
+      const { data: riders, error: ridersError } = await serviceSupabase
+        .from("user_profiles")
+        .select("id, first_name, last_name, phone")
+        .in("id", riderIds)
+
+      if (ridersError) {
+        console.error("Error fetching riders:", ridersError)
+      }
+
+      for (const r of riders ?? []) {
+        ridersById.set(r.id, {
+          id: r.id,
+          first_name: r.first_name ?? "",
+          last_name: r.last_name ?? "",
+          phone: r.phone ?? "",
+        })
+      }
+    }
+
     return orders.map((order) => ({
       ...order,
       items: itemsByOrder.get(order.id) ?? [],
@@ -91,6 +127,7 @@ export class OrdersService {
             }
           : null,
       storeName: order.store_id ? storeById.get(order.store_id) ?? null : null,
+      rider: order.rider_id ? ridersById.get(order.rider_id) ?? null : null,
     }))
   }
 

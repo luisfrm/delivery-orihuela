@@ -5,6 +5,7 @@ import { Home, Briefcase, MapPin, ListChecks } from "lucide-react"
 
 import { ListCard } from "@/components/shared/ListCard"
 import { Button } from "@/components/ui/button"
+import { ContactRiderActions } from "@/components/orders/ContactRiderActions"
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -109,28 +110,39 @@ export function OrderHistoryListItem({
         }
         subtitle={formatOrderDate(order.created_at)}
         description={
-          hasItems ? (
-            <div className="space-y-2">
-              <h4 className="text-label-md font-semibold text-on-surface-variant">
-                Items ({totalItems})
-              </h4>
-              <ul className="space-y-1.5">
-                {visibleItems.map((item) => (
-                  <ItemRow key={item.id} item={item} />
-                ))}
-              </ul>
-              {remaining > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-center text-primary mt-1"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Ver {remaining} {remaining === 1 ? "item más" : "items más"}
-                </Button>
-              )}
-            </div>
-          ) : null
+          <>
+            {hasItems ? (
+              <div className="space-y-2">
+                <h4 className="text-label-md font-semibold text-on-surface-variant">
+                  Items ({totalItems})
+                </h4>
+                <ul className="space-y-1.5">
+                  {visibleItems.map((item) => (
+                    <ItemRow key={item.id} item={item} />
+                  ))}
+                </ul>
+                {remaining > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-center text-primary mt-1"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Ver {remaining} {remaining === 1 ? "item más" : "items más"}
+                  </Button>
+                )}
+              </div>
+            ) : null}
+            {order.rider && (
+              <div
+                className={cn(
+                  hasItems && "pt-3 mt-3 border-t border-outline-variant"
+                )}
+              >
+                <ContactRiderActions rider={order.rider} />
+              </div>
+            )}
+          </>
         }
         badge={{ label: status.label, variant: status.badgeVariant }}
         meta={

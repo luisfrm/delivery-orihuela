@@ -41,6 +41,7 @@ function toActiveOrder(order: OrderWithDetails): ActiveOrderData {
     })),
     additional_notes: order.additional_notes,
     total_amount: order.total_amount,
+    rider: order.rider,
   }
 }
 
@@ -66,6 +67,7 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
     })),
     additional_notes: order.additional_notes,
     total_amount: order.total_amount,
+    rider: order.rider,
   }
 }
 
@@ -116,11 +118,7 @@ export function OrderList({ initialOrders }: OrderListProps) {
           />
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 pt-4">
             {activeOrders.map((order) => (
-              <ActiveOrderCard
-                key={order.id}
-                order={order}
-                onContactDriver={(id) => router.push(`/pedidos/${id}/chat`)}
-              />
+              <ActiveOrderCard key={order.id} order={order} />
             ))}
           </div>
         </section>

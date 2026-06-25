@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { MapPin, Receipt, MessageSquareText, ChevronDown } from "lucide-react"
+import { MapPin, Receipt, ChevronDown } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { ContactRiderActions } from "@/components/orders/ContactRiderActions"
 import { cn } from "@/lib/utils"
 import {
   ORDER_STATUS_CONFIG,
@@ -21,13 +21,11 @@ import type { ActiveOrderData } from "@/lib/types"
 
 export interface ActiveOrderCardProps {
   order: ActiveOrderData
-  onContactDriver?: (orderId: string) => void
   className?: string
 }
 
 export function ActiveOrderCard({
   order,
-  onContactDriver,
   className,
 }: ActiveOrderCardProps) {
   const [itemsExpanded, setItemsExpanded] = useState(true)
@@ -185,17 +183,9 @@ export function ActiveOrderCard({
         </div>
       )}
 
-      {order.rider_id && (
-        <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <Button
-            variant="tertiary"
-            size="lg"
-            className="w-full sm:w-auto"
-            onClick={() => onContactDriver?.(order.id)}
-          >
-            <MessageSquareText />
-            Contactar repartidor
-          </Button>
+      {order.rider && (
+        <div className="pt-3 border-t border-outline-variant/60">
+          <ContactRiderActions rider={order.rider} />
         </div>
       )}
     </Card>

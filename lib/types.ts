@@ -137,6 +137,14 @@ export interface OrderWithDetails extends Order {
   items: OrderItemWithProduct[]
   deliveryAddress: { name: string; address_line: string } | null
   storeName: string | null
+  rider: RiderContact | null
+}
+
+export interface RiderContact {
+  id: string
+  first_name: string
+  last_name: string
+  phone: string
 }
 
 // ─── Vistas específicas para cliente ────────────────────────────
@@ -144,7 +152,6 @@ export interface OrderWithDetails extends Order {
 // ActiveOrderData y OrderHistoryData son las formas optimizadas
 // para cada vista del cliente. TypeScript no deja pasar el tipo
 // equivocado a cada componente.
-
 export interface ActiveOrderData {
   id: string
   order_number: number
@@ -167,6 +174,7 @@ export interface ActiveOrderData {
 
   additional_notes: string | null
   total_amount: number
+  rider: RiderContact | null
 }
 
 export interface OrderHistoryData {
@@ -177,6 +185,7 @@ export interface OrderHistoryData {
 
   custom_store_name: string | null
   storeName: string | null
+
   deliveryAddress: { name: string; address_line: string } | null
 
   items: {
@@ -188,6 +197,7 @@ export interface OrderHistoryData {
 
   additional_notes: string | null
   total_amount: number
+  rider: RiderContact | null
 }
 
 export interface CustomStore {

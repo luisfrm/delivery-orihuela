@@ -33,3 +33,25 @@ export function formatOrderTimeOnly(dateString: string) {
 export function shortOrderId(id: string) {
   return id.slice(0, 8).toUpperCase()
 }
+
+/**
+ * Normaliza un teléfono para construir un enlace de WhatsApp (`wa.me`).
+ * - Elimina todo lo que no sea dígito.
+ * - Si no empieza por `34` (España), lo prefija.
+ * - No incluye el `+` (wa.me no lo acepta).
+ */
+export function formatPhoneForWhatsApp(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  return digits.startsWith("34") ? digits : `34${digits}`
+}
+
+/**
+ * Normaliza un teléfono para construir un enlace `tel:`.
+ * - Elimina todo lo que no sea dígito.
+ * - Si no empieza por `34` (España), lo prefija.
+ * - Incluye el `+` (formato E.164 para `tel:`).
+ */
+export function formatPhoneForCall(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  return digits.startsWith("34") ? `+${digits}` : `+34${digits}`
+}
