@@ -213,7 +213,7 @@ export function AdminOrdersManager({ initialOrders, riders }: AdminOrdersManager
   }
 
   return (
-    <div className="max-w-7xl rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest">
+    <div className="rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest">
       <div className="flex items-center justify-end gap-2 px-4 py-3 border-b border-outline-variant bg-surface-container-low">
         <RefreshButton onRefresh={refreshOrders} />
       </div>

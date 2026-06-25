@@ -67,7 +67,7 @@ export function AdminUsersManager({
 
   return (
     <>
-      <div className="max-w-7xl rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest">
+      <div className="rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest">
         <UsersTabs
           selectedTab={selectedTab}
           onTabChange={setSelectedTab}
