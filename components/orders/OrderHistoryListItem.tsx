@@ -1,8 +1,14 @@
 "use client"
 
-import { Home, Briefcase, MapPin } from "lucide-react"
+import { useState } from "react"
+import { Home, Briefcase, MapPin, ListChecks } from "lucide-react"
 
 import { ListCard } from "@/components/shared/ListCard"
+import { Button } from "@/components/ui/button"
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+} from "@/components/ui/responsive-modal"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ORDER_STATUS_CONFIG } from "@/lib/orders/order-status"
 import {
@@ -13,17 +19,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { OrderHistoryData } from "@/lib/types"
 
-const VISIBLE_ITEMS = 3
-
-function formatItemsSummary(
-  items: OrderHistoryData["items"]
-): string {
-  return items
-    .map(
-      (i) => `${i.quantity}x ${i.product_name ?? "Producto eliminado"}`
-    )
-    .join(", ")
-}
+const VISIBLE_ITEMS = 5
 
 function getAddressIconElement(name: string, className: string) {
   const lower = name.toLowerCase()
@@ -36,6 +32,38 @@ function getAddressIconElement(name: string, className: string) {
   return <MapPin className={className} />
 }
 
+function ItemRow({
+  item,
+}: {
+  item: OrderHistoryData["items"][number]
+}) {
+  return (
+    <li className="flex items-center justify-between gap-3 text-body-sm">
+      <span className="truncate flex-1 min-w-0">
+        <span className="font-semibold">{item.quantity}x</span>{" "}
+        {item.product_name ?? "Producto eliminado"}
+      </span>
+      <span className="text-on-surface-variant shrink-0">
+        {formatCurrency(item.quantity * item.estimated_unit_price)}
+      </span>
+    </li>
+  )
+}
+
+function FullItemsList({
+  items,
+}: {
+  items: OrderHistoryData["items"]
+}) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <ItemRow key={item.id} item={item} />
+      ))}
+    </ul>
+  )
+}
+
 export interface OrderHistoryListItemProps {
   order: OrderHistoryData
   className?: string
@@ -45,6 +73,7 @@ export function OrderHistoryListItem({
   order,
   className,
 }: OrderHistoryListItemProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const status = ORDER_STATUS_CONFIG[order.status]
   const StatusIcon = status.icon
   const title =
@@ -53,89 +82,103 @@ export function OrderHistoryListItem({
     `Pedido #${shortOrderId(order.id)}`
 
   const isCancelled = order.status === "cancelled"
-  const fullItemsText = formatItemsSummary(order.items)
+  const hasItems = order.items.length > 0
+  const totalItems = order.items.reduce((sum, i) => sum + i.quantity, 0)
   const visibleItems = order.items.slice(0, VISIBLE_ITEMS)
   const remaining = order.items.length - VISIBLE_ITEMS
-  const visibleText = formatItemsSummary(visibleItems)
 
   return (
-    <ListCard
-      className={cn(
-        "transition-shadow hover:shadow-md",
-        isCancelled && "opacity-75 grayscale-[0.2]",
-        className
-      )}
-      icon={
-        <div className="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-primary">
-          <StatusIcon className="size-6" />
-        </div>
-      }
-      title={
-        <Tooltip content={title}>
-          <span className="truncate block cursor-default max-w-full">
-            {title}
-          </span>
-        </Tooltip>
-      }
-      subtitle={formatOrderDate(order.created_at)}
-      description={
-        remaining > 0 ? (
-          <Tooltip
-            content={
-              <ul className="space-y-1">
-                {order.items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="text-label-md flex justify-between gap-3"
-                  >
-                    <span className="truncate">
-                      <span className="font-semibold">{item.quantity}x</span>{" "}
-                      {item.product_name ?? "Producto eliminado"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            }
-          >
-            <span className="truncate block cursor-default">
-              {visibleText}{" "}
-              <span className="text-on-surface-variant">
-                +{remaining} más…
-              </span>
+    <>
+      <ListCard
+        className={cn(
+          "transition-shadow hover:shadow-md",
+          isCancelled && "opacity-75 grayscale-[0.2]",
+          className
+        )}
+        icon={
+          <div className="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-primary">
+            <StatusIcon className="size-6" />
+          </div>
+        }
+        title={
+          <Tooltip content={title}>
+            <span className="truncate block cursor-default max-w-full">
+              {title}
             </span>
           </Tooltip>
-        ) : (
-          <span className="truncate block">{fullItemsText}</span>
-        )
-      }
-      badge={{ label: status.label, variant: status.badgeVariant }}
-      meta={
-        <div className="flex justify-between items-center gap-3 pt-1">
-          {order.deliveryAddress ? (
-            <span className="font-label-md text-label-md text-on-surface-variant truncate flex items-center gap-1 min-w-0">
-              {getAddressIconElement(
-                order.deliveryAddress.name,
-                "size-4 shrink-0"
+        }
+        subtitle={formatOrderDate(order.created_at)}
+        description={
+          hasItems ? (
+            <div className="space-y-2">
+              <h4 className="text-label-md font-semibold text-on-surface-variant">
+                Items ({totalItems})
+              </h4>
+              <ul className="space-y-1.5">
+                {visibleItems.map((item) => (
+                  <ItemRow key={item.id} item={item} />
+                ))}
+              </ul>
+              {remaining > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-center text-primary mt-1"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Ver {remaining} {remaining === 1 ? "item más" : "items más"}
+                </Button>
               )}
-              <span className="truncate">
-                {order.deliveryAddress.name}
-              </span>
-            </span>
-          ) : (
-            <span />
-          )}
-          <span
-            className={cn(
-              "font-headline-md text-headline-md shrink-0",
-              isCancelled
-                ? "text-on-surface line-through"
-                : "text-on-surface"
+            </div>
+          ) : null
+        }
+        badge={{ label: status.label, variant: status.badgeVariant }}
+        meta={
+          <div className="flex justify-between items-center gap-3 pt-1">
+            {order.deliveryAddress ? (
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="font-label-md text-label-md text-on-surface-variant truncate flex items-center gap-1">
+                  {getAddressIconElement(
+                    order.deliveryAddress.name,
+                    "size-4 shrink-0"
+                  )}
+                  <span className="truncate">
+                    {order.deliveryAddress.name}
+                  </span>
+                </span>
+                <span className="text-label-md text-on-surface-variant/80 truncate pl-5">
+                  {order.deliveryAddress.address_line}
+                </span>
+              </div>
+            ) : (
+              <span />
             )}
+            <span
+              className={cn(
+                "font-headline-md text-headline-md shrink-0",
+                isCancelled
+                  ? "text-on-surface line-through"
+                  : "text-on-surface"
+              )}
+            >
+              {formatCurrency(order.total_amount)}
+            </span>
+          </div>
+        }
+      />
+
+      {hasItems && (
+        <ResponsiveModal open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <ResponsiveModalContent
+            icon={<ListChecks className="size-[18px]" />}
+            title="Items del pedido"
+            subtitle={`${order.items.length} ${order.items.length === 1 ? "producto" : "productos"}`}
+            desktopMaxWidth="max-w-md"
           >
-            {formatCurrency(order.total_amount)}
-          </span>
-        </div>
-      }
-    />
+            <FullItemsList items={order.items} />
+          </ResponsiveModalContent>
+        </ResponsiveModal>
+      )}
+    </>
   )
 }

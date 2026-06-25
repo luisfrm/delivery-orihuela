@@ -53,7 +53,10 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
     custom_store_name: order.custom_store_name,
     storeName: order.storeName,
     deliveryAddress: order.deliveryAddress
-      ? { name: order.deliveryAddress.name }
+      ? {
+          name: order.deliveryAddress.name,
+          address_line: order.deliveryAddress.address_line,
+        }
       : null,
     items: order.items.map((item) => ({
       id: item.id,

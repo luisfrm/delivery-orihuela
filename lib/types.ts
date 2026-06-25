@@ -177,7 +177,7 @@ export interface OrderHistoryData {
 
   custom_store_name: string | null
   storeName: string | null
-  deliveryAddress: { name: string } | null
+  deliveryAddress: { name: string; address_line: string } | null
 
   items: {
     id: string
