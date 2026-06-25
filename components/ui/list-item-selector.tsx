@@ -11,10 +11,15 @@ export interface ListItemSelectorProps<T> {
   onSelect: (item: T) => void
   renderItem: (item: T, isSelected: boolean) => React.ReactNode
   getItemId: (item: T) => string
+  searchText?: (item: T) => string
   searchPlaceholder?: string
   showSearch?: boolean
   emptyMessage?: string
   footerAction?: React.ReactNode
+  /** When true, render skeleton placeholders instead of items. */
+  isLoading?: boolean
+  /** Number of skeleton items to render when isLoading. Default 3. */
+  skeletonCount?: number
 }
 
 export function ListItemSelector<T>({
@@ -23,18 +28,22 @@ export function ListItemSelector<T>({
   onSelect,
   renderItem,
   getItemId,
+  searchText,
   searchPlaceholder = "Buscar...",
   showSearch = true,
   emptyMessage = "No hay opciones disponibles",
   footerAction,
+  isLoading = false,
+  skeletonCount = 3,
 }: ListItemSelectorProps<T>) {
   const [search, setSearch] = useState("")
 
-  const filteredItems = items.filter((item) => {
-    const searchLower = search.toLowerCase()
-    const itemId = getItemId(item).toLowerCase()
-    return itemId.includes(searchLower)
-  })
+  const filteredItems = searchText
+    ? items.filter((item) => {
+        const haystack = searchText(item).toLowerCase()
+        return haystack.includes(search.toLowerCase())
+      })
+    : items
 
   return (
     <div className="space-y-3">
@@ -52,30 +61,48 @@ export function ListItemSelector<T>({
         </div>
       )}
 
-      <ul className="space-y-2">
-        {filteredItems.length === 0 ? (
-          <li className="py-6 text-center text-body-md text-muted-foreground">
-            {emptyMessage}
-          </li>
-        ) : (
-          filteredItems.map((item) => {
-            const isSelected = getItemId(item) === selectedId
-            return (
-              <li key={getItemId(item)}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(item)}
-                  className="w-full"
-                >
-                  {renderItem(item, isSelected)}
-                </button>
-              </li>
-            )
-          })
-        )}
-      </ul>
+      {isLoading ? (
+        <ul className="space-y-2" aria-busy="true" aria-live="polite">
+          {Array.from({ length: skeletonCount }).map((_, i) => (
+            <li
+              key={`skeleton-${i}`}
+              className="flex items-center gap-3 px-3 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest"
+            >
+              <div className="size-10 rounded-lg bg-outline-variant/40 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 rounded bg-outline-variant/40 animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-outline-variant/40 animate-pulse" />
+              </div>
+              <div className="size-5 rounded-full bg-outline-variant/40 animate-pulse" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="space-y-2">
+          {filteredItems.length === 0 ? (
+            <li className="py-6 text-center text-body-md text-muted-foreground">
+              {emptyMessage}
+            </li>
+          ) : (
+            filteredItems.map((item) => {
+              const isSelected = getItemId(item) === selectedId
+              return (
+                <li key={getItemId(item)}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(item)}
+                    className="w-full"
+                  >
+                    {renderItem(item, isSelected)}
+                  </button>
+                </li>
+              )
+            })
+          )}
+        </ul>
+      )}
 
-      {footerAction && (
+      {footerAction && !isLoading && (
         <div className="pt-2 border-t border-outline-variant">
           {footerAction}
         </div>
@@ -129,7 +156,7 @@ export function ListItemContent({
   return (
     <>
       {icon && (
-        <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-xl">
+        <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-xl overflow-hidden">
           {icon}
         </span>
       )}

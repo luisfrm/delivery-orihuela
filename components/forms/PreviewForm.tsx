@@ -38,7 +38,9 @@ export function PreviewForm({
     return sum + qty * p.estimated_price
   }, 0)
 
-  const deliveryFeeCents = Math.round(deliveryFee * 100)
+  // `getDeliveryFee()` already returns integer cents (e.g. 600 for 6€).
+  // The DB stores cents consistently across orders/products/settings.
+  const deliveryFeeCents = deliveryFee
   const totalCents = itemsSubtotalCents + deliveryFeeCents
 
   const cartItems = products.filter((p) => (cart[p.id] ?? 0) > 0)

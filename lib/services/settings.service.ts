@@ -15,8 +15,13 @@ export class SettingsService {
     return data.value as string
   }
 
+  /**
+   * Returns the configured delivery fee in INTEGER CENTS (e.g. 600 = 6€).
+   * The DB stores the raw value as cents to stay consistent with the rest
+   * of the order amounts (orders.delivery_fee, etc.).
+   */
   async getDeliveryFee(): Promise<number> {
     const fee = await this.getSetting("delivery_fee")
-    return fee ? parseFloat(fee) : 4
+    return fee ? parseFloat(fee) : 600
   }
 }

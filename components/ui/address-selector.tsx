@@ -55,11 +55,8 @@ export function AddressSelector({ value, onChange }: AddressSelectorProps) {
       getItemId={(item) => item.id}
       searchPlaceholder="Buscar dirección..."
       showSearch={false}
-      emptyMessage={
-        isLoading
-          ? "Cargando direcciones..."
-          : "No tienes direcciones guardadas"
-      }
+      isLoading={isLoading}
+      emptyMessage="No tienes direcciones guardadas"
       renderItem={(address, isSelected) => (
         <ListItem isSelected={isSelected}>
           <ListItemContent
