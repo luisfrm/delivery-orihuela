@@ -58,6 +58,7 @@ export function ContactRiderActions({
           variant="success"
           size={size}
           className="flex-1"
+          nativeButton={false}
           render={
             <a
               href={whatsappUrl}
@@ -73,6 +74,7 @@ export function ContactRiderActions({
           variant="outline_primary"
           size={size}
           className="flex-1"
+          nativeButton={false}
           render={<a href={callUrl} />}
         >
           <Phone className="size-4" />

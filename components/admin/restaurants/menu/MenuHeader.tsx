@@ -19,6 +19,7 @@ export function MenuHeader({ store, className }: MenuHeaderProps) {
       <Button
         variant="ghost"
         size="icon"
+        nativeButton={false}
         render={<Link href="/panel/restaurants" />}
         aria-label="Volver a restaurantes"
       >
