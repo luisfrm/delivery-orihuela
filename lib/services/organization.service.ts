@@ -82,13 +82,13 @@ export async function updateOrganizationSettings(
   if (!tagline) return { error: "El eslogan es requerido." }
   if (!logoAlt) return { error: "El texto alternativo del logo es requerido." }
 
-  if (!Number.isFinite(input.deliveryFee) || input.deliveryFee < 0 || input.deliveryFee > 100) {
+  // deliveryFee arrives in INTEGER CENTS (e.g. 600 = 6€). The form
+  // does the euros → cents conversion before calling the action.
+  if (!Number.isFinite(input.deliveryFee) || input.deliveryFee < 0 || input.deliveryFee > 10000) {
     return { error: "El costo de entrega debe estar entre 0 y 100€." }
   }
-
-  const rounded = Math.round(input.deliveryFee * 100) / 100
-  if (Math.abs(rounded - input.deliveryFee) > 0.001) {
-    return { error: "El costo de entrega admite máximo 2 decimales." }
+  if (!Number.isInteger(input.deliveryFee)) {
+    return { error: "El costo de entrega debe ser un número entero (en centavos)." }
   }
 
   let nextLogoUrl = input.currentLogoUrl
@@ -120,7 +120,7 @@ export async function updateOrganizationSettings(
     ["org.tagline", tagline],
     ["org.logo_alt", logoAlt],
     ["org.logo_url", nextLogoUrl],
-    ["delivery_fee", String(rounded)],
+    ["delivery_fee", String(input.deliveryFee)],
   ]
 
   for (const [key, value] of entries) {
@@ -136,7 +136,7 @@ export async function updateOrganizationSettings(
       tagline,
       logoAlt,
       logoUrl: nextLogoUrl,
-      deliveryFee: rounded,
+      deliveryFee: input.deliveryFee,
     },
   }
 }

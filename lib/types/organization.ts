@@ -1,8 +1,15 @@
+/**
+ * `deliveryFee` is stored as INTEGER CENTS (e.g. 600 = 6€). The form
+ * converts to/from euros at the boundary; the rest of the system
+ * (orders.delivery_fee, order_items.estimated_unit_price, products.
+ * estimated_price) all use cents.
+ */
 export interface OrganizationSettings {
   name: string
   tagline: string
   logoUrl: string
   logoAlt: string
+  /** Delivery fee in integer cents. 600 = 6€. */
   deliveryFee: number
 }
 
@@ -11,7 +18,7 @@ export const DEFAULT_ORGANIZATION_SETTINGS: OrganizationSettings = {
   tagline: "Delivery",
   logoUrl: "/assets/logo.webp",
   logoAlt: "Los Latinos Logo",
-  deliveryFee: 4,
+  deliveryFee: 600,
 }
 
 export interface UpdateOrganizationSettingsInput {
@@ -20,6 +27,7 @@ export interface UpdateOrganizationSettingsInput {
   logoAlt: string
   logoFile: File | null
   currentLogoUrl: string
+  /** Delivery fee in integer cents. 600 = 6€. */
   deliveryFee: number
 }
 

@@ -86,6 +86,16 @@ function validateDeliveryFee(value: string): string {
   return ""
 }
 
+/** Convert cents (stored) → euros (display). */
+function centsToEuros(cents: number): string {
+  return String(cents / 100)
+}
+
+/** Convert euros (input) → cents (stored). */
+function eurosToCents(euros: string): number {
+  return Math.round(parseFloat(euros) * 100)
+}
+
 export function SettingsForm({ initial }: SettingsFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -96,8 +106,10 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [logoAlt, setLogoAlt] = useState(initial.logoAlt)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [currentLogoUrl, setCurrentLogoUrl] = useState(initial.logoUrl)
+  // `deliveryFee` state is the EUROS string the user types in the input.
+  // Internally the value lives in cents (e.g. 600 for 6€).
   const [deliveryFee, setDeliveryFee] = useState(
-    String(initial.deliveryFee)
+    centsToEuros(initial.deliveryFee)
   )
 
   const [errors, setErrors] = useState<FormErrors>(EMPTY_ERRORS)
@@ -108,7 +120,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     tagline !== savedSnapshot.tagline ||
     logoAlt !== savedSnapshot.logoAlt ||
     hasLogoChange ||
-    deliveryFee !== String(savedSnapshot.deliveryFee)
+    deliveryFee !== centsToEuros(savedSnapshot.deliveryFee)
 
   const handleChange = (
     field: keyof Omit<FormErrors, "general">,
@@ -149,7 +161,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     }
 
     const finalLogoUrl = logoFile ? currentLogoUrl : currentLogoUrl
-    const parsedFee = Math.round(parseFloat(deliveryFee) * 100) / 100
+    const deliveryFeeCents = eurosToCents(deliveryFee)
 
     const toastId = toast.loading("Guardando configuración…")
 
@@ -163,7 +175,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
         logoAlt: logoAlt.trim(),
         logoFile,
         currentLogoUrl: finalLogoUrl,
-        deliveryFee: parsedFee,
+        deliveryFee: deliveryFeeCents,
       })
 
       if (result.error) {
@@ -178,7 +190,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
         setTagline(result.settings.tagline)
         setLogoAlt(result.settings.logoAlt)
         setCurrentLogoUrl(result.settings.logoUrl)
-        setDeliveryFee(String(result.settings.deliveryFee))
+        setDeliveryFee(centsToEuros(result.settings.deliveryFee))
         setLogoFile(null)
       }
 
