@@ -7,6 +7,8 @@ export interface CreateAddressParams {
   setAsDefault?: boolean
 }
 
+export type UpdateAddressParams = CreateAddressParams
+
 export interface AddressResult {
   success?: boolean
   error?: string
@@ -14,6 +16,13 @@ export interface AddressResult {
 
 export class AddressesService {
   constructor(private supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>) {}
+
+  private async clearOtherDefaults(userId: string) {
+    await this.supabase
+      .from("user_addresses")
+      .update({ is_default: false })
+      .eq("user_id", userId)
+  }
 
   async getUserAddresses(userId: string): Promise<UserAddress[]> {
     const { data, error } = await this.supabase
@@ -33,10 +42,7 @@ export class AddressesService {
 
   async createAddress(userId: string, params: CreateAddressParams): Promise<AddressResult> {
     if (params.setAsDefault) {
-      await this.supabase
-        .from("user_addresses")
-        .update({ is_default: false })
-        .eq("user_id", userId)
+      await this.clearOtherDefaults(userId)
     }
 
     const { error } = await this.supabase.from("user_addresses").insert({
@@ -46,6 +52,46 @@ export class AddressesService {
       city: params.city ?? "Orihuela",
       is_default: params.setAsDefault ?? false,
     })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  }
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    params: UpdateAddressParams
+  ): Promise<AddressResult> {
+    if (params.setAsDefault) {
+      await this.clearOtherDefaults(userId)
+    }
+
+    const { error } = await this.supabase
+      .from("user_addresses")
+      .update({
+        name: params.name,
+        address_line: params.addressLine,
+        is_default: params.setAsDefault ?? false,
+      })
+      .eq("id", addressId)
+      .eq("user_id", userId)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  }
+
+  async deleteAddress(userId: string, addressId: string): Promise<AddressResult> {
+    const { error } = await this.supabase
+      .from("user_addresses")
+      .delete()
+      .eq("id", addressId)
+      .eq("user_id", userId)
 
     if (error) {
       return { error: error.message }
