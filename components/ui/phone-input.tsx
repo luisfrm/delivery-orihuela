@@ -120,7 +120,7 @@ export function PhoneInput({
 
   const countryOptions = COUNTRY_CODES.map((c) => ({
     value: c.dialCode,
-    label: `${c.flag}  ${c.dialCode}  ${c.name}`,
+    label: `${c.dialCode}  ${c.name}`,
   }))
 
   return (
