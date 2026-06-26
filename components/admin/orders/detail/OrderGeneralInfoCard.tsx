@@ -84,7 +84,7 @@ export function OrderGeneralInfoCard({
               client={client}
               size="sm"
               orientation="horizontal"
-              className="w-full"
+              className="w-full hidden lg:inline-flex"
             />
           )}
 
