@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
@@ -30,6 +30,15 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
   const [generalError, setGeneralError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+
+  useEffect(() => {
+    const remembered = localStorage.getItem("remembered_email")
+    if (remembered) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData((prev) => ({ ...prev, email: remembered }))
+      setRememberMe(true)
+    }
+  }, [])
 
   const validateField = (name: string, value: string): string => {
     switch (name) {
@@ -94,6 +103,11 @@ export function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
       }
 
       toast.success("¡Bienvenido de vuelta!")
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", formData.email)
+      } else {
+        localStorage.removeItem("remembered_email")
+      }
       onSuccess?.()
       window.location.reload()
     } catch {
