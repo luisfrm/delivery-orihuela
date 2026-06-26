@@ -11,6 +11,7 @@ interface ProfileViewProps {
   lastName: string
   email: string
   onEdit: () => void
+  onManageAddresses: () => void
   onSignOut: () => void
 }
 
@@ -25,6 +26,7 @@ export function ProfileView({
   lastName,
   email,
   onEdit,
+  onManageAddresses,
   onSignOut,
 }: ProfileViewProps) {
   const initials = getInitials(firstName, lastName)
@@ -64,8 +66,12 @@ export function ProfileView({
           <ChevronRight className="size-5 text-on-surface-variant shrink-0" />
         </button>
 
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-50 cursor-not-allowed">
-          <div className="size-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center">
+        <button
+          type="button"
+          onClick={onManageAddresses}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container transition-colors text-left"
+        >
+          <div className="size-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
             <MapPin className="size-5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -74,10 +80,8 @@ export function ProfileView({
               Gestiona tus direcciones de entrega
             </p>
           </div>
-          <Badge variant="secondary" className="shrink-0">
-            Próximamente
-          </Badge>
-        </div>
+          <ChevronRight className="size-5 text-on-surface-variant shrink-0" />
+        </button>
 
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-50 cursor-not-allowed">
           <div className="size-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { User } from "lucide-react"
 import {
   ResponsiveModal,
@@ -9,8 +9,12 @@ import {
 } from "@/components/ui/responsive-modal"
 import { ProfileView } from "@/components/profile/ProfileView"
 import { EditProfileForm } from "@/components/forms/EditProfileForm"
+import { NewAddressForm } from "@/components/forms/NewAddressForm"
+import { AddressesManagerView } from "@/components/profile/AddressesManagerView"
 import { Button } from "@/components/ui/button"
 import { useProfile } from "@/hooks/useProfile"
+import { getAddresses } from "@/lib/actions/addresses"
+import { UserAddress } from "@/lib/types"
 import { toast } from "sonner"
 
 interface ProfileModalProps {
@@ -19,15 +23,51 @@ interface ProfileModalProps {
   onOpenChange?: (open: boolean) => void
 }
 
-type Step = "view" | "edit"
+type Step =
+  | { kind: "view" }
+  | { kind: "edit" }
+  | { kind: "addresses" }
+  | { kind: "address-edit"; addressId: string | null }
+
+function BackButton({ onClick, label = "Volver" }: { onClick: () => void; label?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 text-sm text-primary font-bold hover:underline"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 12H5" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      {label}
+    </button>
+  )
+}
 
 export function ProfileModal({
   trigger,
   open,
   onOpenChange,
 }: ProfileModalProps) {
-  const [step, setStep] = useState<Step>("view")
+  const [step, setStep] = useState<Step>({ kind: "view" })
+  const [addresses, setAddresses] = useState<UserAddress[]>([])
+  const [addressesLoaded, setAddressesLoaded] = useState(false)
   const { profile, isLoading, error, refresh, updateCachedProfile } = useProfile()
+
+  useEffect(() => {
+    if (
+      (step.kind === "addresses" || step.kind === "address-edit") &&
+      !addressesLoaded
+    ) {
+      async function loadAddresses() {
+        const data = await getAddresses()
+        setAddresses(data)
+        setAddressesLoaded(true)
+      }
+      loadAddresses()
+    }
+  }, [step.kind, addressesLoaded])
 
   const handleSignOut = async () => {
     try {
@@ -48,30 +88,106 @@ export function ProfileModal({
     if (profile) {
       updateCachedProfile({ firstName, lastName, phone, email: profile.email })
     }
-    setStep("view")
+    setStep({ kind: "view" })
   }
 
-  const icon = step === "edit" ? (
-    <button
-      type="button"
-      onClick={() => setStep("view")}
-      className="flex items-center gap-1 text-sm text-primary font-bold hover:underline"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 12H5" />
-        <polyline points="12 19 5 12 12 5" />
-      </svg>
-      Volver
-    </button>
-  ) : (
-    <User className="size-[18px]" />
-  )
+  const refreshAddresses = async () => {
+    const data = await getAddresses()
+    setAddresses(data)
+    setAddressesLoaded(true)
+  }
 
-  const title = step === "edit" ? "Editar información" : "Mi Perfil"
+  const handleAddressEditSuccess = async () => {
+    await refreshAddresses()
+    setStep({ kind: "addresses" })
+  }
 
-  const subtitle = step === "edit"
-    ? "Actualiza tus datos personales."
-    : undefined
+  let icon: React.ReactNode
+  let title: string
+  let subtitle: string | undefined
+
+  if (step.kind === "edit") {
+    icon = <BackButton onClick={() => setStep({ kind: "view" })} />
+    title = "Editar información"
+    subtitle = "Actualiza tus datos personales."
+  } else if (step.kind === "addresses") {
+    icon = <BackButton onClick={() => setStep({ kind: "view" })} />
+    title = "Mis direcciones"
+    subtitle = "Gestiona tus direcciones de entrega"
+  } else if (step.kind === "address-edit") {
+    icon = <BackButton onClick={() => setStep({ kind: "addresses" })} />
+    title = step.addressId ? "Editar dirección" : "Nueva dirección"
+    subtitle = "Modifica o completa los datos"
+  } else {
+    icon = <User className="size-[18px]" />
+    title = "Mi Perfil"
+    subtitle = undefined
+  }
+
+  let content: React.ReactNode
+  if (isLoading) {
+    content = (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <div className="size-16 rounded-full bg-surface-container animate-pulse" />
+        <div className="space-y-2 w-48">
+          <div className="h-5 bg-surface-container rounded animate-pulse" />
+          <div className="h-4 bg-surface-container rounded animate-pulse w-3/4 mx-auto" />
+        </div>
+      </div>
+    )
+  } else if (error) {
+    content = (
+      <div className="py-8 text-center space-y-4">
+        <p className="text-body-md text-destructive">{error}</p>
+        <Button variant="outline_primary" size="lg" onClick={refresh}>
+          Reintentar
+        </Button>
+      </div>
+    )
+  } else if (profile && step.kind === "edit") {
+    content = (
+      <EditProfileForm
+        initialFirstName={profile.firstName}
+        initialLastName={profile.lastName}
+        initialPhone={profile.phone}
+        email={profile.email}
+        onSuccess={handleEditSuccess}
+        onCancel={() => setStep({ kind: "view" })}
+      />
+    )
+  } else if (profile && step.kind === "addresses") {
+    content = (
+      <AddressesManagerView
+        onEditAddress={(id) => setStep({ kind: "address-edit", addressId: id })}
+        onAddAddress={() => setStep({ kind: "address-edit", addressId: null })}
+        onBack={() => setStep({ kind: "view" })}
+      />
+    )
+  } else if (profile && step.kind === "address-edit") {
+    const existing = step.addressId
+      ? addresses.find((a) => a.id === step.addressId) ?? null
+      : null
+    content = (
+      <NewAddressForm
+        existing={existing ?? undefined}
+        onSuccess={() => handleAddressEditSuccess()}
+        onCancel={() => setStep({ kind: "addresses" })}
+      />
+    )
+  } else if (profile) {
+    content = (
+      <ProfileView
+        firstName={profile.firstName}
+        lastName={profile.lastName}
+        email={profile.email}
+        onEdit={() => setStep({ kind: "edit" })}
+        onManageAddresses={() => setStep({ kind: "addresses" })}
+        onSignOut={handleSignOut}
+      />
+    )
+  } else {
+    content = null
+  }
 
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
@@ -90,39 +206,7 @@ export function ProfileModal({
         subtitle={subtitle}
         desktopMaxWidth="max-w-md"
       >
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <div className="size-16 rounded-full bg-surface-container animate-pulse" />
-            <div className="space-y-2 w-48">
-              <div className="h-5 bg-surface-container rounded animate-pulse" />
-              <div className="h-4 bg-surface-container rounded animate-pulse w-3/4 mx-auto" />
-            </div>
-          </div>
-        ) : error ? (
-          <div className="py-8 text-center space-y-4">
-            <p className="text-body-md text-destructive">{error}</p>
-            <Button variant="outline" size="lg" onClick={refresh}>
-              Reintentar
-            </Button>
-          </div>
-        ) : step === "edit" && profile ? (
-          <EditProfileForm
-            initialFirstName={profile.firstName}
-            initialLastName={profile.lastName}
-            initialPhone={profile.phone}
-            email={profile.email}
-            onSuccess={handleEditSuccess}
-            onCancel={() => setStep("view")}
-          />
-        ) : profile ? (
-          <ProfileView
-            firstName={profile.firstName}
-            lastName={profile.lastName}
-            email={profile.email}
-            onEdit={() => setStep("edit")}
-            onSignOut={handleSignOut}
-          />
-        ) : null}
+        {content}
       </ResponsiveModalContent>
     </ResponsiveModal>
   )

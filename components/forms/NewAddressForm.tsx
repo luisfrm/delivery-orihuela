@@ -4,24 +4,32 @@ import { useState } from "react"
 import { MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
-import { createAddress } from "@/lib/actions/addresses"
+import { createAddress, updateAddress } from "@/lib/actions/addresses"
+import { UserAddress } from "@/lib/types"
 import { toast } from "sonner"
 
 interface NewAddressFormProps {
+  existing?: UserAddress
   onSuccess: (addressName: string, addressLine: string) => void
   onCancel: () => void
 }
 
-export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    addressLine: "",
-  })
+export function NewAddressForm({
+  existing,
+  onSuccess,
+  onCancel,
+}: NewAddressFormProps) {
+  const [formData, setFormData] = useState(() => ({
+    name: existing?.name ?? "",
+    addressLine: existing?.address_line ?? "",
+  }))
   const [errors, setErrors] = useState({
     name: "",
     addressLine: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isEdit = Boolean(existing)
 
   const validateField = (name: string, value: string): string => {
     if (!value.trim()) return "Este campo es requerido"
@@ -52,11 +60,9 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
     setIsSubmitting(true)
 
     try {
-      const result = await createAddress(
-        formData.name,
-        formData.addressLine,
-        true
-      )
+      const result = existing
+        ? await updateAddress(existing.id, formData.name, formData.addressLine, true)
+        : await createAddress(formData.name, formData.addressLine, true)
 
       if (result?.error) {
         toast.error(result.error || "No se pudo guardar la dirección")
@@ -76,7 +82,7 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
       <button
         type="button"
         onClick={onCancel}
-        className="flex items-center gap-1 text-sm text-primary font-bold hover:underline"
+        className="mt-2 flex items-center gap-1 text-sm text-primary font-bold hover:underline"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5" />
@@ -87,7 +93,7 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
 
       <div className="pt-2">
         <h3 className="text-lg font-bold text-on-surface mb-4">
-          Nueva dirección de entrega
+          {isEdit ? "Editar dirección" : "Nueva dirección de entrega"}
         </h3>
 
         <div className="space-y-4">
@@ -119,7 +125,11 @@ export function NewAddressForm({ onSuccess, onCancel }: NewAddressFormProps) {
             className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Guardando..." : "Guardar dirección"}
+            {isSubmitting
+              ? "Guardando..."
+              : isEdit
+                ? "Guardar cambios"
+                : "Guardar dirección"}
           </Button>
         </div>
       </div>
