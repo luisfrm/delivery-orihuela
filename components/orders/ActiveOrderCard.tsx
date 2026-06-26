@@ -38,11 +38,8 @@ export function ActiveOrderCard({
     `Pedido #${order.order_number}`
   const hasRealTitle = title !== `Pedido #${order.order_number}`
 
-  const itemsSubtotalCents = order.items.reduce(
-    (sum, item) => sum + item.quantity * item.estimated_unit_price,
-    0
-  )
-  const deliveryFeeCents = order.total_amount - itemsSubtotalCents
+  const itemsSubtotalCents = order.items_estimated_cost
+  const deliveryFeeCents = order.delivery_fee
 
   return (
     <Card variant="active" className={cn("p-4 sm:p-6 gap-4", className)}>

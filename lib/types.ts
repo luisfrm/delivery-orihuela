@@ -190,6 +190,8 @@ export interface ActiveOrderData {
   }[]
 
   additional_notes: string | null
+  items_estimated_cost: number
+  delivery_fee: number
   total_amount: number
   rider: RiderContact | null
 }
@@ -214,6 +216,8 @@ export interface OrderHistoryData {
   }[]
 
   additional_notes: string | null
+  items_estimated_cost: number
+  delivery_fee: number
   total_amount: number
   rider: RiderContact | null
 }

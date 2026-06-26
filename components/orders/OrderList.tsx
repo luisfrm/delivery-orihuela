@@ -40,6 +40,8 @@ function toActiveOrder(order: OrderWithDetails): ActiveOrderData {
       estimated_unit_price: item.estimated_unit_price,
     })),
     additional_notes: order.additional_notes,
+    items_estimated_cost: order.items_estimated_cost,
+    delivery_fee: order.delivery_fee,
     total_amount: order.total_amount,
     rider: order.rider,
   }
@@ -67,6 +69,8 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
       estimated_unit_price: item.estimated_unit_price,
     })),
     additional_notes: order.additional_notes,
+    items_estimated_cost: order.items_estimated_cost,
+    delivery_fee: order.delivery_fee,
     total_amount: order.total_amount,
     rider: order.rider,
   }
