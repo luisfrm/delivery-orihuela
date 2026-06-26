@@ -349,6 +349,9 @@ export class OrdersService {
 
       if (itemsError) {
         console.error("Error creating order items:", itemsError)
+        // Rollback the order to keep state consistent
+        await this.supabase.from("orders").delete().eq("id", data.id)
+        return { error: "No se pudieron guardar los productos del pedido" }
       }
     }
 
