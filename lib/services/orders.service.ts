@@ -93,13 +93,13 @@ export class OrdersService {
       (storesRes.data ?? []).map((s) => [s.id, s.name])
     )
 
-    // Fetch rider profiles using service role (RLS only allows viewing own
-    // profile, so we need to bypass it to fetch the riders assigned to
-    // the caller's orders).
+    // Fetch rider profiles. RLS policy
+    // "Clients can view rider profiles for their orders" allows the
+    // caller to read the profile of any rider assigned to one of their
+    // own orders, so the user-scoped client is sufficient.
     const ridersById = new Map<string, RiderContact>()
     if (riderIds.length > 0) {
-      const serviceSupabase = await createServiceRoleClient()
-      const { data: riders, error: ridersError } = await serviceSupabase
+      const { data: riders, error: ridersError } = await this.supabase
         .from("user_profiles")
         .select("id, first_name, last_name, phone")
         .in("id", riderIds)
