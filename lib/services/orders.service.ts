@@ -9,6 +9,7 @@ import {
   RiderContact,
   ServiceType,
 } from "@/lib/types"
+import type { PaymentFieldInput } from "@/lib/types/payment-methods"
 
 export interface CreateOrderItem {
   productId: string
@@ -26,6 +27,9 @@ export interface CreateOrderParams {
   deliveryFee: number
   serviceType?: ServiceType
   items?: CreateOrderItem[]
+  paymentMethodId?: string | null
+  paymentMethodName?: string | null
+  paymentFieldInputs?: PaymentFieldInput[]
 }
 
 export interface OrderResult {
@@ -295,6 +299,17 @@ export class OrdersService {
     )
     const totalAmount = itemsEstimatedCost + params.deliveryFee
 
+    // payment_values ya viene con URLs del cliente (no hacemos
+    // upload server-side). Para text fields es el texto tipeado;
+    // para image fields es la URL pública del archivo subido
+    // por el cliente directamente a Supabase Storage.
+    const paymentValues = (params.paymentFieldInputs ?? []).map((input) => ({
+      fieldId: input.fieldId,
+      type: input.type,
+      label: input.label,
+      value: input.value,
+    }))
+
     const { data, error } = await this.supabase
       .from("orders")
       .insert({
@@ -312,6 +327,9 @@ export class OrdersService {
         items_estimated_cost: itemsEstimatedCost,
         delivery_fee: params.deliveryFee,
         total_amount: totalAmount,
+        payment_method_id: params.paymentMethodId ?? null,
+        payment_method_name: params.paymentMethodName ?? null,
+        payment_values: paymentValues,
       })
       .select("id")
       .single()
@@ -356,6 +374,18 @@ export class OrdersService {
     }
 
     return { success: true, orderId: data.id }
+  }
+
+  /**
+   * Rollback helper para `createOrder`: elimina el order si
+   * falla el INSERT de order_items. Las imágenes de payment
+   * (subidas por el cliente antes del INSERT del order)
+   * quedan huérfanas en el bucket pero con paths únicos, no
+   * interfieren con nada. Un job periódico puede limpiarlas
+   * si se desea.
+   */
+  private async rollbackOrder(orderId: string): Promise<void> {
+    await this.supabase.from("orders").delete().eq("id", orderId)
   }
 
   async cancelOrder(orderId: string, clientId: string): Promise<{ success?: boolean; error?: string }> {
