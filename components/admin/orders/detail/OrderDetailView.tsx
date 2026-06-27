@@ -1,6 +1,7 @@
 import { OrderStatusBanner } from "./OrderStatusBanner"
 import { OrderGeneralInfoCard } from "./OrderGeneralInfoCard"
 import { OrderItemsCard } from "./OrderItemsCard"
+import { OrderPaymentMethodCard } from "./OrderPaymentMethodCard"
 import { OrderPickupReferenceCard } from "./OrderPickupReferenceCard"
 import { OrderTotalsCard } from "./OrderTotalsCard"
 import { OrderActionsCard } from "./OrderActionsCard"
@@ -39,6 +40,7 @@ export function OrderDetailView({ order }: OrderDetailViewProps) {
           ) : (
             <OrderPickupReferenceCard className="pt-4" reference={pickupReference} />
           )}
+          <OrderPaymentMethodCard order={order} />
         </div>
 
         {/* Right column */}

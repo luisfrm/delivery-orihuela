@@ -43,6 +43,9 @@ function toActiveOrder(order: OrderWithDetails): ActiveOrderData {
     items_estimated_cost: order.items_estimated_cost,
     delivery_fee: order.delivery_fee,
     total_amount: order.total_amount,
+    paymentMethodId: order.payment_method_id,
+    paymentMethodName: order.payment_method_name,
+    paymentValues: order.payment_values ?? [],
     rider: order.rider,
   }
 }
@@ -72,6 +75,9 @@ function toHistoryOrder(order: OrderWithDetails): OrderHistoryData {
     items_estimated_cost: order.items_estimated_cost,
     delivery_fee: order.delivery_fee,
     total_amount: order.total_amount,
+    paymentMethodId: order.payment_method_id,
+    paymentMethodName: order.payment_method_name,
+    paymentValues: order.payment_values ?? [],
     rider: order.rider,
   }
 }
