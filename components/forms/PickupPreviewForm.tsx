@@ -1,7 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, MapPin, Store as StoreIcon, FileText } from "lucide-react"
+import {
+  ArrowLeft,
+  CreditCard,
+  MapPin,
+  Store as StoreIcon,
+  FileText,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -9,6 +15,7 @@ import { createOrder } from "@/lib/actions/orders"
 import { formatPriceCents } from "@/lib/restaurants/menu-format"
 import type { StoreSelection } from "@/components/ui/store-selector"
 import type { AddressSelection } from "@/components/ui/address-selector"
+import type { PaymentFieldInput } from "@/lib/types/payment-methods"
 
 interface PickupPreviewFormProps {
   pickupReference: string
@@ -16,6 +23,8 @@ interface PickupPreviewFormProps {
   addressSelection: AddressSelection
   additionalNotes: string
   deliveryFeeCents: number
+  paymentMethodId: string | null
+  paymentFieldInputs: PaymentFieldInput[]
   onBack: () => void
   onSuccess: (orderId: string) => void
 }
@@ -26,6 +35,8 @@ export function PickupPreviewForm({
   addressSelection,
   additionalNotes,
   deliveryFeeCents,
+  paymentMethodId,
+  paymentFieldInputs,
   onBack,
   onSuccess,
 }: PickupPreviewFormProps) {
@@ -38,10 +49,12 @@ export function PickupPreviewForm({
       : storeSelection.storeName.trim().length > 0 &&
         storeSelection.storeAddress.trim().length > 0) &&
     addressSelection.type === "existing" &&
-    addressSelection.addressId !== null
+    addressSelection.addressId !== null &&
+    paymentMethodId !== null &&
+    paymentFieldInputs.length > 0
 
   const handleConfirm = async () => {
-    if (!isValid || !addressSelection.addressId) return
+    if (!isValid || !addressSelection.addressId || !paymentMethodId) return
     setIsSubmitting(true)
     try {
       const isCustom = storeSelection.type === "custom"
@@ -53,6 +66,8 @@ export function PickupPreviewForm({
         addressId: addressSelection.addressId,
         additionalNotes: additionalNotes.trim() || null,
         deliveryFee: deliveryFeeCents,
+        paymentMethodId,
+        paymentFieldInputs,
       })
 
       if (result?.error) {
@@ -152,6 +167,44 @@ export function PickupPreviewForm({
                 {additionalNotes}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Payment method */}
+        {paymentMethodId && paymentFieldInputs.length > 0 && (
+          <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <CreditCard className="size-4 text-primary" />
+              <p className="text-label-md text-on-surface-variant">
+                Método de pago
+              </p>
+            </div>
+            <ul className="space-y-1.5">
+              {paymentFieldInputs.map((input) => (
+                <li
+                  key={input.fieldId}
+                  className="flex items-start justify-between gap-2 text-body-sm"
+                >
+                  <span className="text-on-surface-variant shrink-0">
+                    {input.label}:
+                  </span>
+                  {input.type === "text" ? (
+                    <span className="text-on-surface font-medium text-right break-all">
+                      {input.value}
+                    </span>
+                  ) : (
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-outline-variant bg-surface-container">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={input.value}
+                        alt={input.label}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
