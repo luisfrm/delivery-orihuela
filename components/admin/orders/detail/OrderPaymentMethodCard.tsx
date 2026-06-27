@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { CreditCard, ZoomIn, Type } from "lucide-react"
+import { CreditCard, ZoomIn, Type, Eye } from "lucide-react"
 
 import {
   Card,
@@ -65,6 +65,8 @@ export function OrderPaymentMethodCard({
                   <dt className="text-label-md text-on-surface-variant flex items-center gap-1.5">
                     {v.type === "text" ? (
                       <Type className="size-3.5" />
+                    ) : v.type === "visual" ? (
+                      <Eye className="size-3.5" />
                     ) : (
                       <ZoomIn className="size-3.5" />
                     )}
@@ -73,6 +75,10 @@ export function OrderPaymentMethodCard({
                   <dd className="text-body-md text-on-surface">
                     {v.type === "text" ? (
                       <span className="break-all">{v.value}</span>
+                    ) : v.type === "visual" ? (
+                      <span className="block px-3 py-2 rounded-md bg-surface-container-low border border-outline-variant/50 text-base font-semibold break-words">
+                        {v.value}
+                      </span>
                     ) : (
                       <button
                         type="button"
