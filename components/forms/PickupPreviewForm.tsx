@@ -195,6 +195,10 @@ export function PickupPreviewForm({
                     <span className="text-on-surface font-medium text-right break-all">
                       {input.value}
                     </span>
+                  ) : input.type === "visual" ? (
+                    <span className="text-on-surface font-semibold text-base text-right break-words">
+                      {input.value}
+                    </span>
                   ) : (
                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-outline-variant bg-surface-container">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

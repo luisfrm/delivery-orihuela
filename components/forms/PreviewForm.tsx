@@ -315,6 +315,10 @@ function PaymentFieldValuesDisplay({
             <span className="text-on-surface font-medium text-right break-all">
               {input.value}
             </span>
+          ) : input.type === "visual" ? (
+            <span className="text-on-surface font-semibold text-base text-right break-words">
+              {input.value}
+            </span>
           ) : (
             <button
               type="button"
