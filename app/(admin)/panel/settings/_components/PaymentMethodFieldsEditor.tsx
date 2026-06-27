@@ -8,6 +8,7 @@ import { move } from "@dnd-kit/helpers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import {
   MAX_FIELD_LABEL,
@@ -133,78 +134,83 @@ function SortableFieldRow({
     <li
       ref={ref}
       className={cn(
-        "flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5",
+        "rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5 space-y-2",
         isDragging && "opacity-40"
       )}
     >
-      <button
-        type="button"
-        ref={handleRef as React.Ref<HTMLButtonElement>}
-        aria-label={`Reordenar campo ${index + 1}`}
-        className="flex-shrink-0 touch-none cursor-grab-custom active:cursor-grabbing-custom rounded p-1 text-on-surface-variant hover:bg-surface-container-low transition-colors"
-      >
-        <GripVertical className="size-4" />
-      </button>
-      <div className="flex-shrink-0 size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-        {field.type === "text" ? (
-          <Type className="size-4" />
-        ) : field.type === "image" ? (
-          <ImageIcon className="size-4" />
-        ) : (
-          <Eye className="size-4" />
-        )}
-      </div>
-      <div
-        className={cn(
-          "flex-1 gap-2",
-          isVisual
-            ? "grid grid-cols-1 md:grid-cols-[100px_1fr_1fr]"
-            : "grid grid-cols-1 md:grid-cols-[100px_1fr]"
-        )}
-      >
-        <Select
-          options={
-            FIELD_TYPE_OPTIONS as unknown as { value: string; label: string }[]
-          }
-          value={field.type}
-          onChange={(value) =>
-            onUpdate({ type: value as PaymentMethodFieldType })
-          }
-          aria-label={`Tipo del campo ${index + 1}`}
-          size="lg"
-          className="w-full"
-        />
-        <Input
-          value={field.label}
-          onChange={(e) => onUpdate({ label: e.target.value })}
-          placeholder={
-            isVisual
-              ? "Etiqueta (ej. Banco, DNI, Cuenta)"
-              : "Etiqueta (ej. Teléfono, QR, Alias)"
-          }
-          maxLength={MAX_FIELD_LABEL}
-          aria-label={`Etiqueta del campo ${index + 1}`}
-        />
-        {isVisual && (
+      {/* Fila 1: drag handle, icono, tipo, label, eliminar */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          ref={handleRef as React.Ref<HTMLButtonElement>}
+          aria-label={`Reordenar campo ${index + 1}`}
+          className="flex-shrink-0 touch-none cursor-grab-custom active:cursor-grabbing-custom rounded p-1 text-on-surface-variant hover:bg-surface-container-low transition-colors"
+        >
+          <GripVertical className="size-4" />
+        </button>
+        <div className="flex-shrink-0 size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+          {field.type === "text" ? (
+            <Type className="size-4" />
+          ) : field.type === "image" ? (
+            <ImageIcon className="size-4" />
+          ) : (
+            <Eye className="size-4" />
+          )}
+        </div>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2">
+          <Select
+            options={
+              FIELD_TYPE_OPTIONS as unknown as {
+                value: string
+                label: string
+              }[]
+            }
+            value={field.type}
+            onChange={(value) =>
+              onUpdate({ type: value as PaymentMethodFieldType })
+            }
+            aria-label={`Tipo del campo ${index + 1}`}
+            size="lg"
+            className="w-full"
+          />
           <Input
+            value={field.label}
+            onChange={(e) => onUpdate({ label: e.target.value })}
+            placeholder={
+              isVisual
+                ? "Etiqueta (ej. Banco, DNI, Cuenta)"
+                : "Etiqueta (ej. Teléfono, QR, Alias)"
+            }
+            maxLength={MAX_FIELD_LABEL}
+            aria-label={`Etiqueta del campo ${index + 1}`}
+          />
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={onRemove}
+          aria-label={`Eliminar campo ${index + 1}`}
+          className="text-on-surface-variant hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      {/* Fila 2 (solo visual): textarea para el value multi-línea */}
+      {isVisual && (
+        <div className="ml-9">
+          <Textarea
             value={field.value ?? ""}
             onChange={(e) => onUpdate({ value: e.target.value })}
-            placeholder="Valor (ej. Banco XYZ, 12345678)"
+            placeholder="Valor (ej. dirección del banco, instrucciones especiales, múltiples líneas)"
+            rows={3}
             maxLength={MAX_FIELD_VALUE}
             aria-label={`Valor del campo ${index + 1}`}
+            className="min-h-[80px]"
           />
-        )}
-      </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        onClick={onRemove}
-        aria-label={`Eliminar campo ${index + 1}`}
-        className="text-on-surface-variant hover:text-destructive"
-      >
-        <Trash2 className="size-4" />
-      </Button>
+        </div>
+      )}
     </li>
   )
 }
