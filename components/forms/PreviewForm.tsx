@@ -29,6 +29,7 @@ interface PreviewFormProps {
   additionalNotes: string
   deliveryFee: number
   paymentMethodId: string | null
+  paymentMethodName: string | null
   paymentFieldInputs: PaymentFieldInput[]
   onBack: () => void
   onSuccess: (orderId: string) => void
@@ -42,6 +43,7 @@ export function PreviewForm({
   additionalNotes,
   deliveryFee,
   paymentMethodId,
+  paymentMethodName,
   paymentFieldInputs,
   onBack,
   onSuccess,
@@ -98,6 +100,7 @@ export function PreviewForm({
         serviceType: "buy_and_deliver",
         items,
         paymentMethodId,
+        paymentMethodName,
         paymentFieldInputs,
       })
 

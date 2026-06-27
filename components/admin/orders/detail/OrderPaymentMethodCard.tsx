@@ -37,7 +37,7 @@ export function OrderPaymentMethodCard({
     label: string
   } | null>(null)
 
-  if (!order.payment_method_id || !order.payment_method_name) return null
+  if (!order.payment_method_id) return null
 
   const values = order.payment_values ?? []
 

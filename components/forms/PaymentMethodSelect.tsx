@@ -34,6 +34,7 @@ interface PaymentMethodSelectProps {
   /** Callback cuando cambia el método o cualquier valor de campo */
   onChange: (
     methodId: string | null,
+    methodName: string | null,
     fieldInputs: PaymentFieldInput[]
   ) => void
   /** Navegación al siguiente paso (preview) */
@@ -103,14 +104,14 @@ export function PaymentMethodSelect({
       label: f.label,
       value: f.type === "text" ? "" : "",
     }))
-    onChange(method.id, initialInputs)
+    onChange(method.id, method.name, initialInputs)
   }
 
   const updateFieldValue = (fieldId: string, newValue: string) => {
     const next = paymentFieldInputs.map((f) =>
       f.fieldId === fieldId ? { ...f, value: newValue } : f
     )
-    onChange(paymentMethodId, next)
+    onChange(paymentMethodId, null, next)
   }
 
   const getFieldValue = (fieldId: string): string => {

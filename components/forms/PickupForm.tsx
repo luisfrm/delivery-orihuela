@@ -50,6 +50,7 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
   const [deliveryFee, setDeliveryFee] = useState<number>(0)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null)
+  const [paymentMethodName, setPaymentMethodName] = useState<string | null>(null)
   const [paymentFieldInputs, setPaymentFieldInputs] = useState<PaymentFieldInput[]>([])
 
   useEffect(() => {
@@ -99,6 +100,7 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
         additionalNotes={additionalNotes}
         deliveryFeeCents={deliveryFeeCents}
         paymentMethodId={paymentMethodId}
+        paymentMethodName={paymentMethodName}
         paymentFieldInputs={paymentFieldInputs}
         onBack={() => handleStepChange("payment")}
         onSuccess={(id) => {
@@ -112,8 +114,9 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
       <PaymentMethodSelect
         paymentMethodId={paymentMethodId}
         paymentFieldInputs={paymentFieldInputs}
-        onChange={(methodId, inputs) => {
+        onChange={(methodId, methodName, inputs) => {
           setPaymentMethodId(methodId)
+          setPaymentMethodName(methodName)
           setPaymentFieldInputs(inputs)
         }}
         onContinue={() => handleStepChange("preview")}

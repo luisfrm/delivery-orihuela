@@ -24,6 +24,7 @@ interface PickupPreviewFormProps {
   additionalNotes: string
   deliveryFeeCents: number
   paymentMethodId: string | null
+  paymentMethodName: string | null
   paymentFieldInputs: PaymentFieldInput[]
   onBack: () => void
   onSuccess: (orderId: string) => void
@@ -36,6 +37,7 @@ export function PickupPreviewForm({
   additionalNotes,
   deliveryFeeCents,
   paymentMethodId,
+  paymentMethodName,
   paymentFieldInputs,
   onBack,
   onSuccess,
@@ -67,6 +69,7 @@ export function PickupPreviewForm({
         additionalNotes: additionalNotes.trim() || null,
         deliveryFee: deliveryFeeCents,
         paymentMethodId,
+        paymentMethodName,
         paymentFieldInputs,
       })
 
