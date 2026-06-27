@@ -27,6 +27,37 @@ export interface PaymentMethod {
   updatedAt: string
 }
 
+/**
+ * Valor de un campo del método de pago, tal como se guarda en
+ * la columna `orders.payment_values` (JSONB). Es un SNAPSHOT:
+ * incluye `label` para poder renderizar el recibo sin necesidad
+ * de JOIN con `payment_methods`.
+ *
+ * `value` es texto plano para campos text, o la URL pública
+ * del storage (organization-assets) para campos image.
+ */
+export interface PaymentFieldValue {
+  fieldId: string
+  type: PaymentMethodFieldType
+  label: string
+  value: string
+}
+
+/**
+ * Input del form de checkout que viaja al server action.
+ * Para campos text, `value` es el texto tipeado. Para campos
+ * image, `value` es la URL pública del archivo (ya subido
+ * por el cliente directamente a Supabase Storage usando su
+ * propia sesión). Nunca es un File — la subida se hace en
+ * el cliente, no en el server.
+ */
+export interface PaymentFieldInput {
+  fieldId: string
+  type: PaymentMethodFieldType
+  label: string
+  value: string
+}
+
 export const MAX_PAYMENT_METHOD_FIELDS = 3
 export const MAX_PAYMENT_METHOD_NAME = 60
 export const MAX_FIELD_LABEL = 30

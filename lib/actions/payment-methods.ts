@@ -30,6 +30,18 @@ export async function getPaymentMethodsAction(): Promise<PaymentMethod[]> {
   return service.getPaymentMethods()
 }
 
+/**
+ * Devuelve solo los métodos de pago activos. Usado en el
+ * checkout del cliente (BuyForm / PickupForm) para que no vea
+ * métodos desactivados por el admin. Los orders existentes con
+ * métodos inactivos siguen mostrando el snapshot guardado.
+ */
+export async function getActivePaymentMethodsAction(): Promise<PaymentMethod[]> {
+  const supabase = await createClient()
+  const service = new PaymentMethodsService(supabase)
+  return service.getPaymentMethods(false)
+}
+
 export interface CreatePaymentMethodActionInput {
   name: string
   fields: PaymentMethodFieldDefinition[]
