@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, Trash2, Type, ImageIcon, GripVertical } from "lucide-react"
+import { Plus, Trash2, Type, ImageIcon, Eye, GripVertical } from "lucide-react"
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react"
 import { useSortable } from "@dnd-kit/react/sortable"
 import { move } from "@dnd-kit/helpers"
@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import {
   MAX_FIELD_LABEL,
+  MAX_FIELD_VALUE,
   MAX_PAYMENT_METHOD_FIELDS,
   type PaymentMethodFieldDefinition,
   type PaymentMethodFieldType,
@@ -24,6 +25,7 @@ interface PaymentMethodFieldsEditorProps {
 const FIELD_TYPE_OPTIONS = [
   { value: "text", label: "Texto" },
   { value: "image", label: "Imagen" },
+  { value: "visual", label: "Visual" },
 ] as const
 
 export function PaymentMethodFieldsEditor({
@@ -125,6 +127,8 @@ function SortableFieldRow({
     index,
   })
 
+  const isVisual = field.type === "visual"
+
   return (
     <li
       ref={ref}
@@ -144,11 +148,20 @@ function SortableFieldRow({
       <div className="flex-shrink-0 size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center">
         {field.type === "text" ? (
           <Type className="size-4" />
-        ) : (
+        ) : field.type === "image" ? (
           <ImageIcon className="size-4" />
+        ) : (
+          <Eye className="size-4" />
         )}
       </div>
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2">
+      <div
+        className={cn(
+          "flex-1 gap-2",
+          isVisual
+            ? "grid grid-cols-1 md:grid-cols-[100px_1fr_1fr]"
+            : "grid grid-cols-1 md:grid-cols-[100px_1fr]"
+        )}
+      >
         <Select
           options={
             FIELD_TYPE_OPTIONS as unknown as { value: string; label: string }[]
@@ -164,10 +177,23 @@ function SortableFieldRow({
         <Input
           value={field.label}
           onChange={(e) => onUpdate({ label: e.target.value })}
-          placeholder="Etiqueta (ej. Teléfono, QR, Alias)"
+          placeholder={
+            isVisual
+              ? "Etiqueta (ej. Banco, DNI, Cuenta)"
+              : "Etiqueta (ej. Teléfono, QR, Alias)"
+          }
           maxLength={MAX_FIELD_LABEL}
           aria-label={`Etiqueta del campo ${index + 1}`}
         />
+        {isVisual && (
+          <Input
+            value={field.value ?? ""}
+            onChange={(e) => onUpdate({ value: e.target.value })}
+            placeholder="Valor (ej. Banco XYZ, 12345678)"
+            maxLength={MAX_FIELD_VALUE}
+            aria-label={`Valor del campo ${index + 1}`}
+          />
+        )}
       </div>
       <Button
         type="button"

@@ -81,7 +81,11 @@ function PaymentMethodFormBody({
   const isValid =
     name.trim().length > 0 &&
     name.trim().length <= MAX_PAYMENT_METHOD_NAME &&
-    fields.every((f) => f.label.trim().length > 0)
+    fields.every(
+      (f) =>
+        f.label.trim().length > 0 &&
+        (f.type !== "visual" || (f.value ?? "").trim().length > 0)
+    )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,6 +105,7 @@ function PaymentMethodFormBody({
       id: f.id,
       type: f.type,
       label: f.label.trim(),
+      value: f.type === "visual" ? (f.value ?? "").trim() : undefined,
     }))
 
     const toastId = toast.loading(
