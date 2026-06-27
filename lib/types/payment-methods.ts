@@ -1,9 +1,13 @@
-export type PaymentMethodFieldType = "text" | "image"
+export type PaymentMethodFieldType = "text" | "image" | "visual"
 
 /**
  * Estructura de un campo dinámico definido por el admin.
- * El VALOR del campo lo llena el cliente en checkout y se guarda
- * en la orden (no aquí).
+ *
+ * - Para campos `text` e `image`: el cliente llena el `value` en
+ *   checkout. `value` no se usa aquí.
+ * - Para campos `visual`: el admin define un `value` que se muestra
+ *   al cliente como información (ej. "Banco XYZ"). El cliente
+ *   no interactúa con este campo.
  */
 export interface PaymentMethodFieldDefinition {
   /**
@@ -13,8 +17,14 @@ export interface PaymentMethodFieldDefinition {
    */
   id: string
   type: PaymentMethodFieldType
-  /** Etiqueta visible al usuario, ej. "Teléfono", "QR", "Alias" */
+  /** Etiqueta visible al usuario, ej. "Teléfono", "QR", "Banco" */
   label: string
+  /**
+   * Contenido del campo. Solo se usa para campos `visual`
+   * (el admin lo define). Para `text` e `image` queda vacío
+   * en la definición y se llena en checkout.
+   */
+  value?: string
 }
 
 export interface PaymentMethod {
@@ -61,6 +71,7 @@ export interface PaymentFieldInput {
 export const MAX_PAYMENT_METHOD_FIELDS = 3
 export const MAX_PAYMENT_METHOD_NAME = 60
 export const MAX_FIELD_LABEL = 30
+export const MAX_FIELD_VALUE = 200
 
 /**
  * Row tal como viene de Supabase. `fields` es JSONB.
@@ -79,7 +90,7 @@ function isPaymentMethodFieldDefinition(value: unknown): value is PaymentMethodF
   if (!value || typeof value !== "object") return false
   const v = value as Record<string, unknown>
   if (typeof v.id !== "string" || v.id.length === 0) return false
-  if (v.type !== "text" && v.type !== "image") return false
+  if (v.type !== "text" && v.type !== "image" && v.type !== "visual") return false
   if (typeof v.label !== "string") return false
   return true
 }
@@ -155,7 +166,7 @@ export function validatePaymentMethodInput(
         message: `La etiqueta del campo ${i + 1} no puede superar ${MAX_FIELD_LABEL} caracteres.`,
       }
     }
-    if (f.type !== "text" && f.type !== "image") {
+    if (f.type !== "text" && f.type !== "image" && f.type !== "visual") {
       return {
         field: "fields",
         index: i,
@@ -167,6 +178,23 @@ export function validatePaymentMethodInput(
         field: "fields",
         index: i,
         message: `Identificador inválido en el campo ${i + 1}.`,
+      }
+    }
+    if (f.type === "visual") {
+      const value = (f.value ?? "").trim()
+      if (!value) {
+        return {
+          field: "fields",
+          index: i,
+          message: `El valor del campo ${i + 1} es requerido.`,
+        }
+      }
+      if (value.length > MAX_FIELD_VALUE) {
+        return {
+          field: "fields",
+          index: i,
+          message: `El valor del campo ${i + 1} no puede superar ${MAX_FIELD_VALUE} caracteres.`,
+        }
       }
     }
   }
