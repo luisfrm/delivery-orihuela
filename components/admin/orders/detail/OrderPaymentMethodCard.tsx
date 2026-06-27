@@ -59,7 +59,7 @@ export function OrderPaymentMethodCard({
         </CardHeader>
         {values.length > 0 && (
           <CardContent>
-            <dl className="space-y-3">
+            <dl className="space-y-5">
               {values.map((v) => (
                 <div key={v.fieldId} className="space-y-1">
                   <dt className="text-label-md text-on-surface-variant flex items-center gap-1.5">
@@ -76,7 +76,7 @@ export function OrderPaymentMethodCard({
                     {v.type === "text" ? (
                       <span className="break-all">{v.value}</span>
                     ) : v.type === "visual" ? (
-                      <span className="block px-3 py-2 rounded-md bg-surface-container-low border border-outline-variant/50 text-base font-semibold break-words">
+                      <span className="block px-3 py-2 rounded-md bg-surface-container-low border border-outline-variant/50 text-base font-semibold break-words whitespace-pre-line">
                         {v.value}
                       </span>
                     ) : (
@@ -85,7 +85,7 @@ export function OrderPaymentMethodCard({
                         onClick={() =>
                           setZoomImage({ url: v.value, label: v.label })
                         }
-                        className="relative h-32 w-full overflow-hidden rounded-lg border border-outline-variant bg-surface-container hover:opacity-90 transition-opacity"
+                        className="relative h-32 w-50 overflow-hidden rounded-lg border border-outline-variant bg-surface-container hover:opacity-90 transition-opacity"
                         aria-label={`Ver imagen: ${v.label}`}
                       >
                         <Image

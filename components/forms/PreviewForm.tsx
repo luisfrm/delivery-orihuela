@@ -218,6 +218,8 @@ export function PreviewForm({
             <PaymentFieldValuesDisplay
               inputs={paymentFieldInputs}
               onZoom={(url, label) => setZoomImage({ url, label })}
+              hideVisualFields={true}
+              paymentMethodName={paymentMethodName}
             />
           </div>
         )}
@@ -288,6 +290,8 @@ export function PreviewForm({
 interface PaymentFieldValuesDisplayProps {
   inputs: PaymentFieldInput[]
   onZoom: (url: string, label: string) => void
+  hideVisualFields?: boolean
+  paymentMethodName?: string | null
 }
 
 /**
@@ -300,42 +304,61 @@ interface PaymentFieldValuesDisplayProps {
 function PaymentFieldValuesDisplay({
   inputs,
   onZoom,
+  hideVisualFields,
+  paymentMethodName,
 }: PaymentFieldValuesDisplayProps) {
   return (
     <ul className="space-y-1.5">
-      {inputs.map((input) => (
-        <li
-          key={input.fieldId}
-          className="flex items-start justify-between gap-2 text-body-sm"
-        >
+      {paymentMethodName && (
+        <li className="flex items-start justify-between gap-2 text-body-sm">
           <span className="text-on-surface-variant shrink-0">
-            {input.label}:
+            Nombre:
           </span>
-          {input.type === "text" ? (
-            <span className="text-on-surface font-medium text-right break-all">
-              {input.value}
-            </span>
-          ) : input.type === "visual" ? (
-            <span className="text-on-surface font-semibold text-base text-right break-words">
-              {input.value}
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onZoom(input.value, input.label)}
-              aria-label={`Ver imagen: ${input.label}`}
-              className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-outline-variant bg-surface-container hover:opacity-80 transition-opacity"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={input.value}
-                alt={input.label}
-                className="h-full w-full object-cover"
-              />
-            </button>
-          )}
+          <span className="text-on-surface font-semibold text-right">
+            {paymentMethodName}
+          </span>
         </li>
-      ))}
+      )}
+      {inputs.map((input) => {
+        // Hide visual fields if hideVisualFields is true
+        if (input.type === "visual" && hideVisualFields) {
+          return null
+        }
+
+        return (
+          <li
+            key={input.fieldId}
+            className="flex items-start justify-between gap-2 text-body-sm"
+          >
+            <span className="text-on-surface-variant shrink-0">
+              {input.label}:
+            </span>
+            {input.type === "text" ? (
+              <span className="text-on-surface font-medium text-right break-all">
+                {input.value}
+              </span>
+            ) : input.type === "visual" ? (
+              <span className="text-on-surface font-semibold text-base text-right break-words whitespace-pre-line">
+                {input.value}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onZoom(input.value, input.label)}
+                aria-label={`Ver imagen: ${input.label}`}
+                className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-outline-variant bg-surface-container hover:opacity-80 transition-opacity"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={input.value}
+                  alt={input.label}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }

@@ -115,7 +115,7 @@ export function PaymentMethodSelect({
     const next = paymentFieldInputs.map((f) =>
       f.fieldId === fieldId ? { ...f, value: newValue } : f
     )
-    onChange(paymentMethodId, null, next)
+    onChange(paymentMethodId, selectedMethod?.name ?? null, next)
   }
 
   const getFieldValue = (fieldId: string): string => {
@@ -332,7 +332,7 @@ export function PaymentMethodSelect({
                           {field.label}
                         </label>
                         <div className="px-3 py-2.5 rounded-md bg-surface-container-low border border-outline-variant/50">
-                          <p className="text-base font-semibold text-on-surface break-words">
+                          <p className="text-base font-semibold text-on-surface break-words whitespace-pre-line">
                             {currentValue}
                           </p>
                         </div>

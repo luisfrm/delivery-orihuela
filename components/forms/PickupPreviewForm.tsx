@@ -196,7 +196,7 @@ export function PickupPreviewForm({
                       {input.value}
                     </span>
                   ) : input.type === "visual" ? (
-                    <span className="text-on-surface font-semibold text-base text-right break-words">
+                    <span className="text-on-surface font-semibold text-base text-right break-words whitespace-pre-line">
                       {input.value}
                     </span>
                   ) : (
