@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import {
   CreditCard,
   Type,
+  Eye,
   Check,
   ArrowLeft,
   ArrowRight,
@@ -102,7 +103,10 @@ export function PaymentMethodSelect({
       fieldId: f.id,
       type: f.type,
       label: f.label,
-      value: f.type === "text" ? "" : "",
+      // visual: el value ya viene del method definition (admin-set)
+      // text: vacío, el cliente lo llena
+      // image: vacío, el cliente lo sube
+      value: f.type === "visual" ? (f.value ?? "") : "",
     }))
     onChange(method.id, method.name, initialInputs)
   }
@@ -180,8 +184,10 @@ export function PaymentMethodSelect({
 
   /**
    * Valida que el método esté seleccionado y todos los campos
-   * requeridos estén llenos. Para text: string no-vacío.
-   * Para image: URL no-vacía (ya subida) y no en proceso de subida.
+   * que el cliente debe llenar estén completos. Para text:
+   * string no-vacío. Para image: URL no-vacía (ya subida) y no
+   * en proceso de subida. Los campos visual ya tienen value
+   * pre-rellenado, no requieren acción del cliente.
    */
   const isValid = useMemo(() => {
     if (!selectedMethod) return false
@@ -189,11 +195,12 @@ export function PaymentMethodSelect({
     for (const input of paymentFieldInputs) {
       if (input.type === "text") {
         if (input.value.trim() === "") return false
-      } else {
+      } else if (input.type === "image") {
         if (input.value.trim() === "") return false
         // No permitir continuar mientras se está subiendo
         if (uploadingFields.has(input.fieldId)) return false
       }
+      // visual: el value ya viene pre-rellenado, no requiere validación
     }
     return true
   }, [selectedMethod, paymentFieldInputs, uploadingFields])
@@ -312,6 +319,23 @@ export function PaymentMethodSelect({
                           maxLength={MAX_FIELD_LABEL}
                           required
                         />
+                      </div>
+                    )
+                  }
+
+                  if (field.type === "visual") {
+                    const currentValue = getFieldValue(field.id)
+                    return (
+                      <div key={field.id} className="space-y-1.5">
+                        <label className="flex items-center gap-2 text-label-lg font-medium text-on-surface pl-1">
+                          <Eye className="size-4 text-primary" />
+                          {field.label}
+                        </label>
+                        <div className="px-3 py-2.5 rounded-md bg-surface-container-low border border-outline-variant/50">
+                          <p className="text-base font-semibold text-on-surface break-words">
+                            {currentValue}
+                          </p>
+                        </div>
                       </div>
                     )
                   }
