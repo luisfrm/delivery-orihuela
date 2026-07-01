@@ -10,7 +10,7 @@ import { AddUserButton } from "@/components/admin/users/AddUserButton"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Usuarios — Panel Los Latinos",
+  title: "Usuarios — Panel Delivery Orihuela",
   description: "Gestiona los miembros del staff (admins y riders) y los clientes.",
 }
 

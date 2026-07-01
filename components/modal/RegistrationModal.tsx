@@ -36,7 +36,7 @@ export function RegistrationModal({
       <ResponsiveModalContent
         icon={<UserPlus className="size-[18px]" />}
         title="Crea tu cuenta"
-        subtitle="Únete a la familia Los Latinos y empieza a disfrutar."
+        subtitle="Únete a la familia Delivery Orihuela y empieza a disfrutar."
         desktopMaxWidth="max-w-2xl"
       >
         <RegistrationForm onLoginClick={onLoginClick} />

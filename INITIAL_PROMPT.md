@@ -1,6 +1,6 @@
 # Project Context
 Act as a Senior Full-Stack Developer and Software Architect expert in Next.js 16 (App Router, TS), Supabase (via Supabase CLI), and Tailwind CSS, SHADCN.
-We are building "Delivery LosLatinos", a concierge/delivery web application with an integrated admin panel.
+We are building "Delivery Orihuela", a concierge/delivery web application with an integrated admin panel.
 The UI adheres to a clean, modern, and responsive design system.
 
 # Architecture & Tech Stack
