@@ -34,7 +34,6 @@ export function DeleteRestaurantModal({
       const result = await deleteStore(store.slug)
       if (result.error) {
         toast.error(result.error, { id: toastId })
-        setIsDeleting(false)
         return
       }
       toast.success("Restaurante eliminado", { id: toastId })
