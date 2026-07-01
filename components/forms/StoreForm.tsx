@@ -99,6 +99,9 @@ export function StoreForm({ mode, store, onClose, onSaved }: StoreFormProps) {
       categoryIds: [],
     }
   })
+  const [newStoreId] = useState(() =>
+    mode === "create" ? crypto.randomUUID() : ""
+  )
   const [errors, setErrors] = useState<ErrorMap>({})
   const [generalError, setGeneralError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -211,7 +214,7 @@ export function StoreForm({ mode, store, onClose, onSaved }: StoreFormProps) {
 
       const result = isEditing
         ? await actions.updateStore(store!.slug, payload)
-        : await actions.createStore(payload)
+        : await actions.createStore({ ...payload, id: newStoreId })
 
       if (result.error) {
         toast.error(result.error, { id: toastId })

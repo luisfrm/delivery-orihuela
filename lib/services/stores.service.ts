@@ -4,6 +4,7 @@ import { parseCategoryOrder } from "@/lib/restaurants/menu-categories"
 import { generateStoreSlug } from "@/lib/restaurants/slug"
 
 export interface CreateStoreParams {
+  id: string
   name: string
   address: string
   phone: string
@@ -109,6 +110,7 @@ export class StoresService {
     const { data, error } = await this.supabase
       .from("stores")
       .insert({
+        id: params.id,
         slug: generateStoreSlug(params.name),
         name: params.name,
         address: params.address,
