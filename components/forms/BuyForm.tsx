@@ -22,12 +22,14 @@ import { getCategoryNames, parseCategoryIds } from "@/lib/restaurants/categories
 import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import type { Product, Store } from "@/lib/types"
+import type { PaymentFieldInput } from "@/lib/types/payment-methods"
 import { MenuForm, type Cart } from "./MenuForm"
 import { DeliveryForm } from "./DeliveryForm"
+import { PaymentMethodSelect } from "./PaymentMethodSelect"
 import { PreviewForm, PreviewSuccess } from "./PreviewForm"
 import type { AddressSelection } from "@/components/ui/address-selector"
 
-type Step = "store" | "menu" | "address" | "preview" | "success"
+type Step = "store" | "menu" | "address" | "payment" | "preview" | "success"
 
 interface BuyFormProps {
   onStepChange?: (step: Step) => void
@@ -48,6 +50,9 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [deliveryFee, setDeliveryFee] = useState<number>(0)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null)
+  const [paymentMethodName, setPaymentMethodName] = useState<string | null>(null)
+  const [paymentFieldInputs, setPaymentFieldInputs] = useState<PaymentFieldInput[]>([])
 
   useEffect(() => {
     async function loadFee() {
@@ -93,11 +98,28 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         addressSelection={addressSelection}
         additionalNotes={additionalNotes}
         deliveryFee={deliveryFee}
-        onBack={() => handleStepChange("address")}
+        paymentMethodId={paymentMethodId}
+        paymentMethodName={paymentMethodName}
+        paymentFieldInputs={paymentFieldInputs}
+        onBack={() => handleStepChange("payment")}
         onSuccess={(id) => {
           setOrderId(id)
           handleStepChange("success")
         }}
+      />
+    )
+  } else if (step === "payment") {
+    content = (
+      <PaymentMethodSelect
+        paymentMethodId={paymentMethodId}
+        paymentFieldInputs={paymentFieldInputs}
+        onChange={(methodId, methodName, inputs) => {
+          setPaymentMethodId(methodId)
+          setPaymentMethodName(methodName)
+          setPaymentFieldInputs(inputs)
+        }}
+        onContinue={() => handleStepChange("preview")}
+        onBack={() => handleStepChange("address")}
       />
     )
   } else if (step === "menu" && selectedStore) {
@@ -121,7 +143,7 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         onAddressChange={setAddressSelection}
         additionalNotes={additionalNotes}
         onNotesChange={setAdditionalNotes}
-        onContinue={() => handleStepChange("preview")}
+        onContinue={() => handleStepChange("payment")}
         onBack={() => handleStepChange("menu")}
       />
     )

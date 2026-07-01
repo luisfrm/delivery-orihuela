@@ -10,23 +10,26 @@ import {
 import {
   type AddressSelection,
 } from "@/components/ui/address-selector"
+import type { PaymentFieldInput } from "@/lib/types/payment-methods"
 import { PickupStoreStep } from "./PickupStoreStep"
 import { PickupAddressStep } from "./PickupAddressStep"
+import { PaymentMethodSelect } from "./PaymentMethodSelect"
 import { PickupPreviewForm } from "./PickupPreviewForm"
 import { PickupPreviewSuccess } from "./PickupPreviewSuccess"
 import { getDeliveryFee } from "@/lib/actions/settings"
 
-type Step = "reference" | "store" | "address" | "preview" | "success"
+type Step = "reference" | "store" | "address" | "payment" | "preview" | "success"
 
 interface PickupFormProps {
   onStepChange?: (step: Step) => void
 }
 
 const STEP_SUBTITLES: Record<Step, string> = {
-  reference: "Paso 1 de 4 · Referencia",
-  store: "Paso 2 de 4 · Establecimiento",
-  address: "Paso 3 de 4 · Entrega",
-  preview: "Paso 4 de 4 · Confirmar",
+  reference: "Paso 1 de 5 · Referencia",
+  store: "Paso 2 de 5 · Establecimiento",
+  address: "Paso 3 de 5 · Entrega",
+  payment: "Paso 4 de 5 · Pago",
+  preview: "Paso 5 de 5 · Confirmar",
   success: "Pedido enviado",
 }
 
@@ -46,6 +49,9 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [deliveryFee, setDeliveryFee] = useState<number>(0)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null)
+  const [paymentMethodName, setPaymentMethodName] = useState<string | null>(null)
+  const [paymentFieldInputs, setPaymentFieldInputs] = useState<PaymentFieldInput[]>([])
 
   useEffect(() => {
     async function loadFee() {
@@ -93,11 +99,28 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
         addressSelection={addressSelection}
         additionalNotes={additionalNotes}
         deliveryFeeCents={deliveryFeeCents}
-        onBack={() => handleStepChange("address")}
+        paymentMethodId={paymentMethodId}
+        paymentMethodName={paymentMethodName}
+        paymentFieldInputs={paymentFieldInputs}
+        onBack={() => handleStepChange("payment")}
         onSuccess={(id) => {
           setOrderId(id)
           handleStepChange("success")
         }}
+      />
+    )
+  } else if (step === "payment") {
+    content = (
+      <PaymentMethodSelect
+        paymentMethodId={paymentMethodId}
+        paymentFieldInputs={paymentFieldInputs}
+        onChange={(methodId, methodName, inputs) => {
+          setPaymentMethodId(methodId)
+          setPaymentMethodName(methodName)
+          setPaymentFieldInputs(inputs)
+        }}
+        onContinue={() => handleStepChange("preview")}
+        onBack={() => handleStepChange("address")}
       />
     )
   } else if (step === "address") {
@@ -108,7 +131,7 @@ export function PickupForm({ onStepChange }: PickupFormProps) {
         additionalNotes={additionalNotes}
         onNotesChange={setAdditionalNotes}
         onBack={() => handleStepChange("store")}
-        onContinue={() => handleStepChange("preview")}
+        onContinue={() => handleStepChange("payment")}
       />
     )
   } else if (step === "store") {

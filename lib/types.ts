@@ -1,3 +1,5 @@
+import type { PaymentFieldValue } from "@/lib/types/payment-methods"
+
 export type UserRole = "admin" | "rider" | "user"
 export type StaffRole = Extract<UserRole, "admin" | "rider">
 export type ServiceType = "buy_and_deliver" | "pickup_only"
@@ -107,6 +109,9 @@ export interface Order {
   items_estimated_cost: number
   delivery_fee: number
   total_amount: number
+  payment_method_id: string | null
+  payment_method_name: string | null
+  payment_values: PaymentFieldValue[]
   created_at: string
   updated_at: string
   /**
@@ -193,6 +198,9 @@ export interface ActiveOrderData {
   items_estimated_cost: number
   delivery_fee: number
   total_amount: number
+  paymentMethodId: string | null
+  paymentMethodName: string | null
+  paymentValues: PaymentFieldValue[]
   rider: RiderContact | null
 }
 
@@ -219,6 +227,9 @@ export interface OrderHistoryData {
   items_estimated_cost: number
   delivery_fee: number
   total_amount: number
+  paymentMethodId: string | null
+  paymentMethodName: string | null
+  paymentValues: PaymentFieldValue[]
   rider: RiderContact | null
 }
 

@@ -2,6 +2,8 @@ import { Settings as SettingsIcon } from "lucide-react"
 
 import { getOrganizationSettings } from "@/lib/actions/organization"
 import { SettingsForm } from "./_components/SettingsForm"
+import { SettingsTabs } from "./_components/SettingsTabs"
+import { PaymentsManager } from "./_components/PaymentsManager"
 
 export const dynamic = "force-dynamic"
 
@@ -23,12 +25,15 @@ export default async function SettingsPage() {
             Configuración
           </h1>
           <p className="text-body-sm text-on-surface-variant">
-            Personaliza la identidad pública de la organización.
+            Personaliza la identidad pública y los métodos de pago.
           </p>
         </div>
       </div>
 
-      <SettingsForm initial={initial} />
+      <SettingsTabs
+        generalContent={<SettingsForm initial={initial} />}
+        paymentsContent={<PaymentsManager />}
+      />
     </div>
   )
 }
