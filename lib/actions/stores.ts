@@ -1,7 +1,5 @@
 "use server"
 
-import { randomUUID } from "crypto"
-
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import {
@@ -33,6 +31,7 @@ export async function getAdminStores(): Promise<StoreWithMetadata[]> {
 }
 
 export interface CreateStoreActionInput {
+  id: string
   name: string
   address: string
   phone: string
@@ -110,7 +109,6 @@ export async function createStore(
     }
   }
 
-  const folderId = randomUUID()
   const serviceSupabase = await createServiceRoleClient()
 
   const uploadedPaths: string[] = []
@@ -121,7 +119,7 @@ export async function createStore(
       serviceSupabase,
       input.coverFile,
       "cover",
-      folderId
+      input.id
     )
     if (error || !url || !path) {
       await deleteStorageObjects(serviceSupabase, uploadedPaths)
@@ -137,7 +135,7 @@ export async function createStore(
       serviceSupabase,
       input.logoFile,
       "logo",
-      folderId
+      input.id
     )
     if (error || !url || !path) {
       await deleteStorageObjects(serviceSupabase, uploadedPaths)
@@ -151,6 +149,7 @@ export async function createStore(
   const service = new StoresService(userSupabase)
 
   const result = await service.createStore({
+    id: input.id,
     name: input.name,
     address: input.address,
     phone: input.phone,
@@ -274,6 +273,10 @@ export async function deleteStore(slug: string): Promise<DeleteStoreActionResult
     return { error: "Restaurante no encontrado." }
   }
 
+  const { urls: productImageUrls } = await service.getProductImageUrlsByStoreId(
+    current.id
+  )
+
   const serviceSupabase = await createServiceRoleClient()
 
   const result = await service.deleteStore(slug)
@@ -286,6 +289,11 @@ export async function deleteStore(slug: string): Promise<DeleteStoreActionResult
   if (coverPath) oldPaths.push(coverPath)
   const logoPath = extractStoragePath(current.logo_url)
   if (logoPath) oldPaths.push(logoPath)
+
+  for (const url of productImageUrls) {
+    const path = extractStoragePath(url)
+    if (path) oldPaths.push(path)
+  }
 
   if (oldPaths.length > 0) {
     await deleteStorageObjects(serviceSupabase, oldPaths)

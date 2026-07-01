@@ -14,10 +14,7 @@ import { MenuCategoryFilter } from "./MenuCategoryFilter"
 import { MenuCategorySection } from "./MenuCategorySection"
 import { MenuFooter } from "./MenuFooter"
 import { ProductFormModal } from "./ProductFormModal"
-import {
-  deleteProductAction,
-  deleteProductImageAction,
-} from "@/lib/actions/products"
+import { DeleteProductModal } from "@/components/ui/delete-product-modal"
 import { saveMenuOrdering } from "@/lib/actions/stores"
 
 interface MenuEditorProps {
@@ -41,6 +38,7 @@ export function MenuEditor({
   const [modalOpen, setModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [modalCategory, setModalCategory] = useState<string>("")
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
 
   const sectionRefs = useRef<Map<string, HTMLElement | null>>(new Map())
   const registerSectionRef = useCallback(
@@ -144,26 +142,20 @@ export function MenuEditor({
   }, [])
 
   const handleDeleteProduct = useCallback(
-    async (productId: string) => {
-      const previous = products.find((p) => p.id === productId) ?? null
+    (productId: string) => {
       setProducts((prev) => prev.filter((p) => p.id !== productId))
-
-      const result = await deleteProductAction(productId)
-      if (result.error) {
-        if (previous) {
-          setProducts((prev) => [...prev, previous].sort((a, b) => a.position - b.position))
-        }
-        toast.error(result.error)
-        return
-      }
-
-      if (result.pictureUrl) {
-        await deleteProductImageAction(result.pictureUrl)
-      }
-      toast.success("Plato eliminado")
     },
-    [products]
+    []
   )
+
+  const handleRequestDelete = useCallback((product: Product) => {
+    setModalOpen(false)
+    setDeletingProduct(product)
+  }, [])
+
+  const handleDeleteModalOpenChange = useCallback((open: boolean) => {
+    if (!open) setDeletingProduct(null)
+  }, [])
 
   const handleSaveProduct = useCallback(
     (product: Product) => {
@@ -251,7 +243,7 @@ export function MenuEditor({
                   onSelectCategory={setSelectedCategory}
                   onAddProduct={handleAddProduct}
                   onEditProduct={handleEditProduct}
-                  onDeleteProduct={handleDeleteProduct}
+                  onRequestDelete={handleRequestDelete}
                   registerSectionRef={registerSectionRef}
                 />
               )
@@ -274,7 +266,16 @@ export function MenuEditor({
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSave={handleSaveProduct}
-        onDelete={editingProduct ? handleDeleteProduct : undefined}
+        onRequestDelete={
+          editingProduct ? () => handleRequestDelete(editingProduct) : undefined
+        }
+      />
+
+      <DeleteProductModal
+        product={deletingProduct}
+        open={deletingProduct !== null}
+        onOpenChange={handleDeleteModalOpenChange}
+        onDeleted={handleDeleteProduct}
       />
 
       <MenuFooter

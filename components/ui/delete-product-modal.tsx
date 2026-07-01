@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { AlertTriangle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -10,34 +9,49 @@ import {
   ResponsiveModal,
   ResponsiveModalContent,
 } from "@/components/ui/responsive-modal"
-import type { StoreWithMetadata } from "@/lib/types"
+import {
+  deleteProductAction,
+  deleteProductImageAction,
+} from "@/lib/actions/products"
+import type { Product } from "@/lib/types"
 
-interface DeleteRestaurantModalProps {
-  store: StoreWithMetadata
+interface DeleteProductModalProps {
+  product: Product | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onDeleted: (productId: string) => void
 }
 
-export function DeleteRestaurantModal({
-  store,
+export function DeleteProductModal({
+  product,
   open,
   onOpenChange,
-}: DeleteRestaurantModalProps) {
-  const router = useRouter()
+  onDeleted,
+}: DeleteProductModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!open) setIsDeleting(false)
+  }, [open, product?.id])
+
   const handleDelete = async () => {
+    if (!product) return
     setIsDeleting(true)
-    const toastId = toast.loading("Eliminando restaurante...")
+    const toastId = toast.loading("Eliminando plato...")
     try {
-      const { deleteStore } = await import("@/lib/actions/stores")
-      const result = await deleteStore(store.slug)
+      const result = await deleteProductAction(product.id)
       if (result.error) {
         toast.error(result.error, { id: toastId })
         return
       }
-      toast.success("Restaurante eliminado", { id: toastId })
-      router.refresh()
+
+      if (result.pictureUrl) {
+        await deleteProductImageAction(result.pictureUrl)
+      }
+
+      onDeleted(product.id)
+      toast.success("Plato eliminado", { id: toastId })
       onOpenChange(false)
     } catch {
       toast.error("Ocurrió un error inesperado", { id: toastId })
@@ -50,16 +64,15 @@ export function DeleteRestaurantModal({
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent
         icon={<AlertTriangle className="size-[18px]" />}
-        title="Eliminar restaurante"
-        subtitle={store.name}
+        title="Eliminar plato"
+        subtitle={product?.name ?? ""}
         desktopMaxWidth="max-w-md"
       >
         <div className="space-y-4 py-2">
           <div className="rounded-lg border border-error/30 bg-error-container/40 p-3 text-sm text-on-error-container">
             <p className="font-semibold">Esta acción no se puede deshacer.</p>
             <p className="mt-1 text-on-surface-variant">
-              Se eliminarán también todos los productos del menú y las imágenes
-              asociadas.
+              Se eliminará también la imagen asociada al plato.
             </p>
           </div>
 
