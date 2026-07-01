@@ -2,7 +2,7 @@
 description: Group changes into semantic commits and push
 ---
 
-Group all current changes into meaningful semantic commits and push the current branch.
+Group all current changes into meaningful semantic commits and push in a new branch following the name convention.
 
 Optional context for commits messages: `$ARGUMENTS`
 
