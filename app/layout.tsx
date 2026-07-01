@@ -11,7 +11,7 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Delivery LosLatinos",
+  title: "Delivery Orihuela",
   description: "Servicio de entrega y compra a tu disposición",
   icons: {
     icon: "/favicon.ico",

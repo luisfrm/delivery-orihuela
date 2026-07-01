@@ -6,7 +6,7 @@ import { InitForm } from "./_components/InitForm"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Configuración inicial — Los Latinos",
+  title: "Configuración inicial — Delivery Orihuela",
   description: "Crea el primer administrador del sistema.",
   robots: "noindex, nofollow",
 }

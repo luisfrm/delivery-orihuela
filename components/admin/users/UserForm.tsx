@@ -31,8 +31,8 @@ import {
   validateConfirmPassword,
 } from "@/lib/validation"
 import { capitalize } from "@/lib/utils"
-import { createStaffUser, updateStaffUser } from "@/lib/actions/users"
-import type { StaffRole, UserWithProfile } from "@/lib/types"
+import { createStaffUser, updateUser } from "@/lib/actions/users"
+import type { StaffRole, UserRole, UserWithProfile } from "@/lib/types"
 import { getFullName } from "@/lib/users/format"
 
 type Step = "info" | "access" | "preview" | "success"
@@ -42,7 +42,7 @@ interface FormData {
   lastName: string
   email: string
   phone: string
-  role: StaffRole
+  role: UserRole
   password: string
   confirmPassword: string
 }
@@ -64,7 +64,10 @@ const MAX_EMAIL = 100
 const ROLE_OPTIONS = [
   { value: "admin", label: "Administrador" },
   { value: "rider", label: "Repartidor" },
+  { value: "user", label: "Cliente" },
 ]
+
+const STAFF_ROLE_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "user")
 
 interface UserFormProps {
   mode: "create" | "edit"
@@ -87,7 +90,7 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
         lastName: editingUser.last_name,
         email: editingUser.email,
         phone: editingUser.phone,
-        role: editingUser.role === "admin" || editingUser.role === "rider" ? editingUser.role : "rider",
+        role: editingUser.role,
         password: "",
         confirmPassword: "",
       }
@@ -198,7 +201,7 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
       const phone = formData.phone.trim()
 
       if (isEditing && editingUser) {
-        const result = await updateStaffUser(editingUser.id, {
+        const result = await updateUser(editingUser.id, {
           firstName,
           lastName,
           phone,
@@ -221,7 +224,7 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
           email: formData.email.trim().toLowerCase(),
           phone,
           password: formData.password,
-          role: formData.role,
+          role: formData.role as StaffRole,
         })
         if (result.error) {
           toast.error(result.error, { id: toastId })
@@ -319,8 +322,10 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
             <div className="flex items-center gap-3">
               {formData.role === "admin" ? (
                 <ShieldCheck className="size-4 text-primary" />
-              ) : (
+              ) : formData.role === "rider" ? (
                 <UsersIcon className="size-4 text-amber-700" />
+              ) : (
+                <UserIcon className="size-4 text-on-surface-variant" />
               )}
               <span className="text-on-surface-variant">Rol:</span>
               <UserRoleBadge role={formData.role} />
@@ -467,9 +472,9 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
               Rol
             </label>
             <Select
-              options={ROLE_OPTIONS}
+              options={isEditing ? ROLE_OPTIONS : STAFF_ROLE_OPTIONS}
               value={formData.role}
-              onChange={(v) => updateField("role", v as StaffRole)}
+              onChange={(v) => updateField("role", v as UserRole)}
               className="w-full"
             />
             {errors.role && (
@@ -479,7 +484,8 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
             )}
             <p className="text-label-md text-on-surface-variant pl-1">
               Los administradores tienen acceso completo al panel. Los
-              repartidores solo gestionan pedidos asignados.
+              repartidores gestionan pedidos asignados. Los clientes son
+              usuarios finales que usan la app para hacer pedidos.
             </p>
           </div>
 

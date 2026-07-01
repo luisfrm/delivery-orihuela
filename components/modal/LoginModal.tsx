@@ -39,7 +39,7 @@ export function LoginModal({
       <ResponsiveModalContent
         icon={<LogIn className="size-[18px]" />}
         title="Inicia sesión"
-        subtitle="Bienvenido de vuelta a Los Latinos."
+        subtitle="Bienvenido de vuelta a Delivery Orihuela."
         desktopMaxWidth="max-w-md"
       >
         <LoginForm onRegisterClick={onRegisterClick} />

@@ -14,11 +14,11 @@ export interface CreateStaffUserInput {
   role: StaffRole
 }
 
-export interface UpdateStaffUserInput {
+export interface UpdateUserInput {
   firstName: string
   lastName: string
   phone: string
-  role: StaffRole
+  role: UserRole
 }
 
 export interface CreateStaffUserResult {
@@ -26,7 +26,7 @@ export interface CreateStaffUserResult {
   error?: string
 }
 
-export interface UpdateStaffUserResult {
+export interface UpdateUserResult {
   user?: UserWithProfile
   error?: string
 }
@@ -197,11 +197,15 @@ export async function createStaffUser(
  * Edita los datos de un usuario existente.
  * El role se actualiza en auth.users.app_metadata (server-only).
  * Nombre/teléfono se actualizan en user_profiles.
+ *
+ * Acepta los tres roles (admin, rider, user) para permitir transiciones
+ * como cliente → staff y staff → cliente. El alta de staff desde cero
+ * sigue limitada a admin/rider vía `createStaffUser`.
  */
-export async function updateStaffUser(
+export async function updateUser(
   userId: string,
-  input: UpdateStaffUserInput
-): Promise<UpdateStaffUserResult> {
+  input: UpdateUserInput
+): Promise<UpdateUserResult> {
   const auth = await requireAdmin()
   if (!auth.ok) return { error: auth.error }
 
@@ -244,7 +248,7 @@ export async function updateStaffUser(
         app_metadata: { role: input.role },
       })
     if (authUpdateError) {
-      console.error("[updateStaffUser] auth error:", authUpdateError.message)
+      console.error("[updateUser] auth error:", authUpdateError.message)
       return { error: "Error al actualizar el rol del usuario." }
     }
   }
@@ -262,7 +266,7 @@ export async function updateStaffUser(
     .single()
 
   if (profileError) {
-    console.error("[updateStaffUser] profile error:", profileError.message)
+    console.error("[updateUser] profile error:", profileError.message)
     return { error: "Error al actualizar el perfil del usuario." }
   }
 

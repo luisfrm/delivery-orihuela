@@ -24,6 +24,13 @@ export function UserRowActions({
   onDelete,
 }: UserRowActionsProps) {
   const isSelf = user.id === currentUserId
+  const isClient = user.role === "user"
+  const deleteDisabled = isSelf || isClient
+  const deleteLabel = isSelf
+    ? "No puedes eliminarte"
+    : isClient
+      ? "Clientes no se pueden eliminar"
+      : "Eliminar"
 
   return (
     <DropdownMenu>
@@ -41,10 +48,10 @@ export function UserRowActions({
         <DropdownMenuItem
           variant="destructive"
           onClick={() => onDelete(user)}
-          disabled={isSelf}
+          disabled={deleteDisabled}
         >
           <Trash2 className="size-4" />
-          {isSelf ? "No puedes eliminarte" : "Eliminar"}
+          {deleteLabel}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

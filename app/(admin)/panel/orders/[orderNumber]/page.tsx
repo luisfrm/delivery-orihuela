@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: PageProps) {
   const { orderNumber } = await params
   return {
-    title: `Pedido #${orderNumber} · Los Latinos Admin`,
+    title: `Pedido #${orderNumber} · Orihuela Admin`,
   }
 }
 
