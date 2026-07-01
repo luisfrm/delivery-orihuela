@@ -18,7 +18,7 @@ interface MenuCategorySectionProps {
   onSelectCategory: (slug: string | null) => void
   onAddProduct: (slug: string) => void
   onEditProduct: (product: Product) => void
-  onDeleteProduct: (productId: string) => void
+  onRequestDelete: (product: Product) => void
   registerSectionRef: (slug: string, element: HTMLElement | null) => void
 }
 
@@ -30,7 +30,7 @@ export function MenuCategorySection({
   onSelectCategory,
   onAddProduct,
   onEditProduct,
-  onDeleteProduct,
+  onRequestDelete,
   registerSectionRef,
 }: MenuCategorySectionProps) {
   const category = getCategoryById(slug)
@@ -93,7 +93,7 @@ export function MenuCategorySection({
             index={pIndex}
             categorySlug={slug}
             onEdit={() => onEditProduct(product)}
-            onDelete={() => onDeleteProduct(product.id)}
+            onRequestDelete={() => onRequestDelete(product)}
           />
         ))}
         <AddProductCard categorySlug={slug} onClick={() => onAddProduct(slug)} />
@@ -107,7 +107,7 @@ interface SortableProductRowProps {
   index: number
   categorySlug: string
   onEdit: () => void
-  onDelete: () => void
+  onRequestDelete: () => void
 }
 
 function SortableProductRow({
@@ -115,7 +115,7 @@ function SortableProductRow({
   index,
   categorySlug,
   onEdit,
-  onDelete,
+  onRequestDelete,
 }: SortableProductRowProps) {
   const { ref, isDragging } = useSortable({
     id: product.id,
@@ -137,7 +137,7 @@ function SortableProductRow({
         type="button"
         variant="ghost"
         size="icon-sm"
-        onClick={onDelete}
+        onClick={onRequestDelete}
         aria-label="Eliminar plato"
         className="absolute right-2 top-2 opacity-0 group-hover/row:opacity-100 focus:opacity-100 transition-opacity text-on-surface-variant hover:text-error"
       >

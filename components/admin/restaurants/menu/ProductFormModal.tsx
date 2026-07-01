@@ -36,7 +36,7 @@ interface ProductFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (product: Product) => void
-  onDelete?: (productId: string) => void
+  onRequestDelete?: () => void
   trigger?: React.ReactNode
 }
 
@@ -47,7 +47,7 @@ export function ProductFormModal({
   open,
   onOpenChange,
   onSave,
-  onDelete,
+  onRequestDelete,
   trigger,
 }: ProductFormModalProps) {
   const isEditing = product !== null
@@ -81,7 +81,7 @@ export function ProductFormModal({
           existingIsActive={product?.is_active ?? true}
           onClose={() => onOpenChange(false)}
           onSave={onSave}
-          onDelete={onDelete}
+          onRequestDelete={onRequestDelete}
         />
       </ResponsiveModalContent>
     </ResponsiveModal>
@@ -100,7 +100,7 @@ interface ProductFormBodyProps {
   existingIsActive: boolean
   onClose: () => void
   onSave: (product: Product) => void
-  onDelete?: (productId: string) => void
+  onRequestDelete?: () => void
 }
 
 function ProductFormBody({
@@ -115,7 +115,7 @@ function ProductFormBody({
   existingIsActive,
   onClose,
   onSave,
-  onDelete,
+  onRequestDelete,
 }: ProductFormBodyProps) {
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
@@ -303,14 +303,13 @@ function ProductFormBody({
       />
 
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
-        {isEditing && onDelete ? (
+        {isEditing && onRequestDelete ? (
           <Button
             type="button"
             variant="ghost"
             size="default"
             onClick={() => {
-              if (productId) onDelete(productId)
-              onClose()
+              onRequestDelete()
             }}
             disabled={isSaving}
             className="w-full sm:w-auto text-error hover:bg-error-container"
