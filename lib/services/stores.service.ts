@@ -198,6 +198,26 @@ export class StoresService {
     return {}
   }
 
+  async getProductImageUrlsByStoreId(
+    storeId: string
+  ): Promise<{ urls: string[]; error?: string }> {
+    const { data, error } = await this.supabase
+      .from("products")
+      .select("picture_url")
+      .eq("store_id", storeId)
+
+    if (error) {
+      console.error("Error fetching product images for store:", error)
+      return { urls: [], error: error.message }
+    }
+
+    const urls = (data ?? [])
+      .map((p) => p.picture_url)
+      .filter((u): u is string => Boolean(u))
+
+    return { urls }
+  }
+
   async getStoreMenuBySlug(slug: string): Promise<{
     store: Store
     products: Product[]

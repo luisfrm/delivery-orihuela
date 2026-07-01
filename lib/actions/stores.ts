@@ -274,6 +274,10 @@ export async function deleteStore(slug: string): Promise<DeleteStoreActionResult
     return { error: "Restaurante no encontrado." }
   }
 
+  const { urls: productImageUrls } = await service.getProductImageUrlsByStoreId(
+    current.id
+  )
+
   const serviceSupabase = await createServiceRoleClient()
 
   const result = await service.deleteStore(slug)
@@ -286,6 +290,11 @@ export async function deleteStore(slug: string): Promise<DeleteStoreActionResult
   if (coverPath) oldPaths.push(coverPath)
   const logoPath = extractStoragePath(current.logo_url)
   if (logoPath) oldPaths.push(logoPath)
+
+  for (const url of productImageUrls) {
+    const path = extractStoragePath(url)
+    if (path) oldPaths.push(path)
+  }
 
   if (oldPaths.length > 0) {
     await deleteStorageObjects(serviceSupabase, oldPaths)
