@@ -11,11 +11,9 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Delivery Orihuela",
+  title: "Delivery LosLatinos",
   description: "Servicio de entrega y compra a tu disposición",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  // icon.png and apple-icon.png are automatically detected by Next.js from the app/ directory
 }
 
 export default function RootLayout({
