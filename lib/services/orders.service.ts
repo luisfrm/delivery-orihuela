@@ -403,29 +403,33 @@ export class OrdersService {
     return { success: true }
   }
 
-  async updateOrderStatus(orderId: string, status: OrderStatus): Promise<{ success?: boolean; error?: string }> {
-    const { error } = await this.supabase
+  async updateOrderStatus(orderId: string, status: OrderStatus): Promise<{ success?: boolean; error?: string; clientId?: string; orderNumber?: number }> {
+    const { data, error } = await this.supabase
       .from("orders")
       .update({ status })
       .eq("id", orderId)
+      .select("client_id, order_number")
+      .single()
 
     if (error) {
       return { error: error.message }
     }
 
-    return { success: true }
+    return { success: true, clientId: data?.client_id, orderNumber: data?.order_number }
   }
 
-  async assignRider(orderId: string, riderId: string): Promise<{ success?: boolean; error?: string }> {
-    const { error } = await this.supabase
+  async assignRider(orderId: string, riderId: string): Promise<{ success?: boolean; error?: string; clientId?: string; orderNumber?: number }> {
+    const { data, error } = await this.supabase
       .from("orders")
       .update({ rider_id: riderId, status: "assigned" })
       .eq("id", orderId)
+      .select("client_id, order_number")
+      .single()
 
     if (error) {
       return { error: error.message }
     }
 
-    return { success: true }
+    return { success: true, clientId: data?.client_id, orderNumber: data?.order_number }
   }
 }
