@@ -2,8 +2,57 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { OrdersService } from "@/lib/services/orders.service"
 import { Order, OrderStatus, OrderWithClient, OrderWithDetails } from "@/lib/types"
+import { PushService } from "@/lib/services/push.service"
+import { OrdersService } from "../services"
+
+async function notifyOrderStatusChange(event: string, clientId?: string, orderNumber?: number) {
+  try {
+    const pushService = new PushService()
+
+    if (event === "new_order") {
+      const payload = {
+        title: "🔔 Nuevo pedido recibido",
+        body: "Ha llegado un nuevo pedido. Revísalo en el panel.",
+        url: "/panel/orders",
+      }
+      await pushService.sendToRole("admin", payload)
+      await pushService.sendToRole("rider", payload)
+    } else if (clientId && orderNumber) {
+      let title = ""
+      let body = ""
+
+      switch (event) {
+        case "assigned":
+          title = "Pedido aceptado ✅"
+          body = `Tu pedido #${orderNumber} ha sido aceptado y está siendo preparado.`
+          break
+        case "on_the_way":
+          title = "¡Tu pedido está en camino! 🚗"
+          body = `Tu repartidor ya está llevando tu pedido #${orderNumber}.`
+          break
+        case "at_customer":
+          title = "Tu repartidor ha llegado 📍"
+          body = `Tu repartidor ha llegado a tu ubicación con el pedido #${orderNumber}.`
+          break
+        case "delivered":
+          title = "¡Pedido entregado! 🎉"
+          body = `Tu pedido #${orderNumber} ha sido entregado. ¡Buen provecho!`
+          break
+        case "cancelled":
+          title = "Pedido cancelado ❌"
+          body = `Tu pedido #${orderNumber} ha sido cancelado. Contáctanos si tienes dudas.`
+          break
+        default:
+          return
+      }
+
+      await pushService.sendToUser(clientId, { title, body, url: "/" })
+    }
+  } catch (error) {
+    console.error("[push] Error notifying order status change:", error)
+  }
+}
 
 export interface RiderProfile {
   id: string
@@ -118,7 +167,11 @@ export async function createOrder(
     return { error: "Perfil de usuario no encontrado" }
   }
 
-  return service.createOrder(params, profile.id)
+  const result = await service.createOrder(params, profile.id)
+  if (result.success) {
+    await notifyOrderStatusChange("new_order")
+  }
+  return result
 }
 
 export async function cancelOrder(
@@ -144,7 +197,11 @@ export async function updateOrderStatus(
 ): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
-  return service.updateOrderStatus(orderId, status)
+  const res = await service.updateOrderStatus(orderId, status)
+  // We only notify specific states via admin actions below, so this general function
+  // might not need to trigger notifications unless specifically requested.
+  // The specific functions (acceptOrder, startDelivery, etc.) will handle it.
+  return res
 }
 
 export async function assignRider(
@@ -153,7 +210,11 @@ export async function assignRider(
 ): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient()
   const service = new OrdersService(supabase)
-  return service.assignRider(orderId, riderId)
+  const res = await service.assignRider(orderId, riderId)
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("assigned", res.clientId, res.orderNumber)
+  }
+  return res
 }
 
 export async function getRiders(): Promise<RiderProfile[]> {
@@ -251,7 +312,11 @@ export async function acceptOrder(
   const service = new OrdersService(supabase)
 
   // Asignar al rider que está aceptando (el admin logueado)
-  return service.assignRider(orderId, admin.userId)
+  const res = await service.assignRider(orderId, admin.userId)
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("assigned", res.clientId, res.orderNumber)
+  }
+  return res
 }
 
 /**
@@ -273,7 +338,11 @@ export async function startDelivery(
     return { error: "El pedido debe estar asignado para iniciar entrega" }
   }
 
-  return service.updateOrderStatus(orderId, "on_the_way")
+  const res = await service.updateOrderStatus(orderId, "on_the_way")
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("on_the_way", res.clientId, res.orderNumber)
+  }
+  return res
 }
 
 /**
@@ -294,7 +363,11 @@ export async function arriveAtCustomer(
     return { error: "El pedido debe estar en camino para marcar llegada" }
   }
 
-  return service.updateOrderStatus(orderId, "at_customer")
+  const res = await service.updateOrderStatus(orderId, "at_customer")
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("at_customer", res.clientId, res.orderNumber)
+  }
+  return res
 }
 
 /**
@@ -315,7 +388,11 @@ export async function completeOrder(
     return { error: "El rider debe estar en el cliente para completar" }
   }
 
-  return service.updateOrderStatus(orderId, "delivered")
+  const res = await service.updateOrderStatus(orderId, "delivered")
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("delivered", res.clientId, res.orderNumber)
+  }
+  return res
 }
 
 /**
@@ -362,5 +439,9 @@ export async function cancelOrderByAdmin(
   }
 
   // rider_id se mantiene para audit trail
-  return service.updateOrderStatus(orderId, "cancelled")
+  const res = await service.updateOrderStatus(orderId, "cancelled")
+  if (res.success && res.clientId && res.orderNumber) {
+    await notifyOrderStatusChange("cancelled", res.clientId, res.orderNumber)
+  }
+  return res
 }

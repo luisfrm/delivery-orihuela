@@ -1,5 +1,6 @@
 import { TopAppBar } from "@/components/layout/TopAppBar"
 import { BottomNav } from "@/components/layout/BottomNav"
+import { PushNotificationBanner } from "@/components/notifications/PushNotificationBanner"
 import { getOrganizationSettings } from "@/lib/actions/organization"
 
 export const dynamic = "force-dynamic"
@@ -17,6 +18,7 @@ export default async function ClientLayout({
       <main className="w-full flex flex-col gap-[24px]">
         {children}
       </main>
+      <PushNotificationBanner />
       <BottomNav />
     </>
   )
