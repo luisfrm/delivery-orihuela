@@ -47,8 +47,8 @@ export function PushNotificationBanner() {
   }
 
   return (
-    <div className="fixed bottom-[80px] left-0 right-0 z-30 p-4 lg:hidden">
-      <div className="bg-surface-container rounded-2xl shadow-lg border border-outline-variant p-4 flex flex-col gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div className="fixed bottom-[80px] lg:bottom-4 left-0 right-0 z-30 p-4 flex justify-center pointer-events-none">
+      <div className="pointer-events-auto w-full max-w-md bg-surface-container rounded-2xl shadow-lg border border-outline-variant p-4 flex flex-col gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
         <div className="flex items-start gap-3">
           <div className="bg-primary/10 p-2 rounded-full mt-1 shrink-0">
             <Bell className="w-5 h-5 text-primary" />
