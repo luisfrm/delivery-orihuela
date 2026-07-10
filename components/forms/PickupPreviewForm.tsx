@@ -53,7 +53,7 @@ export function PickupPreviewForm({
     addressSelection.type === "existing" &&
     addressSelection.addressId !== null &&
     paymentMethodId !== null &&
-    paymentFieldInputs.length > 0
+    paymentFieldInputs.every((input) => input.type === "visual" || input.value.trim().length > 0)
 
   const handleConfirm = async () => {
     if (!isValid || !addressSelection.addressId || !paymentMethodId) return
@@ -174,7 +174,7 @@ export function PickupPreviewForm({
         )}
 
         {/* Payment method */}
-        {paymentMethodId && paymentFieldInputs.length > 0 && (
+        {paymentMethodId && (
           <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3 space-y-2.5">
             <div className="flex items-center gap-2">
               <CreditCard className="size-4 text-primary" />
@@ -183,6 +183,16 @@ export function PickupPreviewForm({
               </p>
             </div>
             <ul className="space-y-1.5">
+              {paymentMethodName && (
+                <li className="flex items-start justify-between gap-2 text-body-sm">
+                  <span className="text-on-surface-variant shrink-0">
+                    Nombre:
+                  </span>
+                  <span className="text-on-surface font-semibold text-right">
+                    {paymentMethodName}
+                  </span>
+                </li>
+              )}
               {paymentFieldInputs.map((input) => (
                 <li
                   key={input.fieldId}

@@ -71,7 +71,7 @@ export function PreviewForm({
     totalItems > 0 &&
     addressSelection.addressId !== null &&
     paymentMethodId !== null &&
-    paymentFieldInputs.length > 0
+    paymentFieldInputs.every((input) => input.type === "visual" || input.value.trim().length > 0)
 
   const handleConfirm = async () => {
     if (!isValid || !addressSelection.addressId || !paymentMethodId) return
@@ -207,7 +207,7 @@ export function PreviewForm({
         </div>
 
         {/* Payment method section */}
-        {paymentMethodId && paymentFieldInputs.length > 0 && (
+        {paymentMethodId && (
           <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3 space-y-2.5">
             <div className="flex items-center gap-2">
               <CreditCard className="size-4 text-primary" />
