@@ -22,10 +22,15 @@ export class PushService {
 
   async sendToUser(userId: string, payload: NotificationPayload): Promise<void> {
     try {
-      const { data: subscriptions } = await this.supabase
+      const { data: subscriptions, error } = await this.supabase
         .from("push_subscriptions")
         .select("*")
         .eq("user_id", userId)
+
+      if (error) {
+        console.error(`[PushService] DB error fetching subscriptions for user ${userId}:`, error)
+        return
+      }
 
       if (!subscriptions || subscriptions.length === 0) return
 
