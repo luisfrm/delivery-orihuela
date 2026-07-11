@@ -236,11 +236,11 @@ otp_expiry = 3600
 # Use a production-ready SMTP server
 [auth.email.smtp]
 enabled = true
-host = "smtp.gmail.com"
-port = 587
-user = "env(SMTP_USER)"
-pass = "env(SMTP_PASS)"
-admin_email = "env(SMTP_USER)"
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "no-responder@deliveryloslatinos.es"
 sender_name = "Delivery Los Latinos"
 
 # Custom email templates for authentication
