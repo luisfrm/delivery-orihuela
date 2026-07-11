@@ -50,7 +50,7 @@ export function OrderDetailView({ order }: OrderDetailViewProps) {
             deliveryFeeCents={deliveryFeeCents}
             totalCents={order.total_amount}
           />
-          <OrderActionsCard orderId={order.id} status={order.status} />
+          <OrderActionsCard order={order} />
         </div>
       </div>
 
