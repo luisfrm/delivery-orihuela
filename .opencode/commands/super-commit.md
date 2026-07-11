@@ -2,9 +2,7 @@
 description: Group changes into semantic commits and push
 ---
 
-Group all current changes into meaningful semantic commits and push in a new branch if the current branch is master following the name convention.
-
-Never send push new commits to master, only new branches. If user is in a different branch, ask him if he wants to push in current branch of if he prefers to create a new one.
+Group all current changes into meaningful semantic commits and push in a new branch following the name convention.
 
 Optional context for commits messages: `$ARGUMENTS`
 
@@ -34,3 +32,5 @@ Flow:
     - Create the commit with semantic message.
 4. Once all commits have been created, run: `git push`
 5. When finished, summarize the commits created and the files were pushed.
+
+Once you finish, return to user a PR Title and a really brief PR Description related to the commit changes you just added to the new branch
