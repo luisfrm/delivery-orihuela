@@ -28,7 +28,7 @@ export function OrderActions({ order, onViewDetails, children }: OrderActionsPro
       >
         <Eye className="size-4" />
       </Button>
-      {Children.count(children) > 0 && (
+      {Children.toArray(children).length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Más acciones del pedido"

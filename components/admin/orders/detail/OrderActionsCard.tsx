@@ -20,19 +20,18 @@ import {
   startDelivery,
   unassignOrder,
 } from "@/lib/actions/orders"
-import type { OrderStatus } from "@/lib/types"
+import type { OrderStatus, OrderWithClient } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 
 interface OrderActionsCardProps {
-  orderId: string
-  status: OrderStatus
+  order: OrderWithClient
   className?: string
   onActionComplete?: () => void
 }
 
 export function OrderActionsCard({
-  orderId,
-  status,
+  order,
   className,
   onActionComplete,
 }: OrderActionsCardProps) {
@@ -40,7 +39,7 @@ export function OrderActionsCard({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
-  const isTerminal = status === "delivered" || status === "cancelled"
+  const isTerminal = order.status === "delivered" || order.status === "cancelled"
 
   if (isTerminal) return null
 
@@ -65,18 +64,27 @@ export function OrderActionsCard({
     }
   }
 
-  const handleAccept = () => runAction("Pedido aceptado", () => acceptOrder(orderId))
+  const handleAccept = () => runAction("Pedido aceptado", () => acceptOrder(order.id))
   const handleStart = () =>
-    runAction("Entrega iniciada", () => startDelivery(orderId))
+    runAction("Entrega iniciada", () => startDelivery(order.id))
   const handleArrive = () =>
-    runAction("Rider llegó al cliente", () => arriveAtCustomer(orderId))
+    runAction("Rider llegó al cliente", () => arriveAtCustomer(order.id))
   const handleComplete = () =>
-    runAction("Pedido completado", () => completeOrder(orderId))
+    runAction("Pedido completado", () => completeOrder(order.id))
   const handleUnassign = () =>
-    runAction("Pedido desasignado", () => unassignOrder(orderId))
+    runAction("Pedido desasignado", () => unassignOrder(order.id))
   const handleCancel = async () => {
     setShowCancelConfirm(false)
-    await runAction("Pedido cancelado", () => cancelOrderByAdmin(orderId))
+    await runAction("Pedido cancelado", () => cancelOrderByAdmin(order.id))
+  }
+
+  const handleShare = () => {
+    const itemsList = order.items
+      .map((item) => `${item.product_name} - ${item.quantity}`)
+      .join("\n")
+    const text = `Pedido #${order.order_number}:\n${itemsList}`
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`
+    window.open(url, "_blank")
   }
 
   return (
@@ -86,7 +94,7 @@ export function OrderActionsCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-2.5">
-          {status === "pending" && (
+          {order.status === "pending" && (
             <Button
               variant="success"
               size="lg"
@@ -99,7 +107,7 @@ export function OrderActionsCard({
             </Button>
           )}
 
-          {status === "assigned" && (
+          {order.status === "assigned" && (
             <>
               <Button
                 variant="info"
@@ -124,7 +132,7 @@ export function OrderActionsCard({
             </>
           )}
 
-          {status === "on_the_way" && (
+          {order.status === "on_the_way" && (
             <Button
               variant="info"
               size="lg"
@@ -137,7 +145,7 @@ export function OrderActionsCard({
             </Button>
           )}
 
-          {status === "at_customer" && (
+          {order.status === "at_customer" && (
             <Button
               variant="success"
               size="lg"
@@ -147,6 +155,19 @@ export function OrderActionsCard({
             >
               <CheckCircle className="size-4" />
               Marcar completado
+            </Button>
+          )}
+
+          {!isTerminal && (
+            <Button
+              variant="success"
+              size="lg"
+              className="w-full"
+              onClick={handleShare}
+              disabled={isSubmitting}
+            >
+              <WhatsAppIcon className="size-4" />
+              Compartir menú
             </Button>
           )}
 
