@@ -93,7 +93,7 @@ export async function signUpWithEmail(
 ): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -109,6 +109,16 @@ export async function signUpWithEmail(
     console.error("[signUpWithEmail]", error.message)
     const mapped = mapAuthError(error.message)
     return { error: mapped.message, code: mapped.code }
+  }
+
+  // Check if the user already exists (anti-user-enumeration protection)
+  // If the email is already registered and confirmed, signUp returns success but with an empty identities array
+  const user = data?.user
+  if (!user || (user.identities && user.identities.length === 0)) {
+    return {
+      error: "Este correo ya está registrado. Intenta iniciar sesión.",
+      code: "user_already_registered",
+    }
   }
 
   return { success: true }

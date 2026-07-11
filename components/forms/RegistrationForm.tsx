@@ -205,7 +205,15 @@ export function RegistrationForm({
       )
 
       if (result?.error) {
-        toast.error(result.error)
+        // If the email is already registered, display the error directly on the email field
+        if (result.code === "user_already_registered") {
+          setErrors((prev) => ({
+            ...prev,
+            email: "Este correo ya está registrado. Intenta iniciar sesión.",
+          }))
+        } else {
+          toast.error(result.error)
+        }
         return
       }
 
