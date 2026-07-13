@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { Tooltip } from "@base-ui/react/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
 const jakarta = Plus_Jakarta_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
         <Tooltip.Provider delay={200}>{children}</Tooltip.Provider>
         <Toaster position="bottom-right" richColors />
       </body>
+      <Analytics />
     </html>
   )
 }
