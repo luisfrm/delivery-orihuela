@@ -119,27 +119,35 @@ export function PaymentsManager() {
       </div>
 
       {isLoading ? (
-        <ul className="space-y-2" aria-busy="true" aria-live="polite">
-          {Array.from({ length: 2 }).map((_, i) => (
+        <ul className="grid gap-3 sm:grid-cols-2" aria-busy="true" aria-live="polite">
+          {Array.from({ length: 4 }).map((_, i) => (
             <li
               key={i}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-outline-variant bg-surface-container-lowest"
             >
-              <div className="size-10 rounded-lg bg-outline-variant/40 animate-pulse" />
+              <div className="size-10 rounded-xl bg-outline-variant/40 animate-pulse" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-1/3 rounded bg-outline-variant/40 animate-pulse" />
+                <div className="h-4 w-2/3 rounded bg-outline-variant/40 animate-pulse" />
                 <div className="h-3 w-1/2 rounded bg-outline-variant/40 animate-pulse" />
               </div>
             </li>
           ))}
         </ul>
       ) : methods.length === 0 ? (
-        <div className="py-12 text-center text-body-md text-on-surface-variant border border-dashed border-outline-variant rounded-xl">
-          No hay métodos de pago configurados
+        <div className="py-10 text-center border border-dashed border-outline-variant rounded-2xl bg-surface-container-low/50">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <CreditCard className="size-6" />
+          </div>
+          <p className="mt-3 text-body-md font-medium text-on-surface">Sin métodos aún</p>
+          <p className="text-body-sm text-on-surface-variant mt-1">Crea el primero — ej. Bizum, efectivo, tarjeta.</p>
+          <Button onClick={handleAdd} variant="outline_primary" size="sm" className="mt-4">
+            <Plus className="size-4" />
+            Crear método
+          </Button>
         </div>
       ) : (
         <DragDropProvider onDragEnd={handleDragEnd}>
-          <ul className="space-y-2">
+          <ul className="grid gap-3 sm:grid-cols-2">
             {methods.map((method, index) => {
               const isConfirming = confirmingDeleteId === method.id
               const isDeleting = deletingId === method.id
@@ -206,8 +214,10 @@ function SortableMethodRow({
     <li
       ref={ref}
       className={cn(
-        "flex items-center gap-2 px-3 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest",
-        isDragging && "opacity-40"
+        "group relative flex items-center gap-3 p-4 rounded-2xl border bg-surface-container-lowest transition-all",
+        isDragging
+          ? "opacity-40 border-primary/40 shadow-md"
+          : "border-outline-variant hover:border-primary/25 hover:shadow-sm"
       )}
     >
       <button
@@ -215,30 +225,30 @@ function SortableMethodRow({
         ref={handleRef as React.Ref<HTMLButtonElement>}
         aria-label={`Reordenar método ${method.name}`}
         disabled={isSavingOrder}
-        className="flex-shrink-0 touch-none cursor-grab-custom active:cursor-grabbing-custom rounded p-1 text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50"
+        className="flex-shrink-0 touch-none cursor-grab-custom active:cursor-grabbing-custom rounded-lg p-1.5 text-on-surface-variant/50 hover:text-on-surface-variant hover:bg-surface-container transition-colors disabled:opacity-50"
       >
         <GripVertical className="size-4" />
       </button>
-      <div className="flex-shrink-0 size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+      <div className="flex-shrink-0 size-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
         <CreditCard className="size-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-body-md font-semibold text-on-surface truncate">
+        <div className="flex items-center gap-1.5">
+          <p className="text-body-sm font-semibold text-on-surface truncate leading-none">
             {method.name}
           </p>
           {!method.isActive && (
-            <Badge variant="muted" className="shrink-0">
+            <Badge variant="muted" className="shrink-0 rounded-full px-2 py-0 text-[10px]">
               Inactivo
             </Badge>
           )}
         </div>
-        <p className="text-label-md text-on-surface-variant truncate">
+        <p className="text-label-md text-on-surface-variant truncate mt-1">
           {method.fields.length === 0
             ? "Sin campos"
             : `${method.fields.length} ${
                 method.fields.length === 1 ? "campo" : "campos"
-              }: ${method.fields
+              } · ${method.fields
                 .map((f) => f.label)
                 .filter(Boolean)
                 .join(", ")}`}
@@ -302,15 +312,16 @@ function SortableMethodRow({
 
 function PaymentMethodFieldTypeLegend() {
   return (
-    <div className="flex items-center gap-4 pt-2 text-label-md text-on-surface-variant">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-3 pt-2 text-label-md text-on-surface-variant">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container px-2.5 py-1">
         <Type className="size-3.5" />
-        Campo de texto
-      </div>
-      <div className="flex items-center gap-1.5">
+        Texto
+      </span>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container px-2.5 py-1">
         <ImageIcon className="size-3.5" />
-        Campo de imagen
-      </div>
+        Imagen
+      </span>
+      <span className="text-label-md text-on-surface-variant/70">Arrastra para reordenar</span>
     </div>
   )
 }
