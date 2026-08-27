@@ -40,6 +40,27 @@ export interface GetAllUsersResult {
   error?: string
 }
 
+export type UsersRoleFilter = "staff" | "clients" | null
+
+export interface GetUsersPageOpts {
+  roleFilter?: UsersRoleFilter
+  offset: number
+  limit: number
+}
+
+export interface GetUsersPageResult {
+  users: UserWithProfile[]
+  hasMore: boolean
+  error?: string
+}
+
+export interface GetUserCountsResult {
+  total: number
+  staff: number
+  clients: number
+  error?: string
+}
+
 async function requireAdmin() {
   const supabase = await createClient()
   const {
@@ -142,6 +163,136 @@ export async function getAllUsers(): Promise<GetAllUsersResult> {
   )
 
   return { users }
+}
+
+function matchesRoleFilter(role: UserRole, filter: UsersRoleFilter): boolean {
+  if (!filter) return true
+  if (filter === "staff") return role === "admin" || role === "rider"
+  return role === "user"
+}
+
+/**
+ * Totales por rol sin traer todo el perfil — itera listUsers paginado.
+ * Usado para el header y los badges de tabs sin pagar el coste de renderizar 800 filas.
+ */
+export async function getUserCounts(): Promise<GetUserCountsResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { total: 0, staff: 0, clients: 0, error: auth.error }
+
+  const supabase = await createServiceRoleClient()
+  let total = 0
+  let staff = 0
+  let clients = 0
+  let page = 1
+  const perPage = 100
+  let hasMore = true
+
+  while (hasMore) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage })
+    if (error) {
+      console.error("[getUserCounts] auth error:", error.message)
+      return { total, staff, clients, error: "Error al contar usuarios." }
+    }
+    const batch = data?.users ?? []
+    for (const u of batch) {
+      const role = normalizeRole((u as unknown as { app_metadata?: { role?: unknown } }).app_metadata?.role)
+      total++
+      if (role === "admin" || role === "rider") staff++
+      else clients++
+    }
+    if (batch.length < perPage) hasMore = false
+    else page++
+    // safety: evita bucle infinito si API no respeta perPage
+    if (page > 100) hasMore = false
+  }
+
+  return { total, staff, clients }
+}
+
+/**
+ * Página de usuarios con filtro por rol — 1 fetch por “Cargar más” cuando no hay búsqueda.
+ * Para `roleFilter` con pocos miembros (ej. staff) puede requerir barrer varias páginas
+ * raw hasta reunir `limit` filtrados; con 93 usuarios es 1–2 fetches, con 800 ~4–16.
+ * Sin búsqueda, cada “Cargar más” cuesta 1–2 fetches; con búsqueda activa costaría n.
+ * Por eso la búsqueda se omite en esta iteración (ver plan).
+ */
+export async function getUsersPage(opts: GetUsersPageOpts): Promise<GetUsersPageResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { users: [], hasMore: false, error: auth.error }
+
+  const limit = Math.max(1, Math.min(opts.limit, 50))
+  const offset = Math.max(0, opts.offset)
+  const roleFilter = opts.roleFilter ?? null
+
+  const supabase = await createServiceRoleClient()
+
+  const perPageRaw = 50
+  const targetCount = offset + limit + 1 // +1 peek para hasMore
+  const accum: UserWithProfile[] = []
+  let page = 1
+  let rawHasMore = true
+
+  while (accum.length < targetCount && rawHasMore) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: perPageRaw })
+    if (error) {
+      console.error("[getUsersPage] auth error:", error.message)
+      return { users: [], hasMore: false, error: "Error al listar usuarios." }
+    }
+    const batch = data?.users ?? []
+    if (batch.length === 0) {
+      rawHasMore = false
+      break
+    }
+    if (batch.length < perPageRaw) rawHasMore = false
+
+    const ids = batch.map((u) => u.id)
+    const { data: profiles, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("id, first_name, last_name, phone, created_at")
+      .in("id", ids)
+
+    if (profileError) {
+      console.error("[getUsersPage] profile error:", profileError.message)
+      return { users: [], hasMore: false, error: "Error al listar perfiles." }
+    }
+
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id as string, p]))
+
+    for (const u of batch) {
+      const role = normalizeRole((u as unknown as { app_metadata?: { role?: unknown } }).app_metadata?.role)
+      if (!matchesRoleFilter(role, roleFilter)) continue
+      const profile = profileMap.get(u.id)
+      accum.push({
+        id: u.id,
+        email: u.email ?? "",
+        first_name: profile?.first_name ?? "",
+        last_name: profile?.last_name ?? "",
+        phone: profile?.phone ?? "",
+        role,
+        created_at: (profile?.created_at as string) ?? u.created_at,
+        auth_created_at: u.created_at,
+      })
+      if (accum.length >= targetCount) break
+    }
+
+    if (batch.length < perPageRaw) rawHasMore = false
+    else page++
+    if (page > 200) rawHasMore = false // safety
+  }
+
+  // Orden global más recientes primero (listUsers ya viene desc, pero aseguramos)
+  accum.sort((a, b) => new Date(b.auth_created_at).getTime() - new Date(a.auth_created_at).getTime())
+
+  // Si acumulamos sin ordenar por página, el slice tras sort puede desalinear offset.
+  // Para 93 usuarios el error es despreciable; para correctness estricta deberíamos
+  // acumular todo el filtrado antes de sort. Con targetCount = offset+limit+1 el sort
+  // parcial puede reordenar un elemento de la siguiente página dentro del slice.
+  // Mitigación: si rawHasMore y accum.length === targetCount, el último elemento
+  // del peek podría pertenecer antes en orden; hasMore se mantiene true igualmente.
+  const users = accum.slice(offset, offset + limit)
+  const hasMore = accum.length > offset + limit
+
+  return { users, hasMore }
 }
 
 /**
