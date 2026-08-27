@@ -28,7 +28,7 @@ export function MenuProductCard({
         quantity > 0 && "border-primary bg-primary/5"
       )}
     >
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-container">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-container">
         {product.picture_url ? (
           <Image
             src={product.picture_url}
