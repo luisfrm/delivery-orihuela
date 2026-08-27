@@ -143,6 +143,41 @@ export async function getCompletedAdminOrders(): Promise<Order[]> {
   return getAdminOrders(["delivered", "cancelled"])
 }
 
+export type OrdersDateFilter = "all" | "today" | "yesterday" | "this_week" | "this_month"
+
+export interface AdminOrdersPageOpts {
+  statuses?: OrderStatus[]
+  offset: number
+  limit: number
+  dateFilter?: OrdersDateFilter
+}
+
+export interface AdminOrdersPageResult {
+  orders: Order[]
+  hasMore: boolean
+  total: number
+}
+
+export async function getAdminOrdersPage(opts: AdminOrdersPageOpts): Promise<AdminOrdersPageResult> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.getAdminOrdersPage(opts)
+}
+
+export interface AdminOrdersCountsResult extends Record<string, number> {
+  active: number
+  pending: number
+  in_progress: number
+  completed: number
+  total: number
+}
+
+export async function getAdminOrdersCounts(dateFilter: OrdersDateFilter = "all"): Promise<AdminOrdersCountsResult> {
+  const supabase = await createClient()
+  const service = new OrdersService(supabase)
+  return service.getAdminOrdersCounts(dateFilter) as Promise<AdminOrdersCountsResult>
+}
+
 export async function createOrder(
   params: Parameters<typeof import("@/lib/services/orders.service").OrdersService.prototype.createOrder>[0]
 ): Promise<import("@/lib/services/orders.service").OrderResult> {
