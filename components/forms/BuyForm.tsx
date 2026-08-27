@@ -1,13 +1,15 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Store as StoreIcon,
   MapPin,
   ArrowRight,
+  ArrowLeft,
   Search,
   Loader2,
+  ShoppingCart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +30,9 @@ import { DeliveryForm } from "./DeliveryForm"
 import { PaymentMethodSelect } from "./PaymentMethodSelect"
 import { PreviewForm, PreviewSuccess } from "./PreviewForm"
 import type { AddressSelection } from "@/components/ui/address-selector"
+import { formatPriceCents } from "@/lib/restaurants/menu-format"
+import { createOrder } from "@/lib/actions/orders"
+import { toast } from "sonner"
 
 type Step = "store" | "menu" | "address" | "payment" | "preview" | "success"
 
@@ -41,6 +46,8 @@ const PAGE_SIZE = 6
 export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
   const [step, setStep] = useState<Step>("store")
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
+  const [stores, setStores] = useState<Store[]>([])
   const [cart, setCart] = useState<Cart>({})
   const [addressSelection, setAddressSelection] = useState<AddressSelection>({
     type: "existing",
@@ -53,6 +60,9 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null)
   const [paymentMethodName, setPaymentMethodName] = useState<string | null>(null)
   const [paymentFieldInputs, setPaymentFieldInputs] = useState<PaymentFieldInput[]>([])
+  const [isPaymentValid, setIsPaymentValid] = useState(false)
+  const [isPreviewValid, setIsPreviewValid] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     async function loadFee() {
@@ -62,21 +72,19 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
     loadFee()
   }, [])
 
-  // Height transition: measure content and animate changes
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState<number | undefined>(undefined)
-
-  useLayoutEffect(() => {
-    if (!containerRef.current) return
-
-    const observer = new ResizeObserver((entries) => {
-      const newHeight = entries[0]?.contentRect.height ?? 0
-      setHeight(newHeight)
+  // Load stores once for footer validation (store step)
+  useEffect(() => {
+    let cancelled = false
+    getStores().then((data) => {
+      if (!cancelled) setStores(data)
     })
-
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
+    return () => {
+      cancelled = true
+    }
   }, [])
+
+  // No height animation for FormArea — scroll handles overflow
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     onStepChange?.(step)
@@ -84,6 +92,80 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
 
   const handleStepChange = (next: Step) => {
     setStep(next)
+  }
+
+  // Derived validations
+  const isStoreValid = selectedStoreId !== null
+  const totalItems = useMemo(() => Object.values(cart).reduce((sum, qty) => sum + qty, 0), [cart])
+  const itemsSubtotalCents = useMemo(
+    () => products.reduce((sum, p) => sum + (cart[p.id] ?? 0) * p.estimated_price, 0),
+    [products, cart]
+  )
+  const isMenuValid = totalItems > 0
+  const isAddressValid = addressSelection.type === "existing" && addressSelection.addressId !== null
+  // isPaymentValid from child callback
+  const isPreviewValidComputed = totalItems > 0 && isAddressValid && !!paymentMethodId && isPreviewValid
+
+  const selectedStoreObj = stores.find((s) => s.id === selectedStoreId) ?? null
+
+  const handleStoreContinue = () => {
+    const store = stores.find((s) => s.id === selectedStoreId)
+    if (!store) return
+    setSelectedStore(store)
+    handleStepChange("menu")
+  }
+
+  const handleMenuContinue = () => {
+    if (!selectedStore) return
+    onContinue?.({ store: selectedStore, cart })
+    handleStepChange("address")
+  }
+
+  const handlePreviewConfirm = async () => {
+    if (!selectedStore || !addressSelection.addressId || !paymentMethodId) return
+    if (!isPreviewValid) return
+    setIsSubmitting(true)
+    try {
+      const items = Object.entries(cart)
+        .filter(([, qty]) => qty > 0)
+        .map(([productId, quantity]) => {
+          const product = products.find((p) => p.id === productId)
+          return {
+            productId,
+            quantity,
+            unitPrice: product?.estimated_price ?? 0,
+          }
+        })
+
+      const result = await createOrder({
+        pickupReference: `Compra en ${selectedStore.name}`,
+        storeId: selectedStore.id,
+        customStoreName: selectedStore.name,
+        customStoreAddress: selectedStore.address,
+        addressId: addressSelection.addressId,
+        additionalNotes: additionalNotes.trim() || null,
+        deliveryFee,
+        serviceType: "buy_and_deliver",
+        items,
+        paymentMethodId,
+        paymentMethodName,
+        paymentFieldInputs,
+      })
+
+      if (result?.error) {
+        toast.error(result.error || "No se pudo crear el pedido")
+        setIsSubmitting(false)
+        return
+      }
+
+      if (result.orderId) {
+        setOrderId(result.orderId)
+        handleStepChange("success")
+      }
+    } catch {
+      toast.error("No se pudo crear el pedido. Intenta de nuevo.")
+      setIsSubmitting(false)
+    }
   }
 
   let content: React.ReactNode
@@ -101,11 +183,7 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         paymentMethodId={paymentMethodId}
         paymentMethodName={paymentMethodName}
         paymentFieldInputs={paymentFieldInputs}
-        onBack={() => handleStepChange("payment")}
-        onSuccess={(id) => {
-          setOrderId(id)
-          handleStepChange("success")
-        }}
+        onValidationChange={setIsPreviewValid}
       />
     )
   } else if (step === "payment") {
@@ -120,6 +198,7 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         }}
         onContinue={() => handleStepChange("preview")}
         onBack={() => handleStepChange("address")}
+        onValidationChange={setIsPaymentValid}
       />
     )
   } else if (step === "menu" && selectedStore) {
@@ -129,11 +208,6 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
         cart={cart}
         onCartChange={setCart}
         onProductsLoaded={setProducts}
-        onContinue={() => {
-          onContinue?.({ store: selectedStore, cart })
-          handleStepChange("address")
-        }}
-        onBack={() => handleStepChange("store")}
       />
     )
   } else if (step === "address") {
@@ -149,29 +223,201 @@ export function BuyForm({ onStepChange, onContinue }: BuyFormProps) {
     )
   } else {
     content = (
-      <StoreStep
-        onSelect={(store) => {
-          setSelectedStore(store)
-          handleStepChange("menu")
-        }}
+      <StoreStepControlled
+        selectedStoreId={selectedStoreId}
+        onSelectId={setSelectedStoreId}
+        stores={stores}
       />
     )
   }
 
+  // Footer per step — fixed outside scroll, always visible
+  let footer: React.ReactNode = null
+  if (step === "store") {
+    footer = (
+      <div className="flex gap-2">
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          onClick={handleStoreContinue}
+          disabled={!isStoreValid}
+        >
+          Continuar
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
+    )
+  } else if (step === "menu" && selectedStore) {
+    footer = (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-body-md">
+            <ShoppingCart className="size-4 text-primary" />
+            <span className="font-semibold text-on-surface">
+              {totalItems} {totalItems === 1 ? "item" : "items"}
+            </span>
+          </div>
+          <span className="text-headline-md font-bold text-primary">
+            {formatPriceCents(itemsSubtotalCents)}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline_primary"
+            size="lg"
+            onClick={() => handleStepChange("store")}
+            className="shrink-0"
+          >
+            <ArrowLeft className="size-4" />
+            Volver
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={handleMenuContinue}
+            disabled={!isMenuValid}
+            className="flex-1"
+          >
+            Continuar
+            <ArrowRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  } else if (step === "address") {
+    const showBack = addressSelection.type !== "new"
+    footer = (
+      <div className="flex gap-2">
+        {showBack && (
+          <Button
+            type="button"
+            variant="outline_primary"
+            size="lg"
+            onClick={() => handleStepChange("menu")}
+            className="shrink-0"
+          >
+            <ArrowLeft className="size-4" />
+            Volver
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          onClick={() => handleStepChange("payment")}
+          disabled={!isAddressValid}
+          className="flex-1"
+        >
+          Continuar
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
+    )
+  } else if (step === "payment") {
+    footer = (
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline_primary"
+          size="lg"
+          onClick={() => handleStepChange("address")}
+          className="shrink-0"
+        >
+          <ArrowLeft className="size-4" />
+          Volver
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          onClick={() => handleStepChange("preview")}
+          disabled={!isPaymentValid}
+          className="flex-1"
+        >
+          Continuar
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
+    )
+  } else if (step === "preview" && selectedStore) {
+    const totalCents = itemsSubtotalCents + deliveryFee
+    footer = (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-body-sm">
+          <span className="text-on-surface-variant">Total</span>
+          <span className="text-headline-md font-bold text-primary">
+            {formatPriceCents(totalCents)}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline_primary"
+            size="lg"
+            onClick={() => handleStepChange("payment")}
+            disabled={isSubmitting}
+            className="shrink-0"
+          >
+            <ArrowLeft className="size-4" />
+            Volver
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={handlePreviewConfirm}
+            disabled={!isPreviewValid || isSubmitting}
+            className="flex-1"
+          >
+            {isSubmitting ? "Confirmando..." : "Confirmar pedido"}
+          </Button>
+        </div>
+      </div>
+    )
+  } else if (step === "success") {
+    footer = null
+  }
+
+  // Success has no footer
+  if (step === "success") {
+    return (
+      <div className="flex-1 overflow-y-auto px-5 py-4 md:px-6">
+        <div ref={containerRef}>{content}</div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      style={{ height: height !== undefined ? `${height}px` : "auto" }}
-      className="transition-[height] duration-300 ease-out overflow-hidden"
-    >
-      <div ref={containerRef}>{content}</div>
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      {/* FormArea — scrollable */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 md:px-6">
+        <div ref={containerRef}>{content}</div>
+      </div>
+
+      {/* Footer — fixed, always visible, respects rounded corners via parent overflow-hidden */}
+      {footer && (
+        <div className="flex-shrink-0 border-t border-outline-variant bg-white px-5 py-4 md:px-6">
+          <div className="mx-auto max-w-md">{footer}</div>
+        </div>
+      )}
     </div>
   )
 }
 
-function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
-  const [stores, setStores] = useState<Store[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
+function StoreStepControlled({
+  selectedStoreId,
+  onSelectId,
+  stores: propStores,
+}: {
+  selectedStoreId: string | null
+  onSelectId: (id: string) => void
+  stores: Store[]
+}) {
+  const [stores, setStores] = useState<Store[]>(propStores)
+  const [isLoading, setIsLoading] = useState(propStores.length === 0)
   const [search, setSearch] = useState("")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
@@ -183,7 +429,27 @@ function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
     setVisibleCount(PAGE_SIZE)
   }
 
-  useLoadStores(setStores, setIsLoading)
+  // Sync propStores when parent loads
+  useEffect(() => {
+    if (propStores.length > 0) {
+      setStores(propStores)
+      setIsLoading(false)
+    }
+  }, [propStores])
+
+  useEffect(() => {
+    if (propStores.length > 0) return
+    let cancelled = false
+    getStores().then((data) => {
+      if (!cancelled) {
+        setStores(data)
+        setIsLoading(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [propStores.length])
 
   const filteredStores = stores.filter((store) => {
     if (!debouncedSearch.trim()) return true
@@ -207,14 +473,6 @@ function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
     hasMore,
     onLoadMore: handleLoadMore,
   })
-
-  const selectedStore = stores.find((s) => s.id === selectedStoreId) ?? null
-  const isValid = selectedStoreId !== null
-
-  const handleContinue = () => {
-    if (!isValid || !selectedStore) return
-    onSelect(selectedStore)
-  }
 
   return (
     <div className="pt-4 space-y-4">
@@ -252,7 +510,7 @@ function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
           <ListItemSelector
             items={visibleStores}
             selectedId={selectedStoreId}
-            onSelect={(store) => setSelectedStoreId(store.id)}
+            onSelect={(store) => onSelectId(store.id)}
             getItemId={(store) => store.id}
             showSearch={false}
             emptyMessage=""
@@ -307,39 +565,8 @@ function StoreStep({ onSelect }: { onSelect: (store: Store) => void }) {
           ) : null}
         </>
       )}
-
-      <Button
-        variant="primary"
-        size="lg"
-        className="w-full"
-        onClick={handleContinue}
-        disabled={!isValid}
-      >
-        Continuar
-        <ArrowRight className="size-4" />
-      </Button>
     </div>
   )
-}
-
-function useLoadStores(
-  setStores: (stores: Store[]) => void,
-  setIsLoading: (loading: boolean) => void
-) {
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const data = await getStores()
-      if (!cancelled) {
-        setStores(data)
-        setIsLoading(false)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [setStores, setIsLoading])
 }
 
 function StoreListSkeleton({ count = 2 }: { count?: number }) {

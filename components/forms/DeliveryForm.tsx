@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, ArrowRight, FileText, MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { FileText, MapPin } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import {
   AddressSelector,
@@ -56,7 +55,7 @@ export function DeliveryForm({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="pt-4 pb-3 space-y-1">
         <h2 className="text-lg font-bold text-on-surface">Datos de entrega</h2>
@@ -67,7 +66,7 @@ export function DeliveryForm({
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-5 pb-32">
+      <div className="flex-1 space-y-5">
         {/* Address section */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-label-lg font-medium text-on-surface pl-1">
@@ -107,34 +106,6 @@ export function DeliveryForm({
         </div>
       </div>
 
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant bg-surface-container-lowest px-5 py-3 md:px-6">
-        <div className="mx-auto max-w-md flex gap-2">
-          {addressSelection.type !== "new" && (
-            <Button
-              type="button"
-              variant="outline_primary"
-              size="lg"
-              onClick={onBack}
-              className="shrink-0"
-            >
-              <ArrowLeft className="size-4" />
-              Volver
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            onClick={onContinue}
-            disabled={!isValid}
-            className="flex-1"
-          >
-            Continuar
-            <ArrowRight className="size-4" />
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }

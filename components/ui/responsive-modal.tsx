@@ -92,6 +92,10 @@ interface ResponsiveModalContentProps {
 	className?: string;
 	/** Max width for desktop modal (Tailwind class, e.g. "max-w-md") */
 	desktopMaxWidth?: string;
+	/** Fixed footer below the scrollable body — stays visible, respects rounded corners */
+	footer?: React.ReactNode;
+	/** Extra class for the scrollable body (e.g. "p-0" when footer handles layout) */
+	bodyClassName?: string;
 }
 
 function ResponsiveModalContent({
@@ -101,6 +105,8 @@ function ResponsiveModalContent({
 	children,
 	className,
 	desktopMaxWidth = "max-w-md",
+	footer,
+	bodyClassName,
 }: ResponsiveModalContentProps) {
 	const { isMobile, onOpenChange } = useResponsiveModal();
 
@@ -163,7 +169,7 @@ function ResponsiveModalContent({
 						// Layout
 						"fixed bottom-0 left-0 right-0 z-50",
 						"flex flex-col",
-						"rounded-t-2xl bg-white",
+						"rounded-t-2xl bg-white overflow-hidden",
 						"shadow-[0_-8px_40px_rgba(0,0,0,0.18)]",
 						// Max height
 						"max-h-[90dvh]",
@@ -189,9 +195,20 @@ function ResponsiveModalContent({
 					<SheetHeader icon={icon} title={title} subtitle={subtitle} />
 
 					{/* Body — scrollable */}
-					<div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-6">
+					<div
+						className={cn(
+							"flex-1 overflow-y-auto overscroll-contain px-5 pb-6",
+							bodyClassName
+						)}
+					>
 						{children}
 					</div>
+
+					{footer ? (
+						<div className="flex-shrink-0 border-t border-outline-variant bg-white">
+							{footer}
+						</div>
+					) : null}
 				</DialogPrimitive.Content>
 			</DialogPrimitive.Portal>
 		);
@@ -220,7 +237,7 @@ function ResponsiveModalContent({
 					"w-full",
 					desktopMaxWidth,
 					// Visual
-					"rounded-2xl bg-white shadow-2xl",
+					"rounded-2xl bg-white shadow-2xl overflow-hidden",
 					"flex flex-col max-h-[90dvh]",
 					// Animations
 					"data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -236,7 +253,13 @@ function ResponsiveModalContent({
 				<SheetHeader icon={icon} title={title} subtitle={subtitle} />
 
 				{/* Body — scrollable */}
-				<div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
+				<div className={cn("flex-1 overflow-y-auto px-6 pb-6", bodyClassName)}>{children}</div>
+
+				{footer ? (
+					<div className="flex-shrink-0 border-t border-outline-variant bg-white">
+						{footer}
+					</div>
+				) : null}
 			</DialogPrimitive.Content>
 		</DialogPrimitive.Portal>
 	);

@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import {
-  ArrowLeft,
   CheckCircle,
   CreditCard,
   MapPin,
@@ -13,9 +12,7 @@ import {
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createOrder } from "@/lib/actions/orders"
 import { formatPriceCents } from "@/lib/restaurants/menu-format"
-import { toast } from "sonner"
 import type { Product, Store } from "@/lib/types"
 import type { AddressSelection } from "@/components/ui/address-selector"
 import type { PaymentFieldInput } from "@/lib/types/payment-methods"
@@ -31,8 +28,7 @@ interface PreviewFormProps {
   paymentMethodId: string | null
   paymentMethodName: string | null
   paymentFieldInputs: PaymentFieldInput[]
-  onBack: () => void
-  onSuccess: (orderId: string) => void
+  onValidationChange?: (isValid: boolean) => void
 }
 
 export function PreviewForm({
@@ -45,10 +41,8 @@ export function PreviewForm({
   paymentMethodId,
   paymentMethodName,
   paymentFieldInputs,
-  onBack,
-  onSuccess,
+  onValidationChange,
 }: PreviewFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [zoomImage, setZoomImage] = useState<{
     url: string
     label: string
@@ -73,54 +67,12 @@ export function PreviewForm({
     paymentMethodId !== null &&
     paymentFieldInputs.every((input) => input.type === "visual" || input.value.trim().length > 0)
 
-  const handleConfirm = async () => {
-    if (!isValid || !addressSelection.addressId || !paymentMethodId) return
-
-    setIsSubmitting(true)
-    try {
-      const items = Object.entries(cart)
-        .filter(([, qty]) => qty > 0)
-        .map(([productId, quantity]) => {
-          const product = products.find((p) => p.id === productId)
-          return {
-            productId,
-            quantity,
-            unitPrice: product?.estimated_price ?? 0,
-          }
-        })
-
-      const result = await createOrder({
-        pickupReference: `Compra en ${store.name}`,
-        storeId: store.id,
-        customStoreName: store.name,
-        customStoreAddress: store.address,
-        addressId: addressSelection.addressId,
-        additionalNotes: additionalNotes.trim() || null,
-        deliveryFee: deliveryFeeCents,
-        serviceType: "buy_and_deliver",
-        items,
-        paymentMethodId,
-        paymentMethodName,
-        paymentFieldInputs,
-      })
-
-      if (result?.error) {
-        toast.error(result.error || "No se pudo crear el pedido")
-        setIsSubmitting(false)
-        return
-      }
-
-      if (result.orderId) {
-        onSuccess(result.orderId)
-      }
-    } catch {
-      toast.error("No se pudo crear el pedido. Intenta de nuevo.")
-      setIsSubmitting(false)
-    }
-  }
+  useEffect(() => {
+    onValidationChange?.(isValid)
+  }, [isValid, onValidationChange])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="pt-4 pb-3 space-y-1">
         <h2 className="text-lg font-bold text-on-surface">Confirmar pedido</h2>
@@ -130,7 +82,7 @@ export function PreviewForm({
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-4 pb-32">
+      <div className="flex-1 space-y-4">
         {/* Store section */}
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3">
           <div className="flex items-start gap-3">
@@ -246,33 +198,6 @@ export function PreviewForm({
               {formatPriceCents(totalCents)}
             </span>
           </div>
-        </div>
-      </div>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 rounded-b-2xl overflow-hidden border-t border-outline-variant bg-surface-container-lowest px-5 py-3 md:px-6">
-        <div className="mx-auto max-w-md flex gap-2">
-          <Button
-            type="button"
-            variant="outline_primary"
-            size="lg"
-            onClick={onBack}
-            disabled={isSubmitting}
-            className="shrink-0"
-          >
-            <ArrowLeft className="size-4" />
-            Volver
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            onClick={handleConfirm}
-            disabled={!isValid || isSubmitting}
-            className="flex-1"
-          >
-            {isSubmitting ? "Confirmando..." : "Confirmar pedido"}
-          </Button>
         </div>
       </div>
 

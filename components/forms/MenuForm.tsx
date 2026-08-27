@@ -1,10 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ArrowLeft, ArrowRight, Loader2, ShoppingCart } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getStoreProductsPage } from "@/lib/actions/stores"
-import { formatPriceCents } from "@/lib/restaurants/menu-format"
 import { getCategoryById, type MenuCategory } from "@/lib/restaurants/menu-categories"
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll"
 import type { Product, Store } from "@/lib/types"
@@ -18,8 +17,6 @@ interface MenuFormProps {
   cart: Cart
   onCartChange: (cart: Cart) => void
   onProductsLoaded: (products: Product[]) => void
-  onContinue: () => void
-  onBack: () => void
 }
 
 const PAGE_SIZE = 20
@@ -29,8 +26,6 @@ export function MenuForm({
   cart,
   onCartChange,
   onProductsLoaded,
-  onContinue,
-  onBack,
 }: MenuFormProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [cachedProducts, setCachedProducts] = useState<Record<string, Product>>({})
@@ -41,16 +36,13 @@ export function MenuForm({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Merge newly fetched products into cache for cart/subtotal (persists across category switches)
-  const mergeCacheAndNotify = useCallback(
-    (newProducts: Product[], prevCache: Record<string, Product>) => {
-      const nextCache = { ...prevCache }
-      for (const p of newProducts) nextCache[p.id] = p
-      onProductsLoaded(Object.values(nextCache))
-      return nextCache
-    },
-    [onProductsLoaded]
-  )
+  // Notify parent (BuyForm) when cache grows — deferred to effect to avoid
+  // "Cannot update a component from inside the function body of a different
+  // component" (setState-in-render). Previous mergeCacheAndNotify called
+  // onProductsLoaded inside setCachedProducts updater, which runs during render.
+  useEffect(() => {
+    onProductsLoaded(Object.values(cachedProducts))
+  }, [cachedProducts, onProductsLoaded])
 
   // Fetch helper: offset is absolute position in paginated result for current category filter
   const fetchPage = useCallback(
@@ -78,10 +70,18 @@ export function MenuForm({
         if (isInitial) {
           setProducts(data.products)
           setCategoryOrder(data.categoryOrder)
-          setCachedProducts((prev) => mergeCacheAndNotify(data.products, prev))
+          setCachedProducts((prev) => {
+            const next = { ...prev }
+            for (const p of data.products) next[p.id] = p
+            return next
+          })
         } else {
           setProducts((prev) => [...prev, ...data.products])
-          setCachedProducts((prev) => mergeCacheAndNotify(data.products, prev))
+          setCachedProducts((prev) => {
+            const next = { ...prev }
+            for (const p of data.products) next[p.id] = p
+            return next
+          })
           // categoryOrder stable per store, keep first value
           if (data.categoryOrder.length > 0) {
             setCategoryOrder((prev) => (prev.length === 0 ? data.categoryOrder : prev))
@@ -97,7 +97,7 @@ export function MenuForm({
         else setIsLoadingMore(false)
       }
     },
-    [store.slug, mergeCacheAndNotify]
+    [store.slug]
   )
 
   // Reset cache only when store changes (not on category change) to preserve cart products
@@ -147,16 +147,6 @@ export function MenuForm({
     .map((id) => getCategoryById(id))
     .filter((cat): cat is MenuCategory => Boolean(cat))
 
-  const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0)
-
-  // Use cache for subtotal so cart items from previously visited categories are still counted
-  const itemsSubtotalCents = Object.values(cachedProducts).reduce((sum, p) => {
-    const qty = cart[p.id] ?? 0
-    return sum + qty * p.estimated_price
-  }, 0)
-
-  const isCartValid = totalItems > 0
-
   const handleIncrement = (productId: string) => {
     onCartChange({ ...cart, [productId]: (cart[productId] ?? 0) + 1 })
   }
@@ -173,7 +163,7 @@ export function MenuForm({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="pt-4 pb-3 space-y-1">
         <h2 className="text-lg font-bold text-on-surface">Selecciona tu pedido</h2>
@@ -183,7 +173,7 @@ export function MenuForm({
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-3 pb-32">
+      <div className="flex-1 space-y-3">
         {isLoading ? (
           <MenuSkeleton count={4} />
         ) : error ? (
@@ -197,97 +187,65 @@ export function MenuForm({
               Reintentar
             </Button>
           </div>
-        ) : products.length === 0 ? (
-          <div className="py-12 text-center text-body-md text-on-surface-variant">
-            {selectedCategory
-              ? "No hay productos en esta categoría."
-              : "Este establecimiento aún no tiene productos disponibles."}
-          </div>
         ) : (
           <>
-            <MenuCategoryTabs
-              categories={availableCategories}
-              selectedCategory={selectedCategory}
-              onSelect={handleSelectCategory}
-            />
+            {availableCategories.length > 0 ? (
+              <MenuCategoryTabs
+                categories={availableCategories}
+                selectedCategory={selectedCategory}
+                onSelect={handleSelectCategory}
+              />
+            ) : null}
 
-            <div className="space-y-2">
-              {products.map((product) => (
-                <MenuProductCard
-                  key={product.id}
-                  product={product}
-                  quantity={cart[product.id] ?? 0}
-                  onIncrement={() => handleIncrement(product.id)}
-                  onDecrement={() => handleDecrement(product.id)}
-                />
-              ))}
-            </div>
+            {products.length === 0 ? (
+              <div className="py-12 text-center text-body-md text-on-surface-variant">
+                {selectedCategory
+                  ? "No hay productos en esta categoría."
+                  : "Este establecimiento aún no tiene productos disponibles."}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {products.map((product) => (
+                    <MenuProductCard
+                      key={product.id}
+                      product={product}
+                      quantity={cart[product.id] ?? 0}
+                      onIncrement={() => handleIncrement(product.id)}
+                      onDecrement={() => handleDecrement(product.id)}
+                    />
+                  ))}
+                </div>
 
-            {/* Sentinel + loading more */}
-            {hasMore ? (
-              <div
-                ref={sentinelRef}
-                className="flex items-center justify-center gap-2 py-4 text-body-sm text-on-surface-variant"
-              >
+                {/* Sentinel + loading more */}
+                {hasMore ? (
+                  <div
+                    ref={sentinelRef}
+                    className="flex items-center justify-center gap-2 py-4 text-body-sm text-on-surface-variant"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Cargando más...</span>
+                      </>
+                    ) : (
+                      <span className="h-4" aria-hidden />
+                    )}
+                  </div>
+                ) : null}
+
                 {isLoadingMore ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    <span>Cargando más...</span>
-                  </>
-                ) : (
-                  <span className="h-4" aria-hidden />
-                )}
-              </div>
-            ) : null}
-
-            {isLoadingMore ? (
-              <div className="space-y-2">
-                <MenuSkeleton count={2} />
-              </div>
-            ) : null}
+                  <div className="space-y-2">
+                    <MenuSkeleton count={2} />
+                  </div>
+                ) : null}
+              </>
+            )}
           </>
         )}
       </div>
 
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant bg-surface-container-lowest px-5 py-3 md:px-6">
-        <div className="mx-auto max-w-md space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-body-md">
-              <ShoppingCart className="size-4 text-primary" />
-              <span className="font-semibold text-on-surface">
-                {totalItems} {totalItems === 1 ? "item" : "items"}
-              </span>
-            </div>
-            <span className="text-headline-md font-bold text-primary">
-              {formatPriceCents(itemsSubtotalCents)}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline_primary"
-              size="lg"
-              onClick={onBack}
-              className="shrink-0"
-            >
-              <ArrowLeft className="size-4" />
-              Volver
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              onClick={onContinue}
-              disabled={!isCartValid}
-              className="flex-1"
-            >
-              Continuar
-              <ArrowRight className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+
     </div>
   )
 }
