@@ -49,13 +49,13 @@ export default async function AdminDashboardPage() {
   const hasData = (stats?.totalOrders ?? 0) > 0
 
   return (
-    <div className="space-y-6 max-w-7xl">
-      {/* Hero — Card real, padding corregido */}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Hero — mobile: stack, desktop: row */}
       <Card variant="surface" className="overflow-hidden">
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-center gap-2 text-label-md text-on-surface-variant">
+              <div className="flex flex-wrap items-center gap-2 text-label-md text-on-surface-variant">
                 <span className="size-2 rounded-full bg-primary animate-pulse" aria-hidden />
                 <span className="font-semibold tracking-wide">PANEL OPERATIVO</span>
                 <span className="hidden sm:inline opacity-40">·</span>
@@ -64,7 +64,7 @@ export default async function AdminDashboardPage() {
                   {dateLong}
                 </span>
               </div>
-              <CardTitle className="text-[24px] leading-none tracking-tight lg:text-[28px]">
+              <CardTitle className="text-[22px] leading-none tracking-tight sm:text-[24px] lg:text-[28px]">
                 Hola, {adminName}
               </CardTitle>
               <CardDescription className="text-body-sm max-w-[560px] leading-snug">
@@ -74,13 +74,13 @@ export default async function AdminDashboardPage() {
                   : "sin pedidos aún, listo para el primero"}
               </CardDescription>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button nativeButton={false} render={<Link href="/panel/orders" />} variant="primary" size="default">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0 sm:items-center">
+              <Button nativeButton={false} render={<Link href="/panel/orders" />} variant="primary" size="default" className="w-full sm:w-auto">
                 <Clock className="size-4" />
                 Ver pedidos
-                <ArrowUpRight className="size-4" />
+                <ArrowUpRight className="size-4 hidden sm:inline-flex" />
               </Button>
-              <Button nativeButton={false} render={<Link href="/panel/restaurants" />} variant="outline_primary" size="default">
+              <Button nativeButton={false} render={<Link href="/panel/restaurants" />} variant="outline_primary" size="default" className="w-full sm:w-auto">
                 <Store className="size-4" />
                 Restaurantes
               </Button>
@@ -88,7 +88,7 @@ export default async function AdminDashboardPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-3 divide-x divide-outline-variant/30 rounded-xl border border-outline-variant/30 bg-surface-container/40 overflow-hidden">
+          <div className="grid grid-cols-1 divide-y divide-outline-variant/30 overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container/40 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <div className="px-4 py-3 sm:px-5">
               <p className="text-label-md text-on-surface-variant">Hoy</p>
               <p className="text-body-md font-bold text-on-surface mt-0.5">

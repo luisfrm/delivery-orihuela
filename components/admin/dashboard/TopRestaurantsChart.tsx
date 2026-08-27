@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select"
 import { formatPriceCents } from "@/lib/restaurants/menu-format"
 import { getTopStoresChartAction } from "@/lib/actions/dashboard"
 import { Store, TrendingUp } from "lucide-react"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 type Range = "week" | "month" | "all"
 type Metric = "revenue" | "orders"
@@ -49,24 +50,25 @@ export function TopRestaurantsChart({ initialData }: Props) {
     display: metric === "revenue" ? formatPriceCents(d.revenueCents) : `${d.count}`,
   }))
 
+  const isMobile = useIsMobile()
   const hasData = chartData.length > 0 && chartData.some((d) => d.value > 0)
 
   return (
     <Card variant="surface" className="flex flex-col overflow-hidden">
       <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <CardTitle className="flex items-center gap-2 text-[15px]">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Store className="size-4" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-2.5 text-[15px]">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 p-2 text-primary">
+                <Store className="size-5" />
               </span>
-              Top restaurantes
+              <span className="leading-tight">Top restaurantes</span>
             </CardTitle>
-            <CardDescription className="mt-1">Los 6 que más {metric === "revenue" ? "ingresan" : "venden"} · {range === "week" ? "esta semana" : range === "month" ? "este mes" : "histórico"}</CardDescription>
+            <CardDescription className="mt-1.5">Los 6 que más {metric === "revenue" ? "ingresan" : "venden"} · {range === "week" ? "esta semana" : range === "month" ? "este mes" : "histórico"}</CardDescription>
           </div>
-          <div className="flex shrink-0 gap-2">
-            <Select options={METRIC_OPTIONS as unknown as { value: string; label: string }[]} value={metric} onChange={(v) => setMetric(v as Metric)} size="sm" className="w-[112px]" />
-            <Select options={RANGE_OPTIONS as unknown as { value: string; label: string }[]} value={range} onChange={(v) => setRange(v as Range)} size="sm" className="w-[110px]" />
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0">
+            <Select options={METRIC_OPTIONS as unknown as { value: string; label: string }[]} value={metric} onChange={(v) => setMetric(v as Metric)} size="sm" className="w-full sm:w-[112px]" />
+            <Select options={RANGE_OPTIONS as unknown as { value: string; label: string }[]} value={range} onChange={(v) => setRange(v as Range)} size="sm" className="w-full sm:w-[110px]" />
           </div>
         </div>
       </CardHeader>
@@ -94,8 +96,8 @@ export function TopRestaurantsChart({ initialData }: Props) {
                 <YAxis
                   type="category"
                   dataKey="name"
-                  width={110}
-                  tick={{ fontSize: 12, fill: "var(--foreground)" }}
+                  width={isMobile ? 84 : 110}
+                  tick={{ fontSize: isMobile ? 11 : 12, fill: "var(--foreground)" }}
                   axisLine={false}
                   tickLine={false}
                 />
