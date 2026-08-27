@@ -24,6 +24,7 @@ export interface ImageUploadProps {
   helperText?: string
   maxSize?: number
   existingUrl?: string | null
+  onRemoveExisting?: () => void
 }
 
 const aspectClasses: Record<NonNullable<ImageUploadProps["aspectRatio"]>, string> = {
@@ -45,6 +46,7 @@ export function ImageUpload({
   helperText,
   maxSize = MAX_IMAGE_SIZE,
   existingUrl = null,
+  onRemoveExisting,
 }: ImageUploadProps) {
   const inputId = useId()
   const errorId = `${inputId}-error`
@@ -104,6 +106,13 @@ export function ImageUpload({
     if (disabled) return
     setLocalError(null)
     onChange(null)
+  }
+
+  const handleRemoveExisting = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    if (disabled) return
+    setLocalError(null)
+    onRemoveExisting?.()
   }
 
   const openFilePicker = () => {
@@ -171,6 +180,16 @@ export function ImageUpload({
                 onClick={handleRemove}
                 disabled={disabled}
                 aria-label="Eliminar imagen"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-on-surface shadow-sm transition-transform hover:scale-105 active:scale-95"
+              >
+                <X className="size-4" />
+              </button>
+            ) : hasExistingImage && onRemoveExisting ? (
+              <button
+                type="button"
+                onClick={handleRemoveExisting}
+                disabled={disabled}
+                aria-label="Eliminar imagen actual"
                 className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-on-surface shadow-sm transition-transform hover:scale-105 active:scale-95"
               >
                 <X className="size-4" />

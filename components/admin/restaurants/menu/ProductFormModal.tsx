@@ -121,7 +121,8 @@ function ProductFormBody({
   const [description, setDescription] = useState(initialDescription)
   const [priceInput, setPriceInput] = useState(initialPrice)
   const [pictureFile, setPictureFile] = useState<File | null>(null)
-  const [existingPictureUrl] = useState(initialPictureUrl)
+  const [existingPictureUrl, setExistingPictureUrl] = useState(initialPictureUrl)
+  const [shouldRemoveImage, setShouldRemoveImage] = useState(false)
   const [errors, setErrors] = useState<{ name?: string; description?: string; price?: string }>({})
   const [generalError, setGeneralError] = useState("")
   const [isSaving, setIsSaving] = useState(false)
@@ -154,7 +155,7 @@ function ProductFormBody({
     try {
       const finalProductId = productId ?? crypto.randomUUID()
 
-      let pictureUrl: string | null = existingPictureUrl
+      let pictureUrl: string | null = shouldRemoveImage ? null : existingPictureUrl
       if (pictureFile) {
         const { url, error } = await uploadProductImageAction(
           storeId,
@@ -181,8 +182,9 @@ function ProductFormBody({
           estimatedPrice: cents,
           isActive: existingIsActive,
         })
-        if (!result.error && pictureUrl && pictureUrl !== existingPictureUrl) {
-          await deleteProductImageAction(existingPictureUrl as string)
+        // Storage cleanup: if picture changed or explicitly removed, delete old file
+        if (!result.error && initialPictureUrl && pictureUrl !== initialPictureUrl) {
+          await deleteProductImageAction(initialPictureUrl)
         }
       } else {
         result = await createProductAction({
@@ -297,9 +299,22 @@ function ProductFormBody({
         label="Imagen del plato"
         name="picture"
         value={pictureFile}
-        onChange={setPictureFile}
+        onChange={(file) => {
+          setPictureFile(file)
+          if (file) setShouldRemoveImage(false)
+        }}
+        existingUrl={shouldRemoveImage ? null : existingPictureUrl}
+        onRemoveExisting={() => {
+          setShouldRemoveImage(true)
+          setExistingPictureUrl(null)
+          setPictureFile(null)
+        }}
         aspectRatio="video"
-        helperText="Opcional. Aparecerá como thumbnail del plato."
+        helperText={
+          shouldRemoveImage
+            ? "Imagen eliminada — se guardará sin foto."
+            : "Opcional. Aparecerá como thumbnail del plato."
+        }
       />
 
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
