@@ -41,16 +41,39 @@ export async function getTopStores(limit = 3) {
   return service.getTopStores(limit)
 }
 
+export async function getTopStoresChartAction(
+  range: "week" | "month" | "all" = "month",
+  limit = 6
+) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return []
+  const supabase = await createClient()
+  const serviceRole = await createServiceRoleClient()
+  const service = new DashboardService(supabase, serviceRole)
+  return service.getTopStoresChart(range, limit)
+}
+
+export async function getDailyOrdersAction(days: 7 | 14 | 30 = 14) {
+  const guard = await requireAdmin()
+  if (!guard.ok) return []
+  const supabase = await createClient()
+  const serviceRole = await createServiceRoleClient()
+  const service = new DashboardService(supabase, serviceRole)
+  return service.getDailyOrders(days)
+}
+
 export async function getDashboardData() {
   const guard = await requireAdmin()
   if (!guard.ok) return null
   const supabase = await createClient()
   const serviceRole = await createServiceRoleClient()
   const service = new DashboardService(supabase, serviceRole)
-  const [stats, recent, topStores] = await Promise.all([
+  const [stats, recent, topStores, topChart, daily] = await Promise.all([
     service.getStats(),
     service.getRecentOrders(5),
     service.getTopStores(3),
+    service.getTopStoresChart("month", 6),
+    service.getDailyOrders(14),
   ])
-  return { stats, recent, topStores, adminName: guard.user.user_metadata?.first_name ?? guard.user.email?.split("@")[0] ?? "Admin" }
+  return { stats, recent, topStores, topChart, daily, adminName: guard.user.user_metadata?.first_name ?? guard.user.email?.split("@")[0] ?? "Admin" }
 }

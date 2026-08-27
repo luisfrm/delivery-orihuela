@@ -25,6 +25,8 @@ import { formatPriceCents } from "@/lib/restaurants/menu-format"
 import { getDashboardData } from "@/lib/actions/dashboard"
 import { getOrganizationSettings } from "@/lib/actions/organization"
 import { ORDER_STATUS_CONFIG } from "@/lib/orders/order-status"
+import { TopRestaurantsChart } from "@/components/admin/dashboard/TopRestaurantsChart"
+import { DailyOrdersChart } from "@/components/admin/dashboard/DailyOrdersChart"
 
 export const dynamic = "force-dynamic"
 
@@ -33,6 +35,8 @@ export default async function AdminDashboardPage() {
   const stats = dashboard?.stats
   const recent = dashboard?.recent ?? []
   const topStores = dashboard?.topStores ?? []
+  const topChart = dashboard?.topChart ?? []
+  const daily = dashboard?.daily ?? []
   const adminName = dashboard?.adminName ?? "Admin"
 
   const now = new Date()
@@ -194,6 +198,12 @@ export default async function AdminDashboardPage() {
             <p className="mt-1.5 text-label-md text-on-surface-variant">{stats?.cancelledOrders ?? 0} cancelados totales</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Tendencias — V2: Top 6 + evolución diaria (recharts) */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <TopRestaurantsChart initialData={topChart} />
+        <DailyOrdersChart initialData={daily} />
       </div>
 
       {/* Secundaria */}

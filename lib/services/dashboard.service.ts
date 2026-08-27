@@ -151,4 +151,95 @@ export class DashboardService {
       .sort((a, b) => b.count - a.count)
       .slice(0, limit)
   }
+
+  async getTopStoresChart(
+    range: "week" | "month" | "all" = "month",
+    limit = 6
+  ): Promise<{ storeId: string; storeName: string; count: number; revenueCents: number }[]> {
+    let gte: string | null = null
+    if (range === "week") {
+      const d = new Date()
+      const day = d.getDay()
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+      const start = new Date(d.setDate(diff))
+      start.setHours(0, 0, 0, 0)
+      gte = start.toISOString()
+    } else if (range === "month") {
+      const start = new Date()
+      start.setDate(1)
+      start.setHours(0, 0, 0, 0)
+      gte = start.toISOString()
+    }
+
+    let query = this.serviceRole
+      .from("orders")
+      .select("store_id, total_amount, stores(name)")
+      .not("store_id", "is", null)
+      .eq("status", "delivered")
+      .order("created_at", { ascending: false })
+      .limit(500)
+
+    if (gte) query = query.gte("created_at", gte)
+
+    const { data, error } = await query
+    if (error || !data) return []
+
+    const map = new Map<string, { name: string; count: number; revenueCents: number }>()
+    for (const row of data as unknown as { store_id: string; total_amount: number; stores: { name: string } | { name: string }[] | null }[]) {
+      const id = row.store_id
+      const storeName = Array.isArray(row.stores) ? row.stores[0]?.name ?? "Tienda" : row.stores?.name ?? "Tienda"
+      const existing = map.get(id)
+      const rev = Number(row.total_amount) || 0
+      if (existing) {
+        existing.count += 1
+        existing.revenueCents += rev
+      } else {
+        map.set(id, { name: storeName, count: 1, revenueCents: rev })
+      }
+    }
+
+    const arr = Array.from(map.entries()).map(([storeId, v]) => ({
+      storeId,
+      storeName: v.name,
+      count: v.count,
+      revenueCents: v.revenueCents,
+    }))
+
+    // Sort later by caller metric, default revenue for value
+    return arr.sort((a, b) => b.revenueCents - a.revenueCents).slice(0, limit)
+  }
+
+  async getDailyOrders(days = 14): Promise<{ date: string; label: string; count: number }[]> {
+    const start = new Date()
+    start.setDate(start.getDate() - days + 1)
+    start.setHours(0, 0, 0, 0)
+
+    const { data, error } = await this.serviceRole
+      .from("orders")
+      .select("created_at")
+      .gte("created_at", start.toISOString())
+      .order("created_at", { ascending: true })
+      .limit(1000)
+
+    if (error || !data) return []
+
+    const counts = new Map<string, number>()
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      const key = d.toISOString().slice(0, 10)
+      counts.set(key, 0)
+    }
+    for (const row of data as { created_at: string }[]) {
+      const key = row.created_at.slice(0, 10)
+      if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+
+    const fmt = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short" })
+    return Array.from(counts.entries()).map(([date, count]) => ({
+      date,
+      label: fmt.format(new Date(date)),
+      count,
+    }))
+  }
 }
