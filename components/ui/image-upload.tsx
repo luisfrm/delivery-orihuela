@@ -33,7 +33,11 @@ const aspectClasses: Record<NonNullable<ImageUploadProps["aspectRatio"]>, string
   cover: "aspect-[16/9]",
 }
 
-const sizeClasses = "max-h-32 sm:max-h-40"
+const sizeClassesMap: Record<NonNullable<ImageUploadProps["aspectRatio"]>, string> = {
+  square: "",
+  video: "max-h-32 sm:max-h-40",
+  cover: "max-h-32 sm:max-h-40",
+}
 
 export function ImageUpload({
   label,
@@ -153,7 +157,7 @@ export function ImageUpload({
         onDrop={handleDrop}
         className={cn(
           "group relative w-full cursor-pointer overflow-hidden rounded-lg border-2 border-dashed transition-colors",
-          sizeClasses,
+          sizeClassesMap[aspectRatio],
           aspectClasses[aspectRatio],
           isDragOver
             ? "border-primary bg-primary/5"
