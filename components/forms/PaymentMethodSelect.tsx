@@ -42,6 +42,8 @@ interface PaymentMethodSelectProps {
   onContinue: () => void
   /** Navegación al paso anterior (address) */
   onBack: () => void
+  /** Notifica al padre si el formulario es válido (para footer externo) */
+  onValidationChange?: (isValid: boolean) => void
 }
 
 const PAYMENT_METHODS_BUCKET = "organization-assets"
@@ -65,6 +67,7 @@ export function PaymentMethodSelect({
   onChange,
   onContinue,
   onBack,
+  onValidationChange,
 }: PaymentMethodSelectProps) {
   const [methods, setMethods] = useState<PaymentMethod[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -205,8 +208,12 @@ export function PaymentMethodSelect({
     return true
   }, [selectedMethod, paymentFieldInputs, uploadingFields])
 
+  useEffect(() => {
+    onValidationChange?.(isValid)
+  }, [isValid, onValidationChange])
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="pt-4 pb-3 space-y-1">
         <h2 className="text-lg font-bold text-on-surface">Método de pago</h2>
@@ -216,7 +223,7 @@ export function PaymentMethodSelect({
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-5 pb-32">
+      <div className="flex-1 space-y-5">
         {isLoading ? (
           <ul className="space-y-2" aria-busy="true" aria-live="polite">
             {Array.from({ length: 2 }).map((_, i) => (
@@ -370,32 +377,6 @@ export function PaymentMethodSelect({
               </div>
             )}
 
-            {/* Sticky Footer */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant bg-surface-container-lowest px-5 py-3 md:px-6">
-              <div className="mx-auto max-w-md flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline_primary"
-                  size="lg"
-                  onClick={onBack}
-                  className="shrink-0"
-                >
-                  <ArrowLeft className="size-4" />
-                  Volver
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="lg"
-                  onClick={onContinue}
-                  disabled={!isValid}
-                  className="flex-1"
-                >
-                  Continuar
-                  <ArrowRight className="size-4" />
-                </Button>
-              </div>
-            </div>
           </>
         )}
       </div>

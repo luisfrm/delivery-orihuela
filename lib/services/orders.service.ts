@@ -38,6 +38,12 @@ export interface OrderResult {
   orderId?: string
 }
 
+export type AdminOrdersPageResult = {
+  orders: Order[]
+  hasMore: boolean
+  total: number
+}
+
 export class OrdersService {
   constructor(private supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>) {}
 
@@ -272,6 +278,125 @@ export class OrdersService {
       ...row,
       storeName: row.stores?.name ?? null,
     }))
+  }
+
+  // ─── Paginación admin (25 por carga) ──────────────────────────────
+
+  private getDateBounds(dateFilter?: string): { gte?: string; lt?: string } | null {
+    if (!dateFilter || dateFilter === "all") return null
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    let gte: Date | null = null
+    let lt: Date | null = null
+    switch (dateFilter) {
+      case "today":
+        gte = today
+        break
+      case "yesterday": {
+        const y = new Date(today)
+        y.setDate(y.getDate() - 1)
+        gte = y
+        lt = today
+        break
+      }
+      case "this_week": {
+        const sow = new Date(today)
+        const dow = sow.getDay()
+        const diff = sow.getDate() - dow + (dow === 0 ? -6 : 1)
+        sow.setDate(diff)
+        gte = sow
+        break
+      }
+      case "this_month":
+        gte = new Date(now.getFullYear(), now.getMonth(), 1)
+        break
+      default:
+        return null
+    }
+    return {
+      gte: gte ? gte.toISOString() : undefined,
+      lt: lt ? lt.toISOString() : undefined,
+    }
+  }
+
+  async getAdminOrdersPage(opts: {
+    statuses?: OrderStatus[]
+    offset: number
+    limit: number
+    dateFilter?: string
+  }): Promise<AdminOrdersPageResult> {
+    const limit = Math.max(1, Math.min(opts.limit, 50))
+    const offset = Math.max(0, opts.offset)
+    const bounds = this.getDateBounds(opts.dateFilter)
+
+    let query = this.supabase
+      .from("orders")
+      .select("*, stores(name)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (opts.statuses && opts.statuses.length > 0) {
+      query = query.in("status", opts.statuses)
+    }
+    if (bounds?.gte) query = query.gte("created_at", bounds.gte)
+    if (bounds?.lt) query = query.lt("created_at", bounds.lt)
+
+    const { data, error, count } = await query
+
+    if (error) {
+      console.error("Error fetching admin orders page:", error)
+      return { orders: [], hasMore: false, total: 0 }
+    }
+
+    type Row = Order & { stores: { name: string } | null }
+    const orders = ((data || []) as Row[]).map((row) => ({
+      ...row,
+      storeName: row.stores?.name ?? null,
+    }))
+
+    const total = count ?? orders.length
+    const hasMore = offset + limit < total
+    return { orders, hasMore, total }
+  }
+
+  async getAdminOrdersCounts(dateFilter?: string): Promise<Record<string, number> & { total: number }> {
+    const bounds = this.getDateBounds(dateFilter)
+
+    const groups: Record<string, OrderStatus[] | undefined> = {
+      active: ["pending", "assigned", "at_customer", "on_the_way"],
+      pending: ["pending"],
+      in_progress: ["assigned", "on_the_way", "at_customer"],
+      completed: ["delivered", "cancelled"],
+    }
+
+    const entries = await Promise.all(
+      Object.entries(groups).map(async ([key, statuses]) => {
+        let q = this.supabase.from("orders").select("id", { count: "exact", head: true })
+        if (statuses) q = q.in("status", statuses)
+        if (bounds?.gte) q = q.gte("created_at", bounds.gte)
+        if (bounds?.lt) q = q.lt("created_at", bounds.lt)
+        const { count, error } = await q
+        if (error) {
+          console.error(`[counts] ${key}:`, error.message)
+          return [key, 0] as const
+        }
+        return [key, count ?? 0] as const
+      })
+    )
+
+    const out: Record<string, number> & { total: number } = { total: 0 } as unknown as Record<string, number> & { total: number }
+    for (const [k, v] of entries) out[k] = v
+
+    // total de todos (sin filtro status, solo fecha)
+    {
+      let q = this.supabase.from("orders").select("id", { count: "exact", head: true })
+      if (bounds?.gte) q = q.gte("created_at", bounds.gte)
+      if (bounds?.lt) q = q.lt("created_at", bounds.lt)
+      const { count } = await q
+      out.total = count ?? 0
+    }
+
+    return out
   }
 
   async createOrder(params: CreateOrderParams, clientId: string): Promise<OrderResult> {

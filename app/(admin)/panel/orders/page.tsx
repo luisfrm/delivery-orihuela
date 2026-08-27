@@ -1,9 +1,23 @@
-import { getActiveAdminOrders, getRiders } from "@/lib/actions/orders"
+import { getAdminOrdersCounts, getAdminOrdersPage, getRiders } from "@/lib/actions/orders"
 import { AdminOrdersManager } from "@/components/admin/orders/AdminOrdersManager"
 import { Package } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminOrdersPage() {
-  const [orders, riders] = await Promise.all([getActiveAdminOrders(), getRiders()])
+  const pageSize = 25
+  const [initialPage, counts, riders] = await Promise.all([
+    getAdminOrdersPage({
+      statuses: ["pending", "assigned", "at_customer", "on_the_way"],
+      offset: 0,
+      limit: pageSize,
+      dateFilter: "all",
+    }),
+    getAdminOrdersCounts("all"),
+    getRiders(),
+  ])
+
+  const total = counts.total
 
   return (
     <div className="space-y-6 mx-auto max-w-7xl ">
@@ -14,14 +28,19 @@ export default async function AdminOrdersPage() {
         <div>
           <h1 className="text-headline-lg font-bold text-on-surface">Pedidos</h1>
           <p className="text-body-sm text-on-surface-variant">
-            {orders.length > 0
-              ? `${orders.length} pedido${orders.length !== 1 ? "s" : ""}`
-              : "Gestiona los pedidos del sistema"}
+            {total > 0 ? `${total} pedido${total !== 1 ? "s" : ""}` : "Gestiona los pedidos del sistema"}
           </p>
         </div>
       </div>
 
-      <AdminOrdersManager initialOrders={orders} riders={riders} />
+      <AdminOrdersManager
+        initialOrders={initialPage.orders}
+        initialHasMore={initialPage.hasMore}
+        initialCounts={counts}
+        initialTotal={initialPage.total}
+        riders={riders}
+        pageSize={pageSize}
+      />
     </div>
   )
 }

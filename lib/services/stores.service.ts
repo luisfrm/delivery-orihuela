@@ -254,6 +254,71 @@ export class StoresService {
     }
   }
 
+  /**
+   * Paginated product fetch for client infinite scroll.
+   * Single responsibility: only client menu (20/page), not admin editor.
+   * - Filters is_active=true server-side (was client-side before)
+   * - Uses range(offset, offset+limit-1) → real pagination, not slice
+   * - categoryId null = "Todas" (ordered by menu_category + position)
+   * - Returns hasMore via length===limit (avoids count query)
+   * - categoryOrder only meaningful on first page, but returned always for convenience
+   */
+  async getStoreProductsPage(
+    slug: string,
+    opts: { categoryId: string | null; offset: number; limit: number }
+  ): Promise<{
+    store: Store
+    products: Product[]
+    categoryOrder: string[]
+    hasMore: boolean
+  } | null> {
+    const { categoryId, offset, limit } = opts
+
+    const safeOffset = Math.max(0, offset)
+    const safeLimit = Math.min(Math.max(1, limit), 50)
+
+    const { data: store, error: storeError } = await this.supabase
+      .from("stores")
+      .select("*")
+      .eq("slug", slug)
+      .single()
+
+    if (storeError || !store) {
+      return null
+    }
+
+    let query = this.supabase
+      .from("products")
+      .select("*")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+
+    if (categoryId) {
+      query = query.eq("menu_category", categoryId).order("position", { ascending: true })
+    } else {
+      query = query
+        .order("menu_category", { ascending: true, nullsFirst: false })
+        .order("position", { ascending: true })
+    }
+
+    query = query.range(safeOffset, safeOffset + safeLimit - 1)
+
+    const { data: products, error: productsError } = await query
+
+    if (productsError) {
+      console.error("Error fetching paginated products:", productsError)
+      return null
+    }
+
+    const page = (products || []) as Product[]
+    return {
+      store,
+      products: page,
+      categoryOrder: parseCategoryOrder(store.menu_category_order),
+      hasMore: page.length === safeLimit,
+    }
+  }
+
   async saveMenuOrdering(
     storeId: string,
     payload: {

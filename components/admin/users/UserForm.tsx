@@ -233,6 +233,10 @@ export function UserForm({ mode, user, onClose, onSaved }: UserFormProps) {
           return
         }
         toast.success("Usuario creado exitosamente", { id: toastId })
+        onSaved?.(result.user!)
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("user-created", { detail: result.user }))
+        }
         router.refresh()
         setStep("success")
       }

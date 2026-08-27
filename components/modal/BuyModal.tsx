@@ -11,10 +11,11 @@ import { BuyForm } from "@/components/forms/BuyForm"
 import { Button } from "@/components/ui/button"
 
 const STEP_SUBTITLES: Record<string, string> = {
-  store: "Paso 1 de 4 · Selección",
-  menu: "Paso 2 de 4 · Menú",
-  address: "Paso 3 de 4 · Entrega",
-  preview: "Paso 4 de 4 · Confirmar",
+  store: "Paso 1 de 5 · Selección",
+  menu: "Paso 2 de 5 · Menú",
+  address: "Paso 3 de 5 · Entrega",
+  payment: "Paso 4 de 5 · Pago",
+  preview: "Paso 5 de 5 · Confirmar",
   success: "Pedido enviado",
 }
 
@@ -57,7 +58,8 @@ export default function BuyModal({
         icon={<ShoppingCart className="size-[18px]" />}
         title="Comprar"
         subtitle={subtitle}
-        desktopMaxWidth="max-w-md"
+        desktopMaxWidth="max-w-xl"
+        bodyClassName="p-0 overflow-hidden flex flex-col"
       >
         <BuyForm onStepChange={setStep} />
       </ResponsiveModalContent>

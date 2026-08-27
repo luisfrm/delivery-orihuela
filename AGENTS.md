@@ -72,7 +72,7 @@ El primer usuario admin se crea a través de la página `/init`:
 - `lib/supabase/service-role.ts` — Service role client (admin operations only)
 - `lib/supabase/storage.ts` — Restaurant + product image upload/delete (`Delivery Orihuela Bucket`): `uploadRestaurantImage`, `uploadProductImage`, `deleteStorageObjects`
 - `lib/supabase/organization-storage.ts` — Organization assets
-- Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - Server actions:
   - `lib/actions/auth.ts` (signUp, signIn, signOut, verifyOtp, resendOtp, getUserRole)
   - `lib/actions/profile.ts` (getProfile, updateProfile)

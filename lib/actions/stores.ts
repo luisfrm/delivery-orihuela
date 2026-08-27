@@ -314,6 +314,22 @@ export async function getStoreMenuBySlug(slug: string): Promise<StoreMenuData | 
   return service.getStoreMenuBySlug(slug)
 }
 
+export interface StoreProductsPageData {
+  store: Store
+  products: Product[]
+  categoryOrder: string[]
+  hasMore: boolean
+}
+
+export async function getStoreProductsPage(
+  slug: string,
+  opts: { categoryId: string | null; offset: number; limit: number }
+): Promise<StoreProductsPageData | null> {
+  const supabase = await createClient()
+  const service = new StoresService(supabase)
+  return service.getStoreProductsPage(slug, opts)
+}
+
 export interface SaveMenuOrderingPayload {
   categoryOrder: string[]
   productOrdering: { id: string; menu_category: string; position: number }[]

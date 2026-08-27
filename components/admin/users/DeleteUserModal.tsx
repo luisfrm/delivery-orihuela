@@ -19,12 +19,14 @@ interface DeleteUserModalProps {
   user: UserWithProfile
   open: boolean
   onOpenChange: (open: boolean) => void
+  onDeleted?: (userId: string) => void
 }
 
 export function DeleteUserModal({
   user,
   open,
   onOpenChange,
+  onDeleted,
 }: DeleteUserModalProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
@@ -42,6 +44,7 @@ export function DeleteUserModal({
         return
       }
       toast.success("Usuario eliminado", { id: toastId })
+      onDeleted?.(user.id)
       router.refresh()
       onOpenChange(false)
     } catch {
